@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+import yaml
 from dotenv import load_dotenv
 from pydantic import Field, HttpUrl, SecretStr, validator
 from pydantic_settings import BaseSettings
@@ -256,14 +257,83 @@ class AppConfig(BaseSettings):
 _config: Optional[AppConfig] = None
 
 
-def load_config(env_file: Optional[Union[str, Path]] = None, reload: bool = False) -> AppConfig:
+def load_yaml_config(yaml_file: Optional[Union[str, Path]] = None) -> Dict[str, Any]:
+    """Load configuration from YAML file.
+
+    Args:
+        yaml_file: Path to YAML configuration file (default: config.yaml)
+
+    Returns:
+        Configuration dictionary from YAML file, or empty dict if file doesn't exist
+
+    Raises:
+        ConfigurationError: If YAML file exists but cannot be parsed
+    """
+    if yaml_file is None:
+        yaml_file = "config.yaml"
+
+    yaml_path = Path(yaml_file)
+
+    # Return empty dict if YAML file doesn't exist (optional configuration)
+    if not yaml_path.exists():
+        # Try to find config.yaml in common locations
+        potential_paths = [
+            Path("config.yaml"),
+            Path.cwd() / "config.yaml",
+            Path(__file__).parent.parent.parent / "config.yaml",
+        ]
+        for potential_yaml in potential_paths:
+            if potential_yaml.exists():
+                yaml_path = potential_yaml
+                break
+        else:
+            return {}
+
+    try:
+        with open(yaml_path, "r", encoding="utf-8") as f:
+            yaml_config = yaml.safe_load(f) or {}
+
+        # Flatten nested configuration for Pydantic Settings compatibility
+        flattened = {}
+
+        # Handle nested sections by flattening with prefixes
+        for section, values in yaml_config.items():
+            if isinstance(values, dict):
+                for key, value in values.items():
+                    # Convert to environment variable style names
+                    env_key = f"{section.upper()}_{key.upper()}"
+                    flattened[env_key] = value
+            else:
+                # Top-level values get ALERT_AGENT_ prefix for app config
+                if section in ["name", "version", "environment", "debug"]:
+                    env_key = f"ALERT_AGENT_{section.upper()}"
+                else:
+                    env_key = section.upper()
+                flattened[env_key] = values
+
+        return flattened
+
+    except yaml.YAMLError as e:
+        raise ConfigurationError(f"Failed to parse YAML configuration file {yaml_path}: {str(e)}")
+    except Exception as e:
+        raise ConfigurationError(f"Failed to load YAML configuration file {yaml_path}: {str(e)}")
+
+
+def load_config(
+    env_file: Optional[Union[str, Path]] = None,
+    yaml_file: Optional[Union[str, Path]] = None,
+    reload: bool = False,
+) -> AppConfig:
     """Load and validate application configuration.
 
-    Loads environment variables from .env file using python-dotenv, then creates
-    Pydantic settings with precedence: CLI > ENV > YAML > code defaults.
+    Loads configuration from multiple sources with precedence: CLI > ENV > YAML > code defaults.
+    1. Loads YAML configuration file (optional)
+    2. Loads .env file using python-dotenv
+    3. Creates Pydantic settings with merged configuration
 
     Args:
         env_file: Optional path to .env file (default: .env in current directory)
+        yaml_file: Optional path to YAML config file (default: config.yaml)
         reload: Force reload configuration
 
     Returns:
@@ -278,7 +348,19 @@ def load_config(env_file: Optional[Union[str, Path]] = None, reload: bool = Fals
         return _config
 
     try:
-        # Load environment variables from .env file
+        # Step 1: Load YAML configuration (lowest precedence after code defaults)
+        yaml_config = load_yaml_config(yaml_file)
+
+        # Step 2: Apply YAML config to environment (but don't override existing env vars)
+        for key, value in yaml_config.items():
+            if key not in os.environ:
+                # Convert values to strings for environment variables
+                if isinstance(value, bool):
+                    os.environ[key] = str(value).lower()
+                elif value is not None:
+                    os.environ[key] = str(value)
+
+        # Step 3: Load environment variables from .env file
         # Default to .env in current directory if no specific file provided
         if env_file is None:
             env_file = ".env"
@@ -301,7 +383,8 @@ def load_config(env_file: Optional[Union[str, Path]] = None, reload: bool = Fals
                     load_dotenv(dotenv_path=potential_env, override=False)
                     break
 
-        # Load configuration with automatic environment variable detection
+        # Step 4: Create configuration with automatic environment variable detection
+        # Precedence is now: ENV variables > YAML config > code defaults
         _config = AppConfig()
 
         return _config

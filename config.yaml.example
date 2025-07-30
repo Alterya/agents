@@ -1,0 +1,64 @@
+# Daily Alert Summary Agent - YAML Configuration
+# ==============================================
+# Copy this file to config.yaml and customize as needed
+# This file provides defaults that can be overridden by environment variables
+
+# Application Settings
+app:
+  name: "daily-alert-summary-agent"
+  version: "0.1.0"
+  environment: "development"  # development, staging, production
+  debug: false
+
+# Grafana MCP Configuration
+grafana:
+  base_url: "https://your-grafana-instance.com"
+  # token: "your_token_here"  # Use environment variable instead
+  org_id: "1"
+  timeout_seconds: 30
+  retry_attempts: 3
+  lookback_hours: 24
+
+# Slack Integration
+slack:
+  # bot_token: "xoxb-your-token"  # Use environment variable instead
+  # channel_id: "C1234567890"     # Use environment variable instead
+  timeout_seconds: 20
+  max_message_length: 4000
+  thread_replies: false
+  retry_attempts: 3
+
+# OpenRouter AI Configuration
+openrouter:
+  # api_key: "your_key_here"  # Use environment variable instead
+  model: "anthropic/claude-3.5-sonnet"
+  max_tokens: 4000
+  temperature: 0.2
+  timeout_seconds: 120
+  enabled: true
+
+# Scheduler Configuration
+scheduler:
+  time: "09:00"  # Daily execution time in HH:MM format
+  timezone: "UTC"  # IANA timezone name
+  enabled: true
+  max_execution_minutes: 15
+
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  file: null  # Optional: specify log file path
+  format: "%(asctime)s | %(levelname)8s | %(name)s | %(message)s"
+  rotation_size: "10 MB"
+  retention_days: 30
+
+# Feature Flags
+features:
+  ai_grouping: true
+  summary_refinement: true
+  slack_threading: false
+  advanced_filtering: true
+  metric_collection: false
+
+# Note: Sensitive values (tokens, API keys) should be set via environment variables
+# rather than stored in this YAML file. Use .env file or system environment variables.

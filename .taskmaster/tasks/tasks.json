@@ -137,8 +137,8 @@
               "14.1",
               "14.2"
             ],
-            "details": "Use ruamel.yaml or PyYAML to parse, then pass merged dict to Settings(**kwargs) for validation.",
-            "status": "pending"
+            "details": "Use ruamel.yaml or PyYAML to parse, then pass merged dict to Settings(**kwargs) for validation.\n<info added on 2025-07-30T14:45:58.670Z>\nImplementation complete:\n\n• Added PyYAML (6.0.1) to prod deps and types-PyYAML to dev deps, updated lockfile  \n• Introduced config.yaml.example with fully documented defaults covering app, grafana, slack, openrouter, scheduler, logging and feature flags  \n• Implemented load_yaml_config()  \n  – Safe YAML parsing (yaml.safe_load, utf-8) with smart discovery in common paths  \n  – Graceful handling of absent file and detailed parse errors  \n  – Converts nested keys to ENV format (e.g. grafana.timeout_seconds → GRAFANA_TIMEOUT_SECONDS)  \n• Extended load_config() merge pipeline  \n  1. YAML (lowest) → env (non-destructive)  \n  2. .env via python-dotenv  \n  3. Pydantic Settings(**merged) for validation  \n  – Correct bool/type casting, precedence: ENV > YAML > code defaults  \n• All quality gates pass (black, isort, mypy, bandit, pre-commit) and CLI behaviour verified  \n• Backwards compatible with existing ENV-only setups and ready for CLI overrides in 14.4\n</info added on 2025-07-30T14:45:58.670Z>",
+            "status": "in-progress"
           },
           {
             "id": 4,
@@ -759,7 +759,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:57:21.028Z",
-      "updated": "2025-07-30T14:34:29.245Z",
+      "updated": "2025-07-30T14:37:50.173Z",
       "description": "Tasks for master context"
     }
   }

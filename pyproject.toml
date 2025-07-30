@@ -43,6 +43,9 @@ rich = "13.7.1"
 # Enhanced Pydantic settings management
 pydantic-settings = "2.3.4"
 
+# YAML configuration file parsing
+pyyaml = "6.0.1"
+
 # Structured logging for better production logging
 structlog = "24.1.0"
 
@@ -57,6 +60,9 @@ requests-toolbelt = "1.0.0"
 black = "24.4.2"
 isort = "5.13.2"
 mypy = "1.10.0"
+
+# Type stubs for external libraries
+types-PyYAML = "^6.0.12"
 
 # Pre-commit hooks for automated quality checks
 pre-commit = "^3.0.0"
