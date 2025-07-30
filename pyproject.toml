@@ -1,0 +1,146 @@
+[tool.poetry]
+name = "daily-alert-summary-agent"
+version = "0.1.0"
+description = "A Python application that collects, processes, and summarizes alerts from Grafana MCP, then delivers intelligent summaries via Slack notifications."
+authors = ["Daily Alert Team <alerts@example.com>"]
+readme = "README.md"
+packages = [{include = "alert_agent", from = "src"}]
+
+[tool.poetry.dependencies]
+# Python 3.10 requirement (updated from 3.11 per user request)
+python = "^3.10"
+
+# HTTP client for Grafana MCP and Slack API calls (2024-05 release)
+httpx = "0.27.0"
+
+# Scheduler for Jerusalem timezone daily triggers (pytz support)
+apscheduler = "3.10.4"
+
+# Environment variable loading for configuration
+python-dotenv = "1.0.1"
+
+# Configuration validation and settings management
+pydantic = "2.7.0"
+
+# Structured logging with rotation and formatting
+loguru = "0.7.2"
+
+# Exponential backoff for retry logic on API failures
+backoff = "2.2.1"
+
+# Timezone data for Jerusalem timezone handling (if system missing)
+tzdata = "2024.1"
+
+[tool.poetry.group.dev.dependencies]
+# Testing framework and async support (2024 versions)
+pytest = "8.2.0"
+pytest-asyncio = "0.23.6"
+
+# Code formatting and linting tools
+black = "24.4.2"
+isort = "5.13.2"
+mypy = "1.10.0"
+
+# Pre-commit hooks for automated quality checks
+pre-commit = "^3.0.0"
+
+# Test coverage reporting
+coverage = {extras = ["toml"], version = "^7.4.0"}
+
+[tool.poetry.scripts]
+alert-agent = "alert_agent.orchestrator:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# Black configuration
+[tool.black]
+line-length = 100
+target-version = ['py310']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# isort configuration
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["alert_agent"]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+# mypy configuration
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+# pytest configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=src/alert_agent",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "asyncio: marks tests as async",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+asyncio_mode = "auto"
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\bProtocol\):",
+    "@(abc\.)?abstractmethod",
+]
