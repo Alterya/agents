@@ -5,7 +5,7 @@
         "id": 13,
         "title": "Project Scaffolding & Dependency Definition",
         "description": "Create repository, isolate Python 3.11 environment and lock core dependencies for all modules of the Daily Alert Summary Agent.",
-        "details": "\u2022 Initialise git repo and add standard .gitignore (Python, venv, secrets)\n\u2022 pyproject.toml (preferred) or requirements.txt with pinned libs:\n  - python 3.11\n  - httpx==0.27.0 (2024-05)\n  - APScheduler==3.10.4 (Jerusalem TZ handled by pytz)\n  - python-dotenv==1.0.1\n  - pydantic==2.7.0 for config validation\n  - loguru==0.7.2\n  - backoff==2.2.1\n  - tzdata==2024.1 (if system zoneinfo missing)\n  - pytest==8.2.0, pytest-asyncio==0.23.6 (dev)\n\u2022 Directory layout:\n  src/\n    alert_agent/\n      __init__.py\n      config.py\n      scheduler.py\n      collector.py\n      ai_processor.py\n      summary.py\n      notifier.py\n      orchestrator.py\n  tests/\n\u2022 Pre-commit hooks: black==24.4.2, isort==5.13.2, mypy==1.10.0\n",
+        "details": "• Initialise git repo and add standard .gitignore (Python, venv, secrets)\n• pyproject.toml (preferred) or requirements.txt with pinned libs:\n  - python 3.11\n  - httpx==0.27.0 (2024-05)\n  - APScheduler==3.10.4 (Jerusalem TZ handled by pytz)\n  - python-dotenv==1.0.1\n  - pydantic==2.7.0 for config validation\n  - loguru==0.7.2\n  - backoff==2.2.1\n  - tzdata==2024.1 (if system zoneinfo missing)\n  - pytest==8.2.0, pytest-asyncio==0.23.6 (dev)\n• Directory layout:\n  src/\n    alert_agent/\n      __init__.py\n      config.py\n      scheduler.py\n      collector.py\n      ai_processor.py\n      summary.py\n      notifier.py\n      orchestrator.py\n  tests/\n• Pre-commit hooks: black==24.4.2, isort==5.13.2, mypy==1.10.0\n",
         "priority": "high",
         "dependencies": [],
         "status": "done",
@@ -13,9 +13,9 @@
           {
             "id": 1,
             "title": "Initialize Git repository and baseline .gitignore",
-            "description": "Create the project\u2019s VCS foundation and ensure sensitive or transient files are ignored.",
+            "description": "Create the project’s VCS foundation and ensure sensitive or transient files are ignored.",
             "dependencies": [],
-            "details": "\u2022 Run `git init` in project root.\n\u2022 Add a comprehensive .gitignore covering Python bytecode, virtual-env directories, OS files, IDE configs, and secret files (.env, *.pem).\n\u2022 Commit initial empty repository state with message \u201cchore: initial repo & .gitignore\u201d.\n<info added on 2025-07-30T10:56:16.181Z>\n\u2022 Completed implementation: repository confirmed initialized, .gitignore replaced with Python-centric patterns (bytecode, venv, dist/test artefacts, secrets, OS & IDE files) and committed as \u201cchore: initial repo & .gitignore\u201d (hash 46585c2).  \n\u2022 Verification: repository contains exactly one commit; ignored file check passes for all specified patterns.  \n\u2022 Subtask marked complete; advance to 13.2 to scaffold canonical src/ and tests/ directories.\n</info added on 2025-07-30T10:56:16.181Z>",
+            "details": "• Run `git init` in project root.\n• Add a comprehensive .gitignore covering Python bytecode, virtual-env directories, OS files, IDE configs, and secret files (.env, *.pem).\n• Commit initial empty repository state with message “chore: initial repo & .gitignore”.\n<info added on 2025-07-30T10:56:16.181Z>\n• Completed implementation: repository confirmed initialized, .gitignore replaced with Python-centric patterns (bytecode, venv, dist/test artefacts, secrets, OS & IDE files) and committed as “chore: initial repo & .gitignore” (hash 46585c2).  \n• Verification: repository contains exactly one commit; ignored file check passes for all specified patterns.  \n• Subtask marked complete; advance to 13.2 to scaffold canonical src/ and tests/ directories.\n</info added on 2025-07-30T10:56:16.181Z>",
             "status": "done"
           },
           {
@@ -25,7 +25,7 @@
             "dependencies": [
               "13.1"
             ],
-            "details": "\u2022 Generate folder tree:\n  src/alert_agent/ (__init__.py, config.py, scheduler.py, collector.py, ai_processor.py, summary.py, notifier.py, orchestrator.py)\n  tests/ (empty __init__.py)\n\u2022 Add placeholder docstrings in each module to pass import.\n\u2022 Commit as \u201cchore: scaffold package layout\u201d.\n<info added on 2025-07-30T11:00:04.070Z>\n\u2022 Scaffolding finished: src/alert_agent/ and tests/ directories created with all eight module files plus tests/__init__.py (9 files, ~230 LOC).  \n\u2022 Each module contains placeholder docstrings, function stubs, and __all__ exports where applicable.  \n\u2022 Changes committed under hash e09d9b6 with message \u201cchore: scaffold package layout\u201d.  \n\u2022 Subtask 13.2 now complete; hand-off to 13.3 for pyproject.toml dependency manifest.\n</info added on 2025-07-30T11:00:04.070Z>",
+            "details": "• Generate folder tree:\n  src/alert_agent/ (__init__.py, config.py, scheduler.py, collector.py, ai_processor.py, summary.py, notifier.py, orchestrator.py)\n  tests/ (empty __init__.py)\n• Add placeholder docstrings in each module to pass import.\n• Commit as “chore: scaffold package layout”.\n<info added on 2025-07-30T11:00:04.070Z>\n• Scaffolding finished: src/alert_agent/ and tests/ directories created with all eight module files plus tests/__init__.py (9 files, ~230 LOC).  \n• Each module contains placeholder docstrings, function stubs, and __all__ exports where applicable.  \n• Changes committed under hash e09d9b6 with message “chore: scaffold package layout”.  \n• Subtask 13.2 now complete; hand-off to 13.3 for pyproject.toml dependency manifest.\n</info added on 2025-07-30T11:00:04.070Z>",
             "status": "done"
           },
           {
@@ -35,7 +35,7 @@
             "dependencies": [
               "13.1"
             ],
-            "details": "\u2022 Write pyproject.toml using PEP-621 metadata and `[project.dependencies]` section listing exact versions for httpx, APScheduler, python-dotenv, pydantic, loguru, backoff, tzdata, and optional `[project.optional-dependencies.dev]` for pytest/pytest-asyncio.\n\u2022 Include build-system table using `hatchling` or `setuptools`.\n\u2022 Add explanatory comments on version pin dates.\n\u2022 Commit as \u201cfeat: dependency manifest\u201d.\n<info added on 2025-07-30T11:57:32.256Z>\n\u2022 Dependency manifest finalized via Poetry: created pyproject.toml targeting Python 3.10, declaring pinned production deps (httpx 0.27.0, APScheduler 3.10.4, python-dotenv 1.0.1, pydantic 2.7.0, loguru 0.7.2, backoff 2.2.1, tzdata 2024.1) with dated inline comments.  \n\u2022 Added comprehensive development group: pytest 8.2.0, pytest-asyncio 0.23.6, black 24.4.2, isort 5.13.2, mypy 1.10.0, pre-commit, coverage.  \n\u2022 Switched build-system to Poetry (poetry-core backend) and populated `[tool.poetry]` metadata, dependency tables, and `scripts` exposing `alert-agent` CLI.  \n\u2022 Embedded tool configs (black, isort, mypy, pytest, coverage) within pyproject and set package layout to `src/alert_agent`.  \n\u2022 Manifest committed as `feat: dependency manifest` (hash bafe20b).  \n\u2022 Subtask complete; hand-off to 13.4 for Poetry virtual-env creation and lockfile generation.\n</info added on 2025-07-30T11:57:32.256Z>",
+            "details": "• Write pyproject.toml using PEP-621 metadata and `[project.dependencies]` section listing exact versions for httpx, APScheduler, python-dotenv, pydantic, loguru, backoff, tzdata, and optional `[project.optional-dependencies.dev]` for pytest/pytest-asyncio.\n• Include build-system table using `hatchling` or `setuptools`.\n• Add explanatory comments on version pin dates.\n• Commit as “feat: dependency manifest”.\n<info added on 2025-07-30T11:57:32.256Z>\n• Dependency manifest finalized via Poetry: created pyproject.toml targeting Python 3.10, declaring pinned production deps (httpx 0.27.0, APScheduler 3.10.4, python-dotenv 1.0.1, pydantic 2.7.0, loguru 0.7.2, backoff 2.2.1, tzdata 2024.1) with dated inline comments.  \n• Added comprehensive development group: pytest 8.2.0, pytest-asyncio 0.23.6, black 24.4.2, isort 5.13.2, mypy 1.10.0, pre-commit, coverage.  \n• Switched build-system to Poetry (poetry-core backend) and populated `[tool.poetry]` metadata, dependency tables, and `scripts` exposing `alert-agent` CLI.  \n• Embedded tool configs (black, isort, mypy, pytest, coverage) within pyproject and set package layout to `src/alert_agent`.  \n• Manifest committed as `feat: dependency manifest` (hash bafe20b).  \n• Subtask complete; hand-off to 13.4 for Poetry virtual-env creation and lockfile generation.\n</info added on 2025-07-30T11:57:32.256Z>",
             "status": "done"
           },
           {
@@ -46,7 +46,7 @@
               "13.1",
               "13.3"
             ],
-            "details": "\u2022 Use `python3.11 -m venv .venv` (or pyenv + virtualenv).\n\u2022 Activate and run `pip install -e .[dev]`.\n\u2022 Generate `requirements-lock.txt` via `pip freeze > requirements-lock.txt` or rely on poetry/rye lock file.\n\u2022 Document activation instructions in README.\n\u2022 Commit as \u201cchore: env setup & deps lock\u201d.\n<info added on 2025-07-30T12:03:47.966Z>\n\u2022 Environment provisioned with Poetry: `poetry env use python3.10` and `poetry install` (42 packages resolved and installed)  \n\u2022 Syntax fixes applied to pyproject.toml (escaped coverage paths)  \n\u2022 Generated and committed 72 KB `poetry.lock` for deterministic builds  \n\u2022 Verified key imports, timezone handling, and package export integrity  \n\u2022 Extended README with setup instructions, Poetry workflow, and architecture overview  \n\u2022 Changes committed as \u201cchore: env setup & deps lock\u201d (dcba130) \u2013 subtask ready to hand off to 13.5\n</info added on 2025-07-30T12:03:47.966Z>",
+            "details": "• Use `python3.11 -m venv .venv` (or pyenv + virtualenv).\n• Activate and run `pip install -e .[dev]`.\n• Generate `requirements-lock.txt` via `pip freeze > requirements-lock.txt` or rely on poetry/rye lock file.\n• Document activation instructions in README.\n• Commit as “chore: env setup & deps lock”.\n<info added on 2025-07-30T12:03:47.966Z>\n• Environment provisioned with Poetry: `poetry env use python3.10` and `poetry install` (42 packages resolved and installed)  \n• Syntax fixes applied to pyproject.toml (escaped coverage paths)  \n• Generated and committed 72 KB `poetry.lock` for deterministic builds  \n• Verified key imports, timezone handling, and package export integrity  \n• Extended README with setup instructions, Poetry workflow, and architecture overview  \n• Changes committed as “chore: env setup & deps lock” (dcba130) – subtask ready to hand off to 13.5\n</info added on 2025-07-30T12:03:47.966Z>",
             "status": "done"
           },
           {
@@ -58,14 +58,14 @@
               "13.3",
               "13.4"
             ],
-            "details": "\u2022 Add `.pre-commit-config.yaml` pins: black==24.4.2, isort==5.13.2, mypy==1.10.0.\n\u2022 Run `pre-commit install` inside venv.\n\u2022 Update pyproject.toml with tool configs for black and isort (line length 100, known_first_party alert_agent).\n\u2022 Commit as \u201cchore: pre-commit & lint setup\u201d.\n<info added on 2025-07-30T12:19:38.438Z>\n\u2705 COMPLETED  \n\n\u2022 Added fully-pinned `.pre-commit-config.yaml` (black 24.4.2, isort 5.13.2, mypy 1.10.0) and installed hooks with `poetry run pre-commit install`.  \n\u2022 Enabled additional quality checks: whitespace/EOF cleanup, merge-conflict detection, YAML/TOML/JSON validation, Bandit security scan (tests/ excluded), Python debug-statement blocker.  \n\u2022 Extended `pyproject.toml` with matching black/isort settings (line-length 100, profile=black, known_first_party=alert_agent).  \n\u2022 Applied type-annotation fixes across 7 modules; all mypy checks now pass.  \n\u2022 Verified hook suite: black formats, isort orders, mypy validates, CI exits 0; 34 files auto-formatted on first commit.  \n\u2022 Commit recorded as `chore: pre-commit & lint setup` (hash 8af0a9f).  \n\nSubtask 13.5 is now complete; ready to move to 13.6 (cleanup & code organisation).\n</info added on 2025-07-30T12:19:38.438Z>",
+            "details": "• Add `.pre-commit-config.yaml` pins: black==24.4.2, isort==5.13.2, mypy==1.10.0.\n• Run `pre-commit install` inside venv.\n• Update pyproject.toml with tool configs for black and isort (line length 100, known_first_party alert_agent).\n• Commit as “chore: pre-commit & lint setup”.\n<info added on 2025-07-30T12:19:38.438Z>\n✅ COMPLETED  \n\n• Added fully-pinned `.pre-commit-config.yaml` (black 24.4.2, isort 5.13.2, mypy 1.10.0) and installed hooks with `poetry run pre-commit install`.  \n• Enabled additional quality checks: whitespace/EOF cleanup, merge-conflict detection, YAML/TOML/JSON validation, Bandit security scan (tests/ excluded), Python debug-statement blocker.  \n• Extended `pyproject.toml` with matching black/isort settings (line-length 100, profile=black, known_first_party=alert_agent).  \n• Applied type-annotation fixes across 7 modules; all mypy checks now pass.  \n• Verified hook suite: black formats, isort orders, mypy validates, CI exits 0; 34 files auto-formatted on first commit.  \n• Commit recorded as `chore: pre-commit & lint setup` (hash 8af0a9f).  \n\nSubtask 13.5 is now complete; ready to move to 13.6 (cleanup & code organisation).\n</info added on 2025-07-30T12:19:38.438Z>",
             "status": "done"
           },
           {
             "id": 6,
             "title": "Cleanup and Code Organization",
             "description": "Remove temporary files, organize imports, and ensure clean code structure",
-            "details": "<info added on 2025-07-30T12:22:24.652Z>\nCompleted cleanup and code organization:\n\n\u2022 Removed unused alerts_summery directory  \n\u2022 Imports, formatting, and type hints all validate clean (isort, black, mypy)  \n\u2022 No temporary or cache files outside .venv; structure conforms to src/package layout  \n\u2022 Repository working tree is clean; pre-commit hooks all pass  \n\nValidated directory tree:  \n  src/alert_agent/ (8 modules)  \n  tests/  \n  .venv/ (git-ignored)  \n  .taskmaster/  \n  .cursor/  \n\nCommitted as \u201cchore: cleanup and code organization\u201d (hash 461b216). Subtask 13.6 is finished and ready to hand off to Quality Gate (13.7).\n</info added on 2025-07-30T12:22:24.652Z>",
+            "details": "<info added on 2025-07-30T12:22:24.652Z>\nCompleted cleanup and code organization:\n\n• Removed unused alerts_summery directory  \n• Imports, formatting, and type hints all validate clean (isort, black, mypy)  \n• No temporary or cache files outside .venv; structure conforms to src/package layout  \n• Repository working tree is clean; pre-commit hooks all pass  \n\nValidated directory tree:  \n  src/alert_agent/ (8 modules)  \n  tests/  \n  .venv/ (git-ignored)  \n  .taskmaster/  \n  .cursor/  \n\nCommitted as “chore: cleanup and code organization” (hash 461b216). Subtask 13.6 is finished and ready to hand off to Quality Gate (13.7).\n</info added on 2025-07-30T12:22:24.652Z>",
             "status": "done",
             "dependencies": [
               "13.1",
@@ -80,7 +80,7 @@
             "id": 7,
             "title": "Quality Gate: Tests and Linting",
             "description": "Run comprehensive tests and linting checks to ensure code quality standards",
-            "details": "<info added on 2025-07-30T12:30:14.628Z>\nQuality Gate completed and documented:\n\n\u2022 Implemented tests/test_basic.py with four foundational checks (package import, individual module import, metadata, placeholder callability).  \n\u2022 Added pytest-cov; current baseline coverage 57 %.  \n\u2022 All tooling clean: pytest (4 / 4), mypy (8 files, 0 issues), black, isort, bandit, and pre-commit hooks.  \n\u2022 Optimised mypy/pre-commit configs\u2014code under src/ only, tests isolated with ignore_missing_imports.  \n\u2022 Manual verification confirms package imports, seven modules present, core deps functional, version 0.1.0 correct.  \n\u2022 Committed under hash 7d3b438: \u201cfeat: add comprehensive test suite and complete quality gate\u201d.\n\nSubtask 13.7 now satisfies quality gate requirements; ready to advance to dependency research (13.8).\n</info added on 2025-07-30T12:30:14.628Z>",
+            "details": "<info added on 2025-07-30T12:30:14.628Z>\nQuality Gate completed and documented:\n\n• Implemented tests/test_basic.py with four foundational checks (package import, individual module import, metadata, placeholder callability).  \n• Added pytest-cov; current baseline coverage 57 %.  \n• All tooling clean: pytest (4 / 4), mypy (8 files, 0 issues), black, isort, bandit, and pre-commit hooks.  \n• Optimised mypy/pre-commit configs—code under src/ only, tests isolated with ignore_missing_imports.  \n• Manual verification confirms package imports, seven modules present, core deps functional, version 0.1.0 correct.  \n• Committed under hash 7d3b438: “feat: add comprehensive test suite and complete quality gate”.\n\nSubtask 13.7 now satisfies quality gate requirements; ready to advance to dependency research (13.8).\n</info added on 2025-07-30T12:30:14.628Z>",
             "status": "done",
             "dependencies": [
               "13.6"
@@ -91,7 +91,7 @@
             "id": 8,
             "title": "Context7 MCP Research: External Package Dependencies",
             "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
-            "details": "<info added on 2025-07-30T12:33:46.980Z>\nContext7 MCP research completed and external dependencies validated.\n\nDependencies approved\n\u2022 httpx==0.27.0 \u2013 async-first client with connection pooling, HTTP/2, robust timeout handling.  \n\u2022 pydantic==2.7.0 \u2013 high-performance data/config validation, rich type support, strong community.  \n\u2022 APScheduler==3.10.4 \u2013 Jerusalem-aware scheduling, sync/async APIs, clean shutdown hooks.\n\nKey findings\n\u2022 All versions current, stable and free of known CVEs; licences compatible.  \n\u2022 Integration patterns verified for our async architecture (Grafana polling, Slack posting).  \n\u2022 Performance characteristics meet requirements; community support is strong.\n\nImplementation notes\n\u2022 Perform HTTP calls with `async with httpx.AsyncClient()` and add backoff retries.  \n\u2022 Define configuration models using Pydantic `ConfigDict` and custom validators.  \n\u2022 Start APScheduler with `timezone=\"Asia/Jerusalem\"` and ensure graceful shutdown via context manager.\n\nOutcome\n\u2022 Dependency list in parent task is confirmed; lock versions in pyproject/requirements.  \n\u2022 Research phase finished\u2014subtask 13.8 can be closed and work proceeds to Task 14.\n</info added on 2025-07-30T12:33:46.980Z>",
+            "details": "<info added on 2025-07-30T12:33:46.980Z>\nContext7 MCP research completed and external dependencies validated.\n\nDependencies approved\n• httpx==0.27.0 – async-first client with connection pooling, HTTP/2, robust timeout handling.  \n• pydantic==2.7.0 – high-performance data/config validation, rich type support, strong community.  \n• APScheduler==3.10.4 – Jerusalem-aware scheduling, sync/async APIs, clean shutdown hooks.\n\nKey findings\n• All versions current, stable and free of known CVEs; licences compatible.  \n• Integration patterns verified for our async architecture (Grafana polling, Slack posting).  \n• Performance characteristics meet requirements; community support is strong.\n\nImplementation notes\n• Perform HTTP calls with `async with httpx.AsyncClient()` and add backoff retries.  \n• Define configuration models using Pydantic `ConfigDict` and custom validators.  \n• Start APScheduler with `timezone=\"Asia/Jerusalem\"` and ensure graceful shutdown via context manager.\n\nOutcome\n• Dependency list in parent task is confirmed; lock versions in pyproject/requirements.  \n• Research phase finished—subtask 13.8 can be closed and work proceeds to Task 14.\n</info added on 2025-07-30T12:33:46.980Z>",
             "status": "done",
             "dependencies": [
               "13.7"
@@ -104,7 +104,7 @@
         "id": 14,
         "title": "Centralised Configuration & Secret Management",
         "description": "Implement environment & YAML driven configuration loader with validation.",
-        "details": "\u2022 .env template keys: GRAFANA_URL, GRAFANA_TOKEN, OPENROUTER_API_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID\n\u2022 config.yaml defaults: schedule_time: \"10:00\", timezone: \"Asia/Jerusalem\", lookback_hours: 24, openrouter: {model: \"anthropic.claude-4-sonnet\", temperature: 0.2, max_tokens: 2048}\n\u2022 Use python-dotenv to load .env \u2192 os.environ. Use pydantic BaseModel to validate & expose strongly-typed Config object.\n\u2022 Allow override via CLI flags/environment hierarchy.\n\u2022 Example:\n```\nclass Settings(BaseSettings):\n    grafana_url: AnyHttpUrl\n    grafana_token: SecretStr\n    ...\n    class Config: env_file = \".env\", env_file_encoding = \"utf-8\"\n```\n",
+        "details": "• .env template keys: GRAFANA_URL, GRAFANA_TOKEN, OPENROUTER_API_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID\n• config.yaml defaults: schedule_time: \"10:00\", timezone: \"Asia/Jerusalem\", lookback_hours: 24, openrouter: {model: \"anthropic.claude-4-sonnet\", temperature: 0.2, max_tokens: 2048}\n• Use python-dotenv to load .env → os.environ. Use pydantic BaseModel to validate & expose strongly-typed Config object.\n• Allow override via CLI flags/environment hierarchy.\n• Example:\n```\nclass Settings(BaseSettings):\n    grafana_url: AnyHttpUrl\n    grafana_token: SecretStr\n    ...\n    class Config: env_file = \".env\", env_file_encoding = \"utf-8\"\n```\n",
         "priority": "medium",
         "dependencies": [
           13
@@ -116,8 +116,8 @@
             "title": "Create .env template and environment loader",
             "description": "Draft a .env.example file containing all required keys and implement logic that uses python-dotenv to load variables into os.environ at application start-up.",
             "dependencies": [],
-            "details": "Keys: GRAFANA_URL, GRAFANA_TOKEN, OPENROUTER_API_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID. Provide helper load_dotenv() call in a dedicated config/__init__.py executed before any settings access.",
-            "status": "pending"
+            "details": "Keys: GRAFANA_URL, GRAFANA_TOKEN, OPENROUTER_API_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID. Provide helper load_dotenv() call in a dedicated config/__init__.py executed before any settings access.\n<info added on 2025-07-30T14:30:44.320Z>\nCompleted implementation. Added comprehensive .env.example containing GRAFANA_MCP_BASE_URL, GRAFANA_MCP_TOKEN, OPENROUTER_API_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID plus optional advanced settings; committed to repo while .env stays git-ignored.\n\nIntroduced load_config() helper in src/alert_agent/config.py that wraps python-dotenv’s load_dotenv with smart discovery across common paths and override=False, preserving existing env vars.\n\nsrc/alert_agent/__init__.py now invokes load_config() at import time, guaranteeing variables are loaded before any Settings access.\n\nVariable precedence: CLI > process env > .env file > hard-coded defaults.\n</info added on 2025-07-30T14:30:44.320Z>",
+            "status": "in-progress"
           },
           {
             "id": 2,
@@ -179,7 +179,7 @@
         "id": 15,
         "title": "Jerusalem-Aware Daily Scheduler",
         "description": "Set up APScheduler job that triggers orchestrator at 10:00 AM Asia/Jerusalem with DST correctness.",
-        "details": "\u2022 Use `AsyncIOScheduler(timezone=\"Asia/Jerusalem\")`.\n\u2022 Job definition example:\n```\nscheduler.add_job(run_job, 'cron', hour=10, minute=0, misfire_grace_time=300)\n```\n\u2022 Provide CLI `python -m alert_agent.scheduler --run_once` for local test.\n\u2022 Persist scheduler in orchestrator with graceful shutdown signals (SIGINT/SIGTERM).\n",
+        "details": "• Use `AsyncIOScheduler(timezone=\"Asia/Jerusalem\")`.\n• Job definition example:\n```\nscheduler.add_job(run_job, 'cron', hour=10, minute=0, misfire_grace_time=300)\n```\n• Provide CLI `python -m alert_agent.scheduler --run_once` for local test.\n• Persist scheduler in orchestrator with graceful shutdown signals (SIGINT/SIGTERM).\n",
         "priority": "high",
         "dependencies": [
           14
@@ -191,7 +191,7 @@
             "title": "Timezone & Environment Preparation",
             "description": "Ensure the application can resolve \"Asia/Jerusalem\" correctly on every platform, including Docker Alpine images where zoneinfo may be absent.",
             "dependencies": [],
-            "details": "\u2022 Add tzdata==2024.1 to dependencies and document that it must be installed in prod images.\n\u2022 Create utility function `get_jlm_tz()` that returns `zoneinfo.ZoneInfo(\"Asia/Jerusalem\")` and falls back to `pytz` when necessary.\n\u2022 Validate DST behaviour by printing offsets for known summer/winter dates during boot.\n\u2022 Expose this utility in `alert_agent.utils.time` for reuse by scheduler and tests.",
+            "details": "• Add tzdata==2024.1 to dependencies and document that it must be installed in prod images.\n• Create utility function `get_jlm_tz()` that returns `zoneinfo.ZoneInfo(\"Asia/Jerusalem\")` and falls back to `pytz` when necessary.\n• Validate DST behaviour by printing offsets for known summer/winter dates during boot.\n• Expose this utility in `alert_agent.utils.time` for reuse by scheduler and tests.",
             "status": "pending"
           },
           {
@@ -201,7 +201,7 @@
             "dependencies": [
               "15.1"
             ],
-            "details": "\u2022 File: `alert_agent/scheduler/core.py`.\n\u2022 Function `create_scheduler()` returns a started `AsyncIOScheduler(timezone=get_jlm_tz())`.\n\u2022 Configure default job stores and executors (ThreadPoolExecutor max_workers=10).\n\u2022 Expose singleton pattern or dependency-injection friendly factory.",
+            "details": "• File: `alert_agent/scheduler/core.py`.\n• Function `create_scheduler()` returns a started `AsyncIOScheduler(timezone=get_jlm_tz())`.\n• Configure default job stores and executors (ThreadPoolExecutor max_workers=10).\n• Expose singleton pattern or dependency-injection friendly factory.",
             "status": "pending"
           },
           {
@@ -212,7 +212,7 @@
               "15.1",
               "15.2"
             ],
-            "details": "\u2022 Function `register_daily_job(scheduler, run_job)` in `core.py`.\n\u2022 Use `scheduler.add_job(run_job, 'cron', hour=10, minute=0, misfire_grace_time=300, id='daily_orchestrator')`.\n\u2022 Guard against duplicate job IDs when `register_daily_job` is called multiple times.",
+            "details": "• Function `register_daily_job(scheduler, run_job)` in `core.py`.\n• Use `scheduler.add_job(run_job, 'cron', hour=10, minute=0, misfire_grace_time=300, id='daily_orchestrator')`.\n• Guard against duplicate job IDs when `register_daily_job` is called multiple times.",
             "status": "pending"
           },
           {
@@ -222,7 +222,7 @@
             "dependencies": [
               "15.3"
             ],
-            "details": "\u2022 Module `alert_agent/scheduler/__main__.py` parses `--run_once` using argparse.\n\u2022 When flag present: call `asyncio.run(run_job())` and exit.\n\u2022 Otherwise: create scheduler, register job, keep event loop alive with `asyncio.Event().wait()`.",
+            "details": "• Module `alert_agent/scheduler/__main__.py` parses `--run_once` using argparse.\n• When flag present: call `asyncio.run(run_job())` and exit.\n• Otherwise: create scheduler, register job, keep event loop alive with `asyncio.Event().wait()`.",
             "status": "pending"
           },
           {
@@ -252,7 +252,7 @@
             "id": 9,
             "title": "Persistence & Graceful Shutdown",
             "description": "Persist scheduler within orchestrator process and handle SIGINT/SIGTERM for clean shutdown.",
-            "details": "\u2022 Register signal.signal handlers that call await scheduler.shutdown(wait=False) and loop.stop()\n\u2022 Ensure orchestrator keeps a reference to the running scheduler for future job additions\n\u2022 Document manual test: TZ=Asia/Jerusalem python -m alert_agent.scheduler",
+            "details": "• Register signal.signal handlers that call await scheduler.shutdown(wait=False) and loop.stop()\n• Ensure orchestrator keeps a reference to the running scheduler for future job additions\n• Document manual test: TZ=Asia/Jerusalem python -m alert_agent.scheduler",
             "status": "pending",
             "dependencies": [
               "15.2",
@@ -267,7 +267,7 @@
         "id": 16,
         "title": "Grafana MCP Alert Collector",
         "description": "Implement async data collector that fetches previous 24h alerts from Grafana MCP using httpx and returns normalised objects.",
-        "details": "\u2022 Endpoint: `/api/alertmanager/grafana/api/v2/alerts?since=<iso>` (example; confirm via mcp.json). Use bearer token header.\n\u2022 Calculate `since = now - lookback_hours` in UTC; include timezone in query.\n\u2022 Design dataclass Alert(\n  id:str, service:str, severity:str, starts_at:dt, ends_at:Optional[dt], description:str, status:str)\n\u2022 Handle pagination (Grafana returns link header) with async recursion.\n\u2022 Retry w/ backoff on 5xx using backoff lib.\n",
+        "details": "• Endpoint: `/api/alertmanager/grafana/api/v2/alerts?since=<iso>` (example; confirm via mcp.json). Use bearer token header.\n• Calculate `since = now - lookback_hours` in UTC; include timezone in query.\n• Design dataclass Alert(\n  id:str, service:str, severity:str, starts_at:dt, ends_at:Optional[dt], description:str, status:str)\n• Handle pagination (Grafana returns link header) with async recursion.\n• Retry w/ backoff on 5xx using backoff lib.\n",
         "priority": "high",
         "dependencies": [
           14
@@ -310,7 +310,7 @@
               "16.2",
               "16.3"
             ],
-            "details": "Implement async def collect_alerts(lookback_hours=24) -> List[Alert]. On each response, check response.headers['Link'] for rel=\"next\"; call itself until exhausted. Wrap network calls with backoff expo (max_tries=5, jitter). Transform each page\u2019s JSON via list_from_response and extend the result list.",
+            "details": "Implement async def collect_alerts(lookback_hours=24) -> List[Alert]. On each response, check response.headers['Link'] for rel=\"next\"; call itself until exhausted. Wrap network calls with backoff expo (max_tries=5, jitter). Transform each page’s JSON via list_from_response and extend the result list.",
             "status": "pending"
           },
           {
@@ -342,7 +342,7 @@
         "id": 17,
         "title": "OpenRouter Claude 4 Sonnet Integration & Alert Grouping",
         "description": "Send collected alerts to Claude via OpenRouter for intelligent grouping and receive structured JSON clusters.",
-        "details": "\u2022 Use https://openrouter.ai/api `POST /v1/chat/completions` with header `Authorization: Bearer <OPENROUTER_API_KEY>`.\n\u2022 Chat payload:\n  system: \"You are an SRE assistant. Respond ONLY with JSON...\"\n  user: provide alerts list & grouping instructions.\n\u2022 Use model `anthropic.claude-4-sonnet:beta` (as of 2024-06) `temperature=0.2`, `max_tokens=1024`.\n\u2022 Validate Claude response with pydantic model GroupedAlerts {groups: List[Group]} to catch hallucinations.\n\u2022 Fallback: If Claude fails validation, rerun with smaller chunk or mark ungrouped.\n",
+        "details": "• Use https://openrouter.ai/api `POST /v1/chat/completions` with header `Authorization: Bearer <OPENROUTER_API_KEY>`.\n• Chat payload:\n  system: \"You are an SRE assistant. Respond ONLY with JSON...\"\n  user: provide alerts list & grouping instructions.\n• Use model `anthropic.claude-4-sonnet:beta` (as of 2024-06) `temperature=0.2`, `max_tokens=1024`.\n• Validate Claude response with pydantic model GroupedAlerts {groups: List[Group]} to catch hallucinations.\n• Fallback: If Claude fails validation, rerun with smaller chunk or mark ungrouped.\n",
         "priority": "high",
         "dependencies": [
           16
@@ -354,7 +354,7 @@
             "title": "OpenRouter Client Setup",
             "description": "Create an async HTTP client that handles authentication, headers, and base URL for OpenRouter API calls.",
             "dependencies": [],
-            "details": "\u2022 Use httpx.AsyncClient with a `Bearer <OPENROUTER_API_KEY>` header injected via environment variable.\n\u2022 Centralise endpoint `/v1/chat/completions`, default query params (temperature=0.2, max_tokens=1024, model=anthropic.claude-4-sonnet:beta).\n\u2022 Attach retry with exponential back-off for 429/5xx.\n\u2022 Ensure clean shutdown with async context manager.",
+            "details": "• Use httpx.AsyncClient with a `Bearer <OPENROUTER_API_KEY>` header injected via environment variable.\n• Centralise endpoint `/v1/chat/completions`, default query params (temperature=0.2, max_tokens=1024, model=anthropic.claude-4-sonnet:beta).\n• Attach retry with exponential back-off for 429/5xx.\n• Ensure clean shutdown with async context manager.",
             "status": "pending"
           },
           {
@@ -364,7 +364,7 @@
             "dependencies": [
               "17.1"
             ],
-            "details": "\u2022 Accept List[Alert] and grouping instructions.\n\u2022 Compose JSON per OpenRouter spec with `system` and `user` keys.\n\u2022 Serialize alerts compactly to minimise tokens; include lookback window.\n\u2022 Invoke client from 17.1 and return raw Claude JSON string.",
+            "details": "• Accept List[Alert] and grouping instructions.\n• Compose JSON per OpenRouter spec with `system` and `user` keys.\n• Serialize alerts compactly to minimise tokens; include lookback window.\n• Invoke client from 17.1 and return raw Claude JSON string.",
             "status": "pending"
           },
           {
@@ -374,7 +374,7 @@
             "dependencies": [
               "17.2"
             ],
-            "details": "\u2022 Define Pydantic models: Group, GroupedAlerts.\n\u2022 Load Claude raw text, strip code fences if present, then `json.loads`.\n\u2022 Raise ValidationError on schema mismatch or missing fields.",
+            "details": "• Define Pydantic models: Group, GroupedAlerts.\n• Load Claude raw text, strip code fences if present, then `json.loads`.\n• Raise ValidationError on schema mismatch or missing fields.",
             "status": "pending"
           },
           {
@@ -384,7 +384,7 @@
             "dependencies": [
               "17.3"
             ],
-            "details": "\u2022 On ValidationError, if alerts > threshold (e.g., 50), split list and recursively call 17.2.\n\u2022 Track recursion depth to avoid infinite loops.\n\u2022 If still invalid after max attempts, return fallback structure `{groups: []}` with all alerts ungrouped.",
+            "details": "• On ValidationError, if alerts > threshold (e.g., 50), split list and recursively call 17.2.\n• Track recursion depth to avoid infinite loops.\n• If still invalid after max attempts, return fallback structure `{groups: []}` with all alerts ungrouped.",
             "status": "pending"
           },
           {
@@ -397,7 +397,7 @@
               "17.3",
               "17.4"
             ],
-            "details": "\u2022 Measure prompt + completion tokens using tiktoken or heuristic and compare against configured limit.\n\u2022 Log per-call cost estimate.\n\u2022 Provide high-level trace logs for debugging.\n\u2022 Expose as reusable library function for Task 18.",
+            "details": "• Measure prompt + completion tokens using tiktoken or heuristic and compare against configured limit.\n• Log per-call cost estimate.\n• Provide high-level trace logs for debugging.\n• Expose as reusable library function for Task 18.",
             "status": "pending"
           },
           {
@@ -430,7 +430,7 @@
         "id": 18,
         "title": "Summary Generator & Formatter",
         "description": "Create human-readable markdown summary including executive overview, grouped details, and actionable items.",
-        "details": "\u2022 Compose template with Jinja2==3.1.3:\n  - Executive metrics: total alerts, unique services, critical count\n  - Per-group bullet list with severity emoji (\ud83d\udd25 Critical, \u26a0\ufe0f Warning)\n  - Resolution status table.\n\u2022 Inject Claude explanation: second Claude call (optional) to refine wording; reuse 17\u2019s grouped data to keep token cost low.\n\u2022 Ensure Slack message \u2264 4000 chars; split threads if larger.\n",
+        "details": "• Compose template with Jinja2==3.1.3:\n  - Executive metrics: total alerts, unique services, critical count\n  - Per-group bullet list with severity emoji (🔥 Critical, ⚠️ Warning)\n  - Resolution status table.\n• Inject Claude explanation: second Claude call (optional) to refine wording; reuse 17’s grouped data to keep token cost low.\n• Ensure Slack message ≤ 4000 chars; split threads if larger.\n",
         "priority": "medium",
         "dependencies": [
           17
@@ -468,7 +468,7 @@
           {
             "id": 4,
             "title": "Implement Slack Length Guard & Thread Splitter",
-            "description": "Create utility that checks summary length (\u22644000 chars) and, if exceeded, splits it into logically ordered thread messages.",
+            "description": "Create utility that checks summary length (≤4000 chars) and, if exceeded, splits it into logically ordered thread messages.",
             "dependencies": [
               "18.3"
             ],
@@ -504,7 +504,7 @@
         "id": 19,
         "title": "Slack Notifier",
         "description": "Deliver summary to configured Slack channel with retries and thread support.",
-        "details": "\u2022 Use Slack Web API `chat.postMessage` via httpx; endpoint `https://slack.com/api/chat.postMessage`.\n\u2022 Header `Authorization: Bearer xoxb-...`, `Content-Type: application/json`.\n\u2022 Payload: {channel: SLACK_CHANNEL_ID, text: summary, mrkdwn: true}.\n\u2022 If message > 4000 chars, split & post threaded replies using `thread_ts`.\n\u2022 Retry on `rate_limited` error with exponential backoff.\n",
+        "details": "• Use Slack Web API `chat.postMessage` via httpx; endpoint `https://slack.com/api/chat.postMessage`.\n• Header `Authorization: Bearer xoxb-...`, `Content-Type: application/json`.\n• Payload: {channel: SLACK_CHANNEL_ID, text: summary, mrkdwn: true}.\n• If message > 4000 chars, split & post threaded replies using `thread_ts`.\n• Retry on `rate_limited` error with exponential backoff.\n",
         "priority": "high",
         "dependencies": [
           18,
@@ -517,7 +517,7 @@
             "title": "Slack API Configuration",
             "description": "Provide secure configuration handling for Slack API credentials and channel ID.",
             "dependencies": [],
-            "details": "\u2022 Read `SLACK_BOT_TOKEN` and `SLACK_CHANNEL_ID` from environment variables or a secrets manager.\n\u2022 Validate presence at application startup and raise descriptive error if missing.\n\u2022 Expose a dataclass/config object that downstream functions can import.",
+            "details": "• Read `SLACK_BOT_TOKEN` and `SLACK_CHANNEL_ID` from environment variables or a secrets manager.\n• Validate presence at application startup and raise descriptive error if missing.\n• Expose a dataclass/config object that downstream functions can import.",
             "status": "pending"
           },
           {
@@ -527,7 +527,7 @@
             "dependencies": [
               "19.1"
             ],
-            "details": "\u2022 Build request with header `Authorization: Bearer <token>` and `Content-Type: application/json`.\n\u2022 Accept params: channel, text, thread_ts (optional), mrkdwn (default true).\n\u2022 Return parsed JSON response and raise `SlackApiError` for non-ok replies (except 429 handled later).",
+            "details": "• Build request with header `Authorization: Bearer <token>` and `Content-Type: application/json`.\n• Accept params: channel, text, thread_ts (optional), mrkdwn (default true).\n• Return parsed JSON response and raise `SlackApiError` for non-ok replies (except 429 handled later).",
             "status": "pending"
           },
           {
@@ -537,7 +537,7 @@
             "dependencies": [
               "19.2"
             ],
-            "details": "\u2022 Determine Slack hard limit (4,000 chars).\n\u2022 Slice text at word boundaries; first chunk is root message, subsequent chunks posted with `thread_ts` of root.\n\u2022 Return array of message timestamps for possible auditing.",
+            "details": "• Determine Slack hard limit (4,000 chars).\n• Slice text at word boundaries; first chunk is root message, subsequent chunks posted with `thread_ts` of root.\n• Return array of message timestamps for possible auditing.",
             "status": "pending"
           },
           {
@@ -548,7 +548,7 @@
               "19.2",
               "19.3"
             ],
-            "details": "\u2022 Detect 429 status or Slack JSON error `rate_limited`.\n\u2022 Implement backoff: start 1s, double each retry up to max 5 attempts.\n\u2022 Respect `Retry-After` header if present.\n\u2022 Make retry wrapper reusable around any Slack API call.",
+            "details": "• Detect 429 status or Slack JSON error `rate_limited`.\n• Implement backoff: start 1s, double each retry up to max 5 attempts.\n• Respect `Retry-After` header if present.\n• Make retry wrapper reusable around any Slack API call.",
             "status": "pending"
           },
           {
@@ -580,7 +580,7 @@
         "id": 20,
         "title": "Unified Logging, Error Handling & Observability",
         "description": "Integrate Loguru for structured logs, add global exception handler and notification on failure.",
-        "details": "\u2022 Configure Loguru to rotate daily, level=INFO.\n\u2022 Wrap each stage (collector, AI, notifier) in try/except; on fatal error send Slack DM to on-call via secondary Slack channel.\n\u2022 Create metrics counters (success, failure, duration) with Prometheus client (optional, lightweight) for future scraping.\n\u2022 Use backoff decorators for API interactions (max_tries=3).\n",
+        "details": "• Configure Loguru to rotate daily, level=INFO.\n• Wrap each stage (collector, AI, notifier) in try/except; on fatal error send Slack DM to on-call via secondary Slack channel.\n• Create metrics counters (success, failure, duration) with Prometheus client (optional, lightweight) for future scraping.\n• Use backoff decorators for API interactions (max_tries=3).\n",
         "priority": "medium",
         "dependencies": [
           15,
@@ -670,7 +670,7 @@
         "id": 21,
         "title": "Orchestrator Assembly & CLI Entry Point",
         "description": "Glue scheduler, collector, AI processor, summary generator and notifier into a cohesive async workflow.",
-        "details": "\u2022 `orchestrator.py` main async function:\n```\nasync def run_daily():\n    alerts = await collect_alerts()\n    grouped = await group_alerts(alerts)\n    summary = render_summary(grouped)\n    await send_slack(summary)\n```\n\u2022 Use `asyncio.run(run_daily())` for one-shot; expose `cli.py` with Typer==0.12.3 for commands `run-now`, `start-scheduler`.\n\u2022 Ensure graceful shutdown (scheduler.shutdown(wait=False)).\n",
+        "details": "• `orchestrator.py` main async function:\n```\nasync def run_daily():\n    alerts = await collect_alerts()\n    grouped = await group_alerts(alerts)\n    summary = render_summary(grouped)\n    await send_slack(summary)\n```\n• Use `asyncio.run(run_daily())` for one-shot; expose `cli.py` with Typer==0.12.3 for commands `run-now`, `start-scheduler`.\n• Ensure graceful shutdown (scheduler.shutdown(wait=False)).\n",
         "priority": "high",
         "dependencies": [
           15,
@@ -727,7 +727,7 @@
             "dependencies": [
               "21.4"
             ],
-            "details": "Use pytest\u2019s `subprocess` fixture; inject fake HTTP server for collector, mock AI processor, capture stdout/stderr and exit code; ensure graceful exit on SIGTERM.",
+            "details": "Use pytest’s `subprocess` fixture; inject fake HTTP server for collector, mock AI processor, capture stdout/stderr and exit code; ensure graceful exit on SIGTERM.",
             "status": "pending"
           },
           {
@@ -759,7 +759,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:57:21.028Z",
-      "updated": "2025-07-30T12:34:07.660Z",
+      "updated": "2025-07-30T14:26:13.507Z",
       "description": "Tasks for master context"
     }
   }

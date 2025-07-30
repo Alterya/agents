@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+from dotenv import load_dotenv
 from pydantic import Field, HttpUrl, validator
 from pydantic_settings import BaseSettings
 
@@ -248,8 +249,11 @@ _config: Optional[AppConfig] = None
 def load_config(env_file: Optional[Union[str, Path]] = None, reload: bool = False) -> AppConfig:
     """Load and validate application configuration.
 
+    Loads environment variables from .env file using python-dotenv, then creates
+    Pydantic settings with precedence: CLI > ENV > YAML > code defaults.
+
     Args:
-        env_file: Optional path to .env file
+        env_file: Optional path to .env file (default: .env in current directory)
         reload: Force reload configuration
 
     Returns:
@@ -264,11 +268,28 @@ def load_config(env_file: Optional[Union[str, Path]] = None, reload: bool = Fals
         return _config
 
     try:
-        # Set up environment file if provided
-        if env_file:
-            env_path = Path(env_file)
-            if not env_path.exists():
-                raise ConfigurationError(f"Environment file not found: {env_file}")
+        # Load environment variables from .env file
+        # Default to .env in current directory if no specific file provided
+        if env_file is None:
+            env_file = ".env"
+
+        env_path = Path(env_file)
+
+        # Load .env file if it exists (silently skip if it doesn't)
+        # This allows the app to work with just environment variables
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path, override=False)
+        else:
+            # Try to find .env in common locations
+            potential_paths = [
+                Path(".env"),
+                Path.cwd() / ".env",
+                Path(__file__).parent.parent.parent / ".env",
+            ]
+            for potential_env in potential_paths:
+                if potential_env.exists():
+                    load_dotenv(dotenv_path=potential_env, override=False)
+                    break
 
         # Load configuration with automatic environment variable detection
         _config = AppConfig()
