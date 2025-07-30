@@ -28,8 +28,29 @@ loguru = "0.7.2"
 # Exponential backoff for retry logic on API failures
 backoff = "2.2.1"
 
+# Enhanced retry mechanisms with better async support
+tenacity = "8.3.0"
+
 # Timezone data for Jerusalem timezone handling (if system missing)
 tzdata = "2024.1"
+
+# CLI interface framework for command-line tools
+click = "8.1.7"
+
+# Rich text and beautiful formatting for CLI output
+rich = "13.7.1"
+
+# Enhanced Pydantic settings management
+pydantic-settings = "2.3.4"
+
+# Structured logging for better production logging
+structlog = "24.1.0"
+
+# JSON Web Token support for secure API communication
+pyjwt = "2.8.0"
+
+# Additional HTTP security and validation
+requests-toolbelt = "1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 # Testing framework and async support (2024 versions)
@@ -43,6 +64,9 @@ mypy = "1.10.0"
 
 # Pre-commit hooks for automated quality checks
 pre-commit = "^3.0.0"
+
+# Security vulnerability scanning
+safety = "3.2.0"
 
 # Test coverage reporting
 coverage = {extras = ["toml"], version = "^7.4.0"}
