@@ -51,13 +51,7 @@ Refactor stage functions to decorator style; increment metrics in success/failur
 ### Details:
 
 
-## 7. Quality Gate: Tests and Linting [pending]
-### Dependencies: 20.6
-### Description: Run comprehensive tests and linting checks to ensure code quality standards
-### Details:
-
-
 ## 8. Context7 MCP Research: External Package Dependencies [pending]
-### Dependencies: 20.7
+### Dependencies: None
 ### Description: Use Context7 MCP to research and validate external Python packages and dependencies
 ### Details:

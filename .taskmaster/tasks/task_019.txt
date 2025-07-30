@@ -49,27 +49,13 @@ Use respx to mock Slack endpoints; verify auth header; large message splitting; 
 • Respect `Retry-After` header if present.
 • Make retry wrapper reusable around any Slack API call.
 
-## 5. Comprehensive Test Suite & CI Integration [pending]
-### Dependencies: 19.2, 19.3, 19.4
-### Description: Write and integrate tests covering configuration, posting, threading, and retry logic.
-### Details:
-• Use pytest + respx snapshots.
-• Test auth header presence, splitting correctness, thread linkage, retry path, and error surfaces.
-• Add workflow step in CI to run tests on PRs.
-
 ## 6. Cleanup and Code Organization [pending]
-### Dependencies: 19.1, 19.2, 19.3, 19.4, 19.5
+### Dependencies: 19.1, 19.2, 19.3, 19.4
 ### Description: Remove temporary files, organize imports, and ensure clean code structure
 ### Details:
 
 
-## 7. Quality Gate: Tests and Linting [pending]
-### Dependencies: 19.6
-### Description: Run comprehensive tests and linting checks to ensure code quality standards
-### Details:
-
-
 ## 8. Context7 MCP Research: External Package Dependencies [pending]
-### Dependencies: 19.7
+### Dependencies: None
 ### Description: Use Context7 MCP to research and validate external Python packages and dependencies
 ### Details:

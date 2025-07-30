@@ -41,25 +41,13 @@ Use httpx.AsyncClient with a 10 s timeout. Compute since_iso = (datetime.utcnow(
 ### Details:
 Implement async def collect_alerts(lookback_hours=24) -> List[Alert]. On each response, check response.headers['Link'] for rel="next"; call itself until exhausted. Wrap network calls with backoff expo (max_tries=5, jitter). Transform each page’s JSON via list_from_response and extend the result list.
 
-## 5. Comprehensive unit & integration tests for collector [pending]
-### Dependencies: 16.4
-### Description: Create pytest-asyncio test suite covering happy path, pagination depth >1, lookback filtering, retry logic, and malformed responses.
-### Details:
-Use respx to simulate Grafana API, factory functions for dynamic payloads, and freezegun to freeze time for lookback validation. Include coverage targets in pyproject.toml.
-
 ## 6. Cleanup and Code Organization [pending]
-### Dependencies: 16.1, 16.2, 16.3, 16.4, 16.5
+### Dependencies: 16.1, 16.2, 16.3, 16.4
 ### Description: Remove temporary files, organize imports, and ensure clean code structure
 ### Details:
 
 
-## 7. Quality Gate: Tests and Linting [pending]
-### Dependencies: 16.6
-### Description: Run comprehensive tests and linting checks to ensure code quality standards
-### Details:
-
-
 ## 8. Context7 MCP Research: External Package Dependencies [pending]
-### Dependencies: 16.7
+### Dependencies: None
 ### Description: Use Context7 MCP to research and validate external Python packages and dependencies
 ### Details:

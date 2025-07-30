@@ -47,25 +47,13 @@ Use ruamel.yaml or PyYAML to parse, then pass merged dict to Settings(**kwargs) 
 ### Details:
 Expose --grafana-url, --schedule-time, --config-path, etc. Convert CLI args to dict and feed into merge chain.
 
-## 5. Comprehensive unit test suite for configuration module [pending]
-### Dependencies: 14.2, 14.3, 14.4
-### Description: Write pytest cases covering validation failures, precedence hierarchy, and CLI interaction; achieve ≥90% coverage for config component.
-### Details:
-Use pytest-asyncio where needed, monkeypatch env vars, temp files for YAML, and click/typer testing utilities for CLI.
-
 ## 6. Cleanup and Code Organization [pending]
-### Dependencies: 14.1, 14.2, 14.3, 14.4, 14.5
+### Dependencies: 14.1, 14.2, 14.3, 14.4
 ### Description: Remove temporary files, organize imports, and ensure clean code structure
 ### Details:
 
 
-## 7. Quality Gate: Tests and Linting [pending]
-### Dependencies: 14.6
-### Description: Run comprehensive tests and linting checks to ensure code quality standards
-### Details:
-
-
 ## 8. Context7 MCP Research: External Package Dependencies [pending]
-### Dependencies: 14.7
+### Dependencies: None
 ### Description: Use Context7 MCP to research and validate external Python packages and dependencies
 ### Details:

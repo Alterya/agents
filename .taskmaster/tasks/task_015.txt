@@ -52,28 +52,22 @@ Integration test with freezegun: mock datetime to 09:59 JLM, advance minute & as
 • When flag present: call `asyncio.run(run_job())` and exit.
 • Otherwise: create scheduler, register job, keep event loop alive with `asyncio.Event().wait()`.
 
-## 5. Persistence, Graceful Shutdown & Integration Tests [pending]
-### Dependencies: 15.2, 15.3, 15.4
-### Description: Persist scheduler within orchestrator process, handle SIGINT/SIGTERM for clean shutdown, and deliver full integration test suite.
-### Details:
-• Register `signal.signal` handlers that call `await scheduler.shutdown(wait=False)` and `loop.stop()`.
-• Ensure orchestrator keeps a reference to the running scheduler for future job additions.
-• Write integration tests using `pytest-asyncio` to spin up the full scheduler, send `os.kill(os.getpid(), signal.SIGINT)` and assert graceful exit.
-• Document manual test: `TZ=Asia/Jerusalem python -m alert_agent.scheduler`.
-
 ## 6. Cleanup and Code Organization [pending]
-### Dependencies: 15.1, 15.2, 15.3, 15.4, 15.5
+### Dependencies: 15.1, 15.2, 15.3, 15.4
 ### Description: Remove temporary files, organize imports, and ensure clean code structure
 ### Details:
 
 
-## 7. Quality Gate: Tests and Linting [pending]
-### Dependencies: 15.6
-### Description: Run comprehensive tests and linting checks to ensure code quality standards
-### Details:
-
-
 ## 8. Context7 MCP Research: External Package Dependencies [pending]
-### Dependencies: 15.7
+### Dependencies: None
 ### Description: Use Context7 MCP to research and validate external Python packages and dependencies
 ### Details:
+
+
+## 9. Persistence & Graceful Shutdown [pending]
+### Dependencies: 15.2, 15.3, 15.4
+### Description: Persist scheduler within orchestrator process and handle SIGINT/SIGTERM for clean shutdown.
+### Details:
+• Register signal.signal handlers that call await scheduler.shutdown(wait=False) and loop.stop()
+• Ensure orchestrator keeps a reference to the running scheduler for future job additions
+• Document manual test: TZ=Asia/Jerusalem python -m alert_agent.scheduler
