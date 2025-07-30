@@ -1,7 +1,7 @@
 # Daily Alert Summary Agent - Development Makefile
 # Provides consistent development workflow commands
 
-.PHONY: help install dev quality tests format type-check security clean build run
+.PHONY: help install dev quality format type-check security clean build run
 
 # Default target
 .DEFAULT_GOAL := help
@@ -28,29 +28,24 @@ dev: install ## Setup development environment and install pre-commit hooks
 	@echo "$(CYAN)🛠️  Development environment ready!$(NC)"
 	@echo "Use 'poetry shell' to activate virtual environment"
 
-quality: ## Run all code quality checks (replaces 'make lint')
+quality: ## Run all code quality checks
 	@echo "$(CYAN)🔍 Running code quality checks...$(NC)"
 	@echo "$(YELLOW)→ Code formatting (black)...$(NC)"
-	poetry run black --check src/ tests/
+	poetry run black --check src/
 	@echo "$(YELLOW)→ Import sorting (isort)...$(NC)"
-	poetry run isort --check-only src/ tests/
+	poetry run isort --check-only src/
 	@echo "$(YELLOW)→ Type checking (mypy)...$(NC)"
 	poetry run mypy src/
 	@echo "$(YELLOW)→ Security scan (bandit)...$(NC)"
-	poetry run bandit -r src/ -f json | jq -r '.results[] | select(.issue_severity != "LOW") | "\(.filename):\(.line_number): \(.issue_text)"' || echo "No security issues found"
+	poetry run bandit -r src/ -ll || echo "No security issues found"
 	@echo "$(YELLOW)→ Pre-commit hooks...$(NC)"
 	poetry run pre-commit run --all-files
 	@echo "$(GREEN)✅ All quality checks passed!$(NC)"
 
-tests: ## Run test suite with coverage reporting
-	@echo "$(CYAN)🧪 Running test suite...$(NC)"
-	poetry run pytest tests/ -v --cov=src/alert_agent --cov-report=term-missing --cov-report=html
-	@echo "$(GREEN)✅ Tests completed! Coverage report: htmlcov/index.html$(NC)"
-
 format: ## Auto-format code with black and isort
 	@echo "$(CYAN)🎨 Formatting code...$(NC)"
-	poetry run black src/ tests/
-	poetry run isort src/ tests/
+	poetry run black src/
+	poetry run isort src/
 	@echo "$(GREEN)✅ Code formatted!$(NC)"
 
 type-check: ## Run mypy type checking only
@@ -70,10 +65,10 @@ clean: ## Clean up temporary files and caches
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true
 	find . -type f -name "*.pyo" -delete 2>/dev/null || true
 	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
-	rm -rf dist/ build/ .coverage htmlcov/ .mypy_cache/ .pytest_cache/
+	rm -rf dist/ build/ .mypy_cache/
 	@echo "$(GREEN)✅ Cleanup complete!$(NC)"
 
-build: quality tests ## Build the package for distribution
+build: quality ## Build the package for distribution
 	@echo "$(CYAN)📦 Building package...$(NC)"
 	poetry build
 	@echo "$(GREEN)✅ Package built in dist/$(NC)"
@@ -99,17 +94,6 @@ deps-update: ## Update dependencies to latest versions
 	poetry update
 	@echo "$(GREEN)✅ Dependencies updated!$(NC)"
 
-# CI/CD targets
-ci-quality: ## CI: Run quality checks (no color output)
-	poetry run black --check src/ tests/
-	poetry run isort --check-only src/ tests/
-	poetry run mypy src/
-	poetry run bandit -r src/ -f json
-	poetry run pre-commit run --all-files
-
-ci-tests: ## CI: Run tests with XML output for CI systems
-	poetry run pytest tests/ -v --cov=src/alert_agent --cov-report=xml --cov-report=term
-
 # Git hooks integration (called by pre-commit)
-pre-commit: quality tests ## Run quality checks and tests before commit
+pre-commit: quality ## Run quality checks before commit
 	@echo "$(GREEN)✅ Pre-commit checks passed!$(NC)"

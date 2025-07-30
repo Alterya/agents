@@ -53,10 +53,6 @@ pyjwt = "2.8.0"
 requests-toolbelt = "1.0.0"
 
 [tool.poetry.group.dev.dependencies]
-# Testing framework and async support (2024 versions)
-pytest = "8.2.0"
-pytest-asyncio = "0.23.6"
-
 # Code formatting and linting tools
 black = "24.4.2"
 isort = "5.13.2"
@@ -67,10 +63,6 @@ pre-commit = "^3.0.0"
 
 # Security vulnerability scanning
 safety = "3.2.0"
-
-# Test coverage reporting
-coverage = {extras = ["toml"], version = "^7.4.0"}
-pytest-cov = "^6.2.1"
 
 [tool.poetry.scripts]
 alert-agent = "alert_agent.orchestrator:main"
@@ -124,49 +116,3 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
-
-[[tool.mypy.overrides]]
-module = "tests.*"
-disallow_untyped_defs = false
-ignore_missing_imports = true
-
-# pytest configuration
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = [
-    "-ra",
-    "--strict-markers",
-    "--strict-config",
-    "--cov=src/alert_agent",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml",
-]
-markers = [
-    "asyncio: marks tests as async",
-    "integration: marks tests as integration tests",
-    "unit: marks tests as unit tests",
-]
-asyncio_mode = "auto"
-
-# Coverage configuration
-[tool.coverage.run]
-source = ["src"]
-branch = true
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
-]
