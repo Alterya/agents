@@ -38,10 +38,12 @@ repos:
         additional_dependencies: [
           types-requests,
           types-PyYAML,
+          types-click,
           pydantic,
           pydantic-settings,
           httpx,
           loguru,
+          rich,
         ]
         args: [--python-version=3.10, --disable-error-code=call-arg, --disable-error-code=unused-ignore]
         files: ^src/
