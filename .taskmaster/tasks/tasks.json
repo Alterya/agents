@@ -126,8 +126,8 @@
             "dependencies": [
               "14.1"
             ],
-            "details": "Include nested OpenRouterConfig model. Use SecretStr for tokens. Configure env_file='.env', env_file_encoding='utf-8'.",
-            "status": "pending"
+            "details": "Include nested OpenRouterConfig model. Use SecretStr for tokens. Configure env_file='.env', env_file_encoding='utf-8'.\n<info added on 2025-07-30T14:36:59.491Z>\nImplementation completed with secure token handling:\n\n• SecretStr imported and applied to all sensitive fields:\n  - GrafanaConfig.token\n  - SlackConfig.bot_token\n  - AIConfig.openrouter_api_key\n• Token validators refactored to use SecretStr.get_secret_value(); new validate_api_key added to AIConfig.\n• All original nested models, URL validations and defaults retained.\n• AppConfig still points to .env with utf-8 encoding.\n• All tests, type-checks and pre-commit hooks pass, confirming backward-compatible integration.\n</info added on 2025-07-30T14:36:59.491Z>",
+            "status": "in-progress"
           },
           {
             "id": 3,
@@ -759,7 +759,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:57:21.028Z",
-      "updated": "2025-07-30T14:26:13.507Z",
+      "updated": "2025-07-30T14:34:29.245Z",
       "description": "Tasks for master context"
     }
   }

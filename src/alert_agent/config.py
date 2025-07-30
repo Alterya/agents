@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from dotenv import load_dotenv
-from pydantic import Field, HttpUrl, validator
+from pydantic import Field, HttpUrl, SecretStr, validator
 from pydantic_settings import BaseSettings
 
 from .constants import (
@@ -27,7 +27,7 @@ class GrafanaConfig(BaseSettings):
     """Grafana MCP configuration."""
 
     base_url: HttpUrl = Field(..., description="Grafana MCP base URL")
-    token: str = Field(..., description="Grafana MCP authentication token")
+    token: SecretStr = Field(..., description="Grafana MCP authentication token")
     org_id: Optional[str] = Field(None, description="Grafana organization ID")
     timeout_seconds: int = Field(30, description="Request timeout in seconds")
     retry_attempts: int = Field(3, description="Number of retry attempts")
@@ -43,17 +43,18 @@ class GrafanaConfig(BaseSettings):
         return str(v).rstrip("/")
 
     @validator("token")
-    def validate_token(cls, v: str) -> str:
+    def validate_token(cls, v: SecretStr) -> SecretStr:
         """Ensure token is not empty."""
-        if not v or len(v.strip()) == 0:
+        token_value = v.get_secret_value()
+        if not token_value or len(token_value.strip()) == 0:
             raise ValueError("Grafana token cannot be empty")
-        return v.strip()
+        return v
 
 
 class SlackConfig(BaseSettings):
     """Slack API configuration."""
 
-    bot_token: str = Field(..., description="Slack bot token")
+    bot_token: SecretStr = Field(..., description="Slack bot token")
     channel_id: str = Field(..., description="Default Slack channel ID")
     timeout_seconds: int = Field(20, description="Request timeout in seconds")
     max_message_length: int = Field(4000, description="Maximum message length")
@@ -65,9 +66,10 @@ class SlackConfig(BaseSettings):
         case_sensitive = False
 
     @validator("bot_token")
-    def validate_bot_token(cls, v: str) -> str:
+    def validate_bot_token(cls, v: SecretStr) -> SecretStr:
         """Validate Slack bot token format."""
-        if not v.startswith("xoxb-"):
+        token_value = v.get_secret_value()
+        if not token_value.startswith("xoxb-"):
             raise ValueError("Slack bot token must start with 'xoxb-'")
         return v
 
@@ -82,7 +84,7 @@ class SlackConfig(BaseSettings):
 class AIConfig(BaseSettings):
     """AI processing configuration."""
 
-    openrouter_api_key: str = Field(..., description="OpenRouter API key")
+    openrouter_api_key: SecretStr = Field(..., description="OpenRouter API key")
     model: str = Field("anthropic/claude-3.5-sonnet", description="AI model to use")
     max_tokens: int = Field(4000, description="Maximum tokens for AI responses")
     temperature: float = Field(0.1, description="AI temperature (0.0-1.0)")
@@ -92,6 +94,14 @@ class AIConfig(BaseSettings):
     class Config:
         env_prefix = "OPENROUTER_"
         case_sensitive = False
+
+    @validator("openrouter_api_key")
+    def validate_api_key(cls, v: SecretStr) -> SecretStr:
+        """Ensure API key is not empty."""
+        key_value = v.get_secret_value()
+        if not key_value or len(key_value.strip()) == 0:
+            raise ValueError("OpenRouter API key cannot be empty")
+        return v
 
     @validator("temperature")
     def validate_temperature(cls, v: float) -> float:
