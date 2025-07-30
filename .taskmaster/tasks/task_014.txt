@@ -1,0 +1,71 @@
+# Task ID: 14
+# Title: Centralised Configuration & Secret Management
+# Status: pending
+# Dependencies: 13
+# Priority: medium
+# Description: Implement environment & YAML driven configuration loader with validation.
+# Details:
+• .env template keys: GRAFANA_URL, GRAFANA_TOKEN, OPENROUTER_API_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID
+• config.yaml defaults: schedule_time: "10:00", timezone: "Asia/Jerusalem", lookback_hours: 24, openrouter: {model: "anthropic.claude-4-sonnet", temperature: 0.2, max_tokens: 2048}
+• Use python-dotenv to load .env → os.environ. Use pydantic BaseModel to validate & expose strongly-typed Config object.
+• Allow override via CLI flags/environment hierarchy.
+• Example:
+```
+class Settings(BaseSettings):
+    grafana_url: AnyHttpUrl
+    grafana_token: SecretStr
+    ...
+    class Config: env_file = ".env", env_file_encoding = "utf-8"
+```
+
+
+# Test Strategy:
+Unit tests for Settings class: missing env var ⇒ ValidationError; valid .env loads successfully. YAML override test.
+
+# Subtasks:
+## 1. Create .env template and environment loader [pending]
+### Dependencies: None
+### Description: Draft a .env.example file containing all required keys and implement logic that uses python-dotenv to load variables into os.environ at application start-up.
+### Details:
+Keys: GRAFANA_URL, GRAFANA_TOKEN, OPENROUTER_API_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID. Provide helper load_dotenv() call in a dedicated config/__init__.py executed before any settings access.
+
+## 2. Define Pydantic Settings model with validation [pending]
+### Dependencies: 14.1
+### Description: Create Settings(BaseSettings) class that validates required secrets and typed URLs, incorporates default values, and exposes a singleton Config object.
+### Details:
+Include nested OpenRouterConfig model. Use SecretStr for tokens. Configure env_file='.env', env_file_encoding='utf-8'.
+
+## 3. Implement YAML configuration loader and merge logic [pending]
+### Dependencies: 14.1, 14.2
+### Description: Load config.yaml, apply defaults, and merge with environment variables according to precedence: CLI > ENV > YAML > code defaults.
+### Details:
+Use ruamel.yaml or PyYAML to parse, then pass merged dict to Settings(**kwargs) for validation.
+
+## 4. Add CLI override interface [pending]
+### Dependencies: 14.3
+### Description: Integrate argparse/typer command-line flags to override any Settings field and allow custom YAML path specification.
+### Details:
+Expose --grafana-url, --schedule-time, --config-path, etc. Convert CLI args to dict and feed into merge chain.
+
+## 5. Comprehensive unit test suite for configuration module [pending]
+### Dependencies: 14.2, 14.3, 14.4
+### Description: Write pytest cases covering validation failures, precedence hierarchy, and CLI interaction; achieve ≥90% coverage for config component.
+### Details:
+Use pytest-asyncio where needed, monkeypatch env vars, temp files for YAML, and click/typer testing utilities for CLI.
+
+## 6. Cleanup and Code Organization [pending]
+### Dependencies: 14.1, 14.2, 14.3, 14.4, 14.5
+### Description: Remove temporary files, organize imports, and ensure clean code structure
+### Details:
+
+
+## 7. Quality Gate: Tests and Linting [pending]
+### Dependencies: 14.6
+### Description: Run comprehensive tests and linting checks to ensure code quality standards
+### Details:
+
+
+## 8. Context7 MCP Research: External Package Dependencies [pending]
+### Dependencies: 14.7
+### Description: Use Context7 MCP to research and validate external Python packages and dependencies
+### Details:

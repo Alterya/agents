@@ -1,0 +1,191 @@
+# Daily Alert Summary Agent - Product Requirements Document
+
+## Project Overview
+
+### Mission Statement
+Create an automated agent that triggers daily at 10 AM Jerusalem time to retrieve all Grafana alerts from the previous 24 hours, intelligently group them using OpenRouter with Claude 4 Sonnet, and deliver a comprehensive summary to the team via Slack.
+
+### Primary Goal
+Summarize the day-before alerts to improve team awareness and reduce time spent manually reviewing alert data, enhancing overall incident response and system health visibility.
+
+## User Stories
+
+### Primary Users: Development/Operations Team
+- **As a team member**, I want to receive a daily digest of yesterday's alerts so I can quickly understand what happened in our systems without manually checking multiple dashboards.
+- **As a team lead**, I want alerts grouped logically (by service, severity, frequency) so I can prioritize follow-up actions and identify patterns.
+- **As an on-call engineer**, I want to see alert trends and resolutions so I can better prepare for potential recurring issues.
+
+## Technical Requirements
+
+### Core Functionality
+1. **Scheduling**: Local cron-based scheduling system triggering at 10:00 AM Jerusalem time (UTC+2/UTC+3 depending on DST)
+2. **Data Collection**: Integrate with Grafana MCP to fetch all alerts from the previous 24-hour period
+3. **AI-Powered Grouping**: Use OpenRouter with Claude 4 Sonnet for intelligent alert grouping by:
+   - Service/component
+   - Severity level
+   - Alert frequency/patterns
+   - Resolution status
+4. **Summary Generation**: Create human-readable summaries with actionable insights using Claude 4 Sonnet
+5. **Delivery**: Send formatted summaries to designated Slack channel/group
+
+### Technical Stack
+- **Language**: Python 3.11+
+- **AI Provider**: OpenRouter with Claude 4 Sonnet model
+- **Scheduling**: Python cron (APScheduler) with Jerusalem timezone support
+- **Environment Management**: Python virtual environment with requirements.txt
+- **Configuration**: Python-dotenv for environment variables and YAML configuration
+- **HTTP Client**: httpx for async requests to Grafana and Slack APIs
+
+### Technical Constraints
+- Use local Python scheduling system (APScheduler)
+- Leverage existing mcp.json configuration for Grafana setup inspiration
+- No specific Slack workspace/channel requirements (flexible configuration)
+- Custom AI prompt-driven alert grouping logic using Claude 4 Sonnet via OpenRouter
+
+### Integration Points
+- **Grafana MCP**: Primary data source for alert information
+- **OpenRouter API**: AI service provider for Claude 4 Sonnet access
+- **Slack API**: Delivery mechanism for summaries
+- **Local Python Scheduler**: Scheduling and automation
+
+## Functional Requirements
+
+### Alert Data Processing
+1. Retrieve alerts from last 24 hours via Grafana MCP
+2. Parse and structure alert data (timestamp, severity, service, description, status)
+3. Apply AI-powered grouping using Claude 4 Sonnet via OpenRouter
+4. Generate summary statistics and trend analysis
+
+### AI-Powered Summary Generation
+1. Use Claude 4 Sonnet to create executive summary with key metrics
+2. Provide AI-generated detailed breakdowns by service/severity
+3. Highlight critical alerts requiring attention using AI analysis
+4. Include resolution status and timing information
+5. Format content for optimal Slack readability
+
+### Delivery System
+1. Format summaries for Slack channel consumption
+2. Include appropriate formatting (markdown, mentions, threads)
+3. Handle delivery failures gracefully with retry logic
+4. Provide configuration options for channel selection
+
+## Non-Functional Requirements
+
+### Reliability
+- Ensure daily execution consistency with Python cron
+- Implement error handling and recovery mechanisms
+- Provide logging for troubleshooting
+
+### Performance
+- Complete processing within reasonable time limits (< 5 minutes)
+- Handle large volumes of alert data efficiently
+- Minimize API calls to external services
+- Optimize OpenRouter API usage for cost efficiency
+
+### Maintainability
+- Modular Python code structure for easy updates
+- Configurable parameters via environment variables and YAML
+- Clear documentation and setup instructions
+- Virtual environment for dependency isolation
+
+## Success Criteria
+
+### Primary Success Metrics
+1. **Automation Success**: 100% reliable daily execution at scheduled time
+2. **Data Accuracy**: Complete and accurate alert data retrieval from Grafana
+3. **AI Quality**: High-quality, contextual grouping and summaries from Claude 4 Sonnet
+4. **Team Adoption**: Regular team consumption of daily summaries
+5. **Time Savings**: Reduced manual alert review time for team members
+
+### Secondary Success Metrics
+1. **Alert Pattern Recognition**: AI-powered identification of recurring issues through intelligent grouping
+2. **Actionable Insights**: Summaries that lead to proactive system improvements
+3. **Slack Integration**: Seamless delivery and formatting in team channels
+4. **Cost Efficiency**: Optimized OpenRouter API usage
+
+## Out of Scope (Initial Version)
+- Interactive alert management capabilities
+- Historical trend analysis beyond 24 hours
+- Integration with monitoring tools other than Grafana
+- Advanced ML-based alert correlation beyond Claude 4 Sonnet capabilities
+- Real-time alert notifications (this is for daily summaries only)
+- Custom dashboard creation
+- Alert escalation workflows
+- Complex deployment infrastructure (CI/CD, containers, Kubernetes)
+- Comprehensive testing frameworks
+- Performance optimization beyond basic requirements
+
+## Implementation Phases
+
+### Phase 1: Core Python Agent Development
+- Python project setup with virtual environment
+- Basic Grafana MCP integration using httpx
+- Alert data retrieval and parsing
+- Local Python scheduling setup with APScheduler
+
+### Phase 2: AI-Powered Processing with OpenRouter
+- OpenRouter client setup for Claude 4 Sonnet access
+- AI-powered alert grouping and analysis
+- Summary generation using Claude 4 Sonnet
+- Data formatting and structuring
+
+### Phase 3: Slack Integration & Orchestration
+- Slack API integration with httpx
+- Message formatting and delivery
+- Error handling and retry logic
+- Main orchestrator script
+
+## Technical Architecture
+
+### Components
+1. **Scheduler**: APScheduler-based daily trigger
+2. **Data Collector**: Grafana MCP integration module using httpx
+3. **AI Processor**: OpenRouter + Claude 4 Sonnet integration for grouping and analysis
+4. **Generator**: AI-powered summary creation and formatting
+5. **Notifier**: Slack delivery system
+6. **Configuration**: Environment and YAML configuration management
+
+### Data Flow
+1. APScheduler triggers agent at 10 AM Jerusalem time
+2. Agent connects to Grafana via MCP using httpx
+3. Retrieves alerts from previous 24 hours
+4. Sends alert data to Claude 4 Sonnet via OpenRouter for intelligent grouping
+5. Generates AI-powered formatted summary
+6. Delivers summary to Slack channel using httpx
+7. Logs execution results
+
+## Configuration Requirements
+
+### Environment Setup
+- Python 3.11+ virtual environment
+- OpenRouter API key for Claude 4 Sonnet access
+- Grafana MCP configuration (using mcp.json as inspiration)
+- Slack API credentials and channel configuration
+- Timezone settings for Jerusalem time
+- APScheduler configuration for daily execution
+
+### Customization Options
+- AI prompt templates for alert grouping and summary generation
+- OpenRouter model parameters (temperature, max_tokens, etc.)
+- Summary format templates
+- Slack channel targeting
+- Execution time adjustment
+- Data retention policies
+
+## Quality Gates and Standards
+
+### Code Quality
+- Python code formatting with black and isort
+- Type hints with mypy
+- Basic error handling and logging
+- Environment variable validation
+
+### Operational Quality
+- Basic monitoring for agent failures
+- Simple logging for troubleshooting
+- Secure API key management
+- Basic backup of configuration
+
+---
+
+*Note: This simplified PRD focuses on core functionality without extensive testing, CI/CD, or deployment infrastructure. The project emphasizes rapid development and deployment of the essential daily alert summary capability using modern Python tools and AI-powered analysis via OpenRouter's Claude 4 Sonnet.*

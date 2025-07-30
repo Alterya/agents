@@ -1,0 +1,79 @@
+# Task ID: 15
+# Title: Jerusalem-Aware Daily Scheduler
+# Status: pending
+# Dependencies: 14
+# Priority: high
+# Description: Set up APScheduler job that triggers orchestrator at 10:00 AM Asia/Jerusalem with DST correctness.
+# Details:
+• Use `AsyncIOScheduler(timezone="Asia/Jerusalem")`.
+• Job definition example:
+```
+scheduler.add_job(run_job, 'cron', hour=10, minute=0, misfire_grace_time=300)
+```
+• Provide CLI `python -m alert_agent.scheduler --run_once` for local test.
+• Persist scheduler in orchestrator with graceful shutdown signals (SIGINT/SIGTERM).
+
+
+# Test Strategy:
+Integration test with freezegun: mock datetime to 09:59 JLM, advance minute & assert job called. Manual run `TZ=Asia/Jerusalem python orchestrator.py --run_once`
+
+# Subtasks:
+## 1. Timezone & Environment Preparation [pending]
+### Dependencies: None
+### Description: Ensure the application can resolve "Asia/Jerusalem" correctly on every platform, including Docker Alpine images where zoneinfo may be absent.
+### Details:
+• Add tzdata==2024.1 to dependencies and document that it must be installed in prod images.
+• Create utility function `get_jlm_tz()` that returns `zoneinfo.ZoneInfo("Asia/Jerusalem")` and falls back to `pytz` when necessary.
+• Validate DST behaviour by printing offsets for known summer/winter dates during boot.
+• Expose this utility in `alert_agent.utils.time` for reuse by scheduler and tests.
+
+## 2. AsyncIOScheduler Initialization [pending]
+### Dependencies: 15.1
+### Description: Create a scheduler module that builds and starts an `AsyncIOScheduler` instance using the Jerusalem timezone utility.
+### Details:
+• File: `alert_agent/scheduler/core.py`.
+• Function `create_scheduler()` returns a started `AsyncIOScheduler(timezone=get_jlm_tz())`.
+• Configure default job stores and executors (ThreadPoolExecutor max_workers=10).
+• Expose singleton pattern or dependency-injection friendly factory.
+
+## 3. Daily Orchestrator Job Registration [pending]
+### Dependencies: 15.1, 15.2
+### Description: Register a cron job that triggers the orchestrator at 10:00 AM local Jerusalem time with correct DST handling and 5-minute misfire grace.
+### Details:
+• Function `register_daily_job(scheduler, run_job)` in `core.py`.
+• Use `scheduler.add_job(run_job, 'cron', hour=10, minute=0, misfire_grace_time=300, id='daily_orchestrator')`.
+• Guard against duplicate job IDs when `register_daily_job` is called multiple times.
+
+## 4. CLI Entry Point & One-Shot Mode [pending]
+### Dependencies: 15.3
+### Description: Expose command `python -m alert_agent.scheduler --run_once` that either schedules normally or runs the orchestrator immediately for local testing.
+### Details:
+• Module `alert_agent/scheduler/__main__.py` parses `--run_once` using argparse.
+• When flag present: call `asyncio.run(run_job())` and exit.
+• Otherwise: create scheduler, register job, keep event loop alive with `asyncio.Event().wait()`.
+
+## 5. Persistence, Graceful Shutdown & Integration Tests [pending]
+### Dependencies: 15.2, 15.3, 15.4
+### Description: Persist scheduler within orchestrator process, handle SIGINT/SIGTERM for clean shutdown, and deliver full integration test suite.
+### Details:
+• Register `signal.signal` handlers that call `await scheduler.shutdown(wait=False)` and `loop.stop()`.
+• Ensure orchestrator keeps a reference to the running scheduler for future job additions.
+• Write integration tests using `pytest-asyncio` to spin up the full scheduler, send `os.kill(os.getpid(), signal.SIGINT)` and assert graceful exit.
+• Document manual test: `TZ=Asia/Jerusalem python -m alert_agent.scheduler`.
+
+## 6. Cleanup and Code Organization [pending]
+### Dependencies: 15.1, 15.2, 15.3, 15.4, 15.5
+### Description: Remove temporary files, organize imports, and ensure clean code structure
+### Details:
+
+
+## 7. Quality Gate: Tests and Linting [pending]
+### Dependencies: 15.6
+### Description: Run comprehensive tests and linting checks to ensure code quality standards
+### Details:
+
+
+## 8. Context7 MCP Research: External Package Dependencies [pending]
+### Dependencies: 15.7
+### Description: Use Context7 MCP to research and validate external Python packages and dependencies
+### Details:

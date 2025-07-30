@@ -1,0 +1,76 @@
+# Task ID: 22
+# Title: Test Suite & Quality Gate Automation
+# Status: pending
+# Dependencies: 21
+# Priority: medium
+# Description: Implement pytest-based unit & integration tests, linters, and GitHub Actions workflow.
+# Details:
+• tests/ directory: collector_test.py, ai_test.py, summary_test.py, notifier_test.py, orchestrator_test.py
+• Use `pytest-asyncio` for async functions; `coverage==7.4.4` target ≥80%.
+• GitHub Actions CI YAML:
+  - matrix python: [3.11,3.12-beta]
+  - steps: checkout, setup-python, install deps, run `black --check`, `isort --check`, `mypy`, `pytest --cov`.
+• Badge generation and PR blocking on failures.
+
+
+# Test Strategy:
+Run `pytest` locally; assert coverage threshold; run GA workflow in pull request; ensure fail on lint error.
+
+# Subtasks:
+## 1. Configure Testing & Coverage Toolchain [pending]
+### Dependencies: None
+### Description: Add pytest, pytest-asyncio, and coverage (>=7.4.4) to project; create pytest.ini with async marker support and configure coverage minimum ≥80%.
+### Details:
+• Update pyproject.toml/requirements-dev.txt with test dependencies.
+• Draft pytest.ini: add asyncio_mode = auto, testpaths = tests, addopts = --cov=src --cov-report=term-missing --cov-fail-under=80.
+• Validate tooling locally with `pytest -q`.
+
+## 2. Implement Component-Level Unit Tests [pending]
+### Dependencies: 22.1
+### Description: Create/complete collector_test.py, ai_test.py, summary_test.py, notifier_test.py, orchestrator_test.py covering edge-cases and error handling.
+### Details:
+• Aim for ≥70% line coverage per module.
+• Use pytest fixtures & monkeypatch for isolation.
+• Mock external I/O (HTTP, Slack) with pytest-mock or respx.
+
+## 3. Develop End-to-End Integration Tests [pending]
+### Dependencies: 22.1, 22.2
+### Description: Write integration tests exercising async workflow across collector → ai → summary → notifier using in-memory or stub services.
+### Details:
+• Place tests in tests/integration/ with marker @pytest.mark.integration.
+• Spin up mock HTTP servers with httpx.AsyncClient + pytest-asyncio.
+• Ensure deterministic results via fixed seeds.
+
+## 4. Set Up Code Quality Linters & Type Checking [pending]
+### Dependencies: 22.1
+### Description: Configure black, isort, and mypy with strict settings; add pyproject.toml sections and optional pre-commit hook definitions.
+### Details:
+• black line length 88; isort profile=black.
+• mypy: strict=True, ignore_missing_imports for 3rd-party.
+• Document commands: `black --check .`, `isort --check .`, `mypy src/`.
+
+## 5. Automate CI Quality Gate with GitHub Actions [pending]
+### Dependencies: 22.1, 22.2, 22.3, 22.4
+### Description: Create .github/workflows/ci.yml running lint, type check, unit & integration tests across Python 3.11 and 3.12-beta; generate coverage badge and enforce PR blocking.
+### Details:
+• Use matrix strategy: python-version: [3.11, 3.12-beta].
+• Steps: checkout → setup-python → cache → install deps → run black/isort/mypy → pytest --cov.
+• Upload coverage to Codecov or generate badge via shields.io.
+• Require status checks in branch protection settings.
+
+## 6. Cleanup and Code Organization [pending]
+### Dependencies: 22.1, 22.2, 22.3, 22.4, 22.5
+### Description: Remove temporary files, organize imports, and ensure clean code structure
+### Details:
+
+
+## 7. Quality Gate: Tests and Linting [pending]
+### Dependencies: 22.6
+### Description: Run comprehensive tests and linting checks to ensure code quality standards
+### Details:
+
+
+## 8. Context7 MCP Research: External Package Dependencies [pending]
+### Dependencies: 22.7
+### Description: Use Context7 MCP to research and validate external Python packages and dependencies
+### Details:

@@ -1,0 +1,69 @@
+# Task ID: 21
+# Title: Orchestrator Assembly & CLI Entry Point
+# Status: pending
+# Dependencies: 15, 16, 17, 18, 19, 20
+# Priority: high
+# Description: Glue scheduler, collector, AI processor, summary generator and notifier into a cohesive async workflow.
+# Details:
+• `orchestrator.py` main async function:
+```
+async def run_daily():
+    alerts = await collect_alerts()
+    grouped = await group_alerts(alerts)
+    summary = render_summary(grouped)
+    await send_slack(summary)
+```
+• Use `asyncio.run(run_daily())` for one-shot; expose `cli.py` with Typer==0.12.3 for commands `run-now`, `start-scheduler`.
+• Ensure graceful shutdown (scheduler.shutdown(wait=False)).
+
+
+# Test Strategy:
+End-to-end test with dependency injection and mocks; run `typer` command in CI; assert all stages executed and Slack mock called.
+
+# Subtasks:
+## 1. Implement core async orchestrator logic [pending]
+### Dependencies: None
+### Description: Create orchestrator.py with `async def run_daily()` that sequentially calls `collect_alerts`, `group_alerts`, `render_summary`, and `send_slack` using awaited coroutines.
+### Details:
+Define type signatures, ensure each stage is injected via default parameters for testability, and propagate exceptions upwards without swallowing.
+
+## 2. Add asyncio runner & graceful shutdown [pending]
+### Dependencies: 21.1
+### Description: Wrap `run_daily` in a `def run_now()` that calls `asyncio.run(run_daily())`; implement signal handlers (SIGINT, SIGTERM) that cancel pending tasks and ensure scheduler.shutdown(wait=False) if scheduler exists.
+### Details:
+Use `asyncio.current_task().cancel()` on signal; include finally block to log completion; expose `shutdown()` helper.
+
+## 3. Integrate daily scheduler [pending]
+### Dependencies: 21.2
+### Description: Create `start_scheduler()` that configures an APScheduler AsyncIOScheduler to trigger `run_daily` at 09:00 UTC (or configurable time) and starts the event loop until cancelled.
+### Details:
+Add config for cron timing, pass coroutine reference, store scheduler instance globally for shutdown, and log job execution results.
+
+## 4. Create Typer CLI entry point [pending]
+### Dependencies: 21.3
+### Description: Build cli.py with Typer==0.12.3 exposing `run-now` (calls run_now) and `start-scheduler` (calls start_scheduler). Provide --verbosity flag and auto-generated help.
+### Details:
+Register app = Typer(); use `@app.command()` decorators; parse environment variables for config overrides; guard main block with `if __name__ == '__main__': app()`.
+
+## 5. End-to-end orchestration & CLI integration test [pending]
+### Dependencies: 21.4
+### Description: Develop comprehensive tests that spin up the CLI command in a subprocess with environment-defined mocks, verifying full pipeline execution and Slack notification call.
+### Details:
+Use pytest’s `subprocess` fixture; inject fake HTTP server for collector, mock AI processor, capture stdout/stderr and exit code; ensure graceful exit on SIGTERM.
+
+## 6. Cleanup and Code Organization [pending]
+### Dependencies: 21.1, 21.2, 21.3, 21.4, 21.5
+### Description: Remove temporary files, organize imports, and ensure clean code structure
+### Details:
+
+
+## 7. Quality Gate: Tests and Linting [pending]
+### Dependencies: 21.6
+### Description: Run comprehensive tests and linting checks to ensure code quality standards
+### Details:
+
+
+## 8. Context7 MCP Research: External Package Dependencies [pending]
+### Dependencies: 21.7
+### Description: Use Context7 MCP to research and validate external Python packages and dependencies
+### Details:

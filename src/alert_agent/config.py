@@ -5,9 +5,9 @@ with precedence: CLI > ENV > YAML > code defaults.
 """
 
 
-def load_config():
+def load_config() -> None:
     """Load and validate application configuration.
-    
+
     Returns:
         Configuration object with validated settings.
     """

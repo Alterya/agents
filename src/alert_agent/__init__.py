@@ -9,7 +9,7 @@ __author__ = "Daily Alert Team"
 
 __all__ = [
     "config",
-    "scheduler", 
+    "scheduler",
     "collector",
     "ai_processor",
     "summary",

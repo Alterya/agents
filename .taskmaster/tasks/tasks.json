@@ -1,0 +1,1081 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 13,
+        "title": "Project Scaffolding & Dependency Definition",
+        "description": "Create repository, isolate Python 3.11 environment and lock core dependencies for all modules of the Daily Alert Summary Agent.",
+        "details": "• Initialise git repo and add standard .gitignore (Python, venv, secrets)\n• pyproject.toml (preferred) or requirements.txt with pinned libs:\n  - python 3.11\n  - httpx==0.27.0 (2024-05)\n  - APScheduler==3.10.4 (Jerusalem TZ handled by pytz)\n  - python-dotenv==1.0.1\n  - pydantic==2.7.0 for config validation\n  - loguru==0.7.2\n  - backoff==2.2.1\n  - tzdata==2024.1 (if system zoneinfo missing)\n  - pytest==8.2.0, pytest-asyncio==0.23.6 (dev)\n• Directory layout:\n  src/\n    alert_agent/\n      __init__.py\n      config.py\n      scheduler.py\n      collector.py\n      ai_processor.py\n      summary.py\n      notifier.py\n      orchestrator.py\n  tests/\n• Pre-commit hooks: black==24.4.2, isort==5.13.2, mypy==1.10.0\n",
+        "testStrategy": "Run `python -m pip install -r requirements.txt`; verify `python -c 'import httpx, apscheduler, pydantic'` succeeds; run `python -c 'import zoneinfo, datetime; print(datetime.datetime.now().astimezone().tzname())'` to ensure tzdata installed.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize Git repository and baseline .gitignore",
+            "description": "Create the project’s VCS foundation and ensure sensitive or transient files are ignored.",
+            "dependencies": [],
+            "details": "• Run `git init` in project root.\n• Add a comprehensive .gitignore covering Python bytecode, virtual-env directories, OS files, IDE configs, and secret files (.env, *.pem).\n• Commit initial empty repository state with message “chore: initial repo & .gitignore”.\n<info added on 2025-07-30T10:56:16.181Z>\n• Completed implementation: repository confirmed initialized, .gitignore replaced with Python-centric patterns (bytecode, venv, dist/test artefacts, secrets, OS & IDE files) and committed as “chore: initial repo & .gitignore” (hash 46585c2).  \n• Verification: repository contains exactly one commit; ignored file check passes for all specified patterns.  \n• Subtask marked complete; advance to 13.2 to scaffold canonical src/ and tests/ directories.\n</info added on 2025-07-30T10:56:16.181Z>",
+            "status": "done",
+            "testStrategy": "Run `git status --ignored` and confirm venv/pycache/.env are listed; verify repository has exactly one commit."
+          },
+          {
+            "id": 2,
+            "title": "Create canonical directory structure for code and tests",
+            "description": "Lay out src/ and tests/ folders with required module stubs.",
+            "dependencies": [
+              "13.1"
+            ],
+            "details": "• Generate folder tree:\n  src/alert_agent/ (__init__.py, config.py, scheduler.py, collector.py, ai_processor.py, summary.py, notifier.py, orchestrator.py)\n  tests/ (empty __init__.py)\n• Add placeholder docstrings in each module to pass import.\n• Commit as “chore: scaffold package layout”.\n<info added on 2025-07-30T11:00:04.070Z>\n• Scaffolding finished: src/alert_agent/ and tests/ directories created with all eight module files plus tests/__init__.py (9 files, ~230 LOC).  \n• Each module contains placeholder docstrings, function stubs, and __all__ exports where applicable.  \n• Changes committed under hash e09d9b6 with message “chore: scaffold package layout”.  \n• Subtask 13.2 now complete; hand-off to 13.3 for pyproject.toml dependency manifest.\n</info added on 2025-07-30T11:00:04.070Z>",
+            "status": "done",
+            "testStrategy": "Run `python -m pip install -e .` (after subtask 4) then `python -c 'import alert_agent; print(alert_agent.__all__)'` succeeds, indicating importable package."
+          },
+          {
+            "id": 3,
+            "title": "Author dependency manifest with pinned versions",
+            "description": "Define Python 3.11 requirement and lock library versions through pyproject.toml (preferred) or requirements.txt.",
+            "dependencies": [
+              "13.1"
+            ],
+            "details": "• Write pyproject.toml using PEP-621 metadata and `[project.dependencies]` section listing exact versions for httpx, APScheduler, python-dotenv, pydantic, loguru, backoff, tzdata, and optional `[project.optional-dependencies.dev]` for pytest/pytest-asyncio.\n• Include build-system table using `hatchling` or `setuptools`.\n• Add explanatory comments on version pin dates.\n• Commit as “feat: dependency manifest”.\n<info added on 2025-07-30T11:57:32.256Z>\n• Dependency manifest finalized via Poetry: created pyproject.toml targeting Python 3.10, declaring pinned production deps (httpx 0.27.0, APScheduler 3.10.4, python-dotenv 1.0.1, pydantic 2.7.0, loguru 0.7.2, backoff 2.2.1, tzdata 2024.1) with dated inline comments.  \n• Added comprehensive development group: pytest 8.2.0, pytest-asyncio 0.23.6, black 24.4.2, isort 5.13.2, mypy 1.10.0, pre-commit, coverage.  \n• Switched build-system to Poetry (poetry-core backend) and populated `[tool.poetry]` metadata, dependency tables, and `scripts` exposing `alert-agent` CLI.  \n• Embedded tool configs (black, isort, mypy, pytest, coverage) within pyproject and set package layout to `src/alert_agent`.  \n• Manifest committed as `feat: dependency manifest` (hash bafe20b).  \n• Subtask complete; hand-off to 13.4 for Poetry virtual-env creation and lockfile generation.\n</info added on 2025-07-30T11:57:32.256Z>",
+            "status": "done",
+            "testStrategy": "Run `python -m pip install -r <generated lock file>` or `pip install .` and execute `python -c 'import httpx, apscheduler, pydantic, loguru'` without error."
+          },
+          {
+            "id": 4,
+            "title": "Create isolated Python 3.11 virtual environment and lock deps",
+            "description": "Provision environment, install and freeze exact versions for reproducibility.",
+            "dependencies": [
+              "13.1",
+              "13.3"
+            ],
+            "details": "• Use `python3.11 -m venv .venv` (or pyenv + virtualenv).\n• Activate and run `pip install -e .[dev]`.\n• Generate `requirements-lock.txt` via `pip freeze > requirements-lock.txt` or rely on poetry/rye lock file.\n• Document activation instructions in README.\n• Commit as “chore: env setup & deps lock”.\n<info added on 2025-07-30T12:03:47.966Z>\n• Environment provisioned with Poetry: `poetry env use python3.10` and `poetry install` (42 packages resolved and installed)  \n• Syntax fixes applied to pyproject.toml (escaped coverage paths)  \n• Generated and committed 72 KB `poetry.lock` for deterministic builds  \n• Verified key imports, timezone handling, and package export integrity  \n• Extended README with setup instructions, Poetry workflow, and architecture overview  \n• Changes committed as “chore: env setup & deps lock” (dcba130) – subtask ready to hand off to 13.5\n</info added on 2025-07-30T12:03:47.966Z>",
+            "status": "done",
+            "testStrategy": "Run CI command `python -m pip install -r requirements-lock.txt` in a fresh container; ensure `python -c 'import zoneinfo, datetime; print(datetime.datetime.now().astimezone().tzname())'` prints valid TZ."
+          },
+          {
+            "id": 5,
+            "title": "Configure developer tooling: pre-commit hooks & linters",
+            "description": "Automate code formatting and static analysis for every commit.",
+            "dependencies": [
+              "13.1",
+              "13.3",
+              "13.4"
+            ],
+            "details": "• Add `.pre-commit-config.yaml` pins: black==24.4.2, isort==5.13.2, mypy==1.10.0.\n• Run `pre-commit install` inside venv.\n• Update pyproject.toml with tool configs for black and isort (line length 100, known_first_party alert_agent).\n• Commit as “chore: pre-commit & lint setup”.",
+            "status": "in-progress",
+            "testStrategy": "Create dummy mis-formatted file, run `pre-commit run --all-files`; verify black formats, isort sorts, mypy passes; CI step exits 0 only after fixes."
+          },
+          {
+            "id": 6,
+            "title": "Cleanup and Code Organization",
+            "description": "Remove temporary files, organize imports, and ensure clean code structure",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "13.1",
+              "13.2",
+              "13.3",
+              "13.4",
+              "13.5"
+            ],
+            "parentTaskId": 13
+          },
+          {
+            "id": 7,
+            "title": "Quality Gate: Tests and Linting",
+            "description": "Run comprehensive tests and linting checks to ensure code quality standards",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "13.6"
+            ],
+            "parentTaskId": 13
+          },
+          {
+            "id": 8,
+            "title": "Context7 MCP Research: External Package Dependencies",
+            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "13.7"
+            ],
+            "parentTaskId": 13
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "Centralised Configuration & Secret Management",
+        "description": "Implement environment & YAML driven configuration loader with validation.",
+        "details": "• .env template keys: GRAFANA_URL, GRAFANA_TOKEN, OPENROUTER_API_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID\n• config.yaml defaults: schedule_time: \"10:00\", timezone: \"Asia/Jerusalem\", lookback_hours: 24, openrouter: {model: \"anthropic.claude-4-sonnet\", temperature: 0.2, max_tokens: 2048}\n• Use python-dotenv to load .env → os.environ. Use pydantic BaseModel to validate & expose strongly-typed Config object.\n• Allow override via CLI flags/environment hierarchy.\n• Example:\n```\nclass Settings(BaseSettings):\n    grafana_url: AnyHttpUrl\n    grafana_token: SecretStr\n    ...\n    class Config: env_file = \".env\", env_file_encoding = \"utf-8\"\n```\n",
+        "testStrategy": "Unit tests for Settings class: missing env var ⇒ ValidationError; valid .env loads successfully. YAML override test.",
+        "priority": "medium",
+        "dependencies": [
+          13
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create .env template and environment loader",
+            "description": "Draft a .env.example file containing all required keys and implement logic that uses python-dotenv to load variables into os.environ at application start-up.",
+            "dependencies": [],
+            "details": "Keys: GRAFANA_URL, GRAFANA_TOKEN, OPENROUTER_API_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID. Provide helper load_dotenv() call in a dedicated config/__init__.py executed before any settings access.",
+            "status": "pending",
+            "testStrategy": "Mock absence of file → expect graceful no-op; provide temporary .env with sample values → assert os.environ contains them after load."
+          },
+          {
+            "id": 2,
+            "title": "Define Pydantic Settings model with validation",
+            "description": "Create Settings(BaseSettings) class that validates required secrets and typed URLs, incorporates default values, and exposes a singleton Config object.",
+            "dependencies": [
+              "14.1"
+            ],
+            "details": "Include nested OpenRouterConfig model. Use SecretStr for tokens. Configure env_file='.env', env_file_encoding='utf-8'.",
+            "status": "pending",
+            "testStrategy": "Unit test: missing mandatory env var causes ValidationError; valid env yields Settings instance with correct types."
+          },
+          {
+            "id": 3,
+            "title": "Implement YAML configuration loader and merge logic",
+            "description": "Load config.yaml, apply defaults, and merge with environment variables according to precedence: CLI > ENV > YAML > code defaults.",
+            "dependencies": [
+              "14.1",
+              "14.2"
+            ],
+            "details": "Use ruamel.yaml or PyYAML to parse, then pass merged dict to Settings(**kwargs) for validation.",
+            "status": "pending",
+            "testStrategy": "Provide sample YAML altering lookback_hours; assert merged Settings reflects change while keeping other defaults."
+          },
+          {
+            "id": 4,
+            "title": "Add CLI override interface",
+            "description": "Integrate argparse/typer command-line flags to override any Settings field and allow custom YAML path specification.",
+            "dependencies": [
+              "14.3"
+            ],
+            "details": "Expose --grafana-url, --schedule-time, --config-path, etc. Convert CLI args to dict and feed into merge chain.",
+            "status": "pending",
+            "testStrategy": "Invoke script with --schedule-time 12:00; assert Settings.schedule_time == '12:00'."
+          },
+          {
+            "id": 5,
+            "title": "Comprehensive unit test suite for configuration module",
+            "description": "Write pytest cases covering validation failures, precedence hierarchy, and CLI interaction; achieve ≥90% coverage for config component.",
+            "dependencies": [
+              "14.2",
+              "14.3",
+              "14.4"
+            ],
+            "details": "Use pytest-asyncio where needed, monkeypatch env vars, temp files for YAML, and click/typer testing utilities for CLI.",
+            "status": "pending",
+            "testStrategy": "CI job runs pytest; include parameterized tests for each precedence scenario; coverage report enforced in workflow."
+          },
+          {
+            "id": 6,
+            "title": "Cleanup and Code Organization",
+            "description": "Remove temporary files, organize imports, and ensure clean code structure",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "14.1",
+              "14.2",
+              "14.3",
+              "14.4",
+              "14.5"
+            ],
+            "parentTaskId": 14
+          },
+          {
+            "id": 7,
+            "title": "Quality Gate: Tests and Linting",
+            "description": "Run comprehensive tests and linting checks to ensure code quality standards",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "14.6"
+            ],
+            "parentTaskId": 14
+          },
+          {
+            "id": 8,
+            "title": "Context7 MCP Research: External Package Dependencies",
+            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "14.7"
+            ],
+            "parentTaskId": 14
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "title": "Jerusalem-Aware Daily Scheduler",
+        "description": "Set up APScheduler job that triggers orchestrator at 10:00 AM Asia/Jerusalem with DST correctness.",
+        "details": "• Use `AsyncIOScheduler(timezone=\"Asia/Jerusalem\")`.\n• Job definition example:\n```\nscheduler.add_job(run_job, 'cron', hour=10, minute=0, misfire_grace_time=300)\n```\n• Provide CLI `python -m alert_agent.scheduler --run_once` for local test.\n• Persist scheduler in orchestrator with graceful shutdown signals (SIGINT/SIGTERM).\n",
+        "testStrategy": "Integration test with freezegun: mock datetime to 09:59 JLM, advance minute & assert job called. Manual run `TZ=Asia/Jerusalem python orchestrator.py --run_once`",
+        "priority": "high",
+        "dependencies": [
+          14
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Timezone & Environment Preparation",
+            "description": "Ensure the application can resolve \"Asia/Jerusalem\" correctly on every platform, including Docker Alpine images where zoneinfo may be absent.",
+            "dependencies": [],
+            "details": "• Add tzdata==2024.1 to dependencies and document that it must be installed in prod images.\n• Create utility function `get_jlm_tz()` that returns `zoneinfo.ZoneInfo(\"Asia/Jerusalem\")` and falls back to `pytz` when necessary.\n• Validate DST behaviour by printing offsets for known summer/winter dates during boot.\n• Expose this utility in `alert_agent.utils.time` for reuse by scheduler and tests.",
+            "status": "pending",
+            "testStrategy": "Unit-test `get_jlm_tz()` with parameterised dates (Jan 1, Jul 1) and assert `.utcoffset()` equals +02:00/+03:00 respectively."
+          },
+          {
+            "id": 2,
+            "title": "AsyncIOScheduler Initialization",
+            "description": "Create a scheduler module that builds and starts an `AsyncIOScheduler` instance using the Jerusalem timezone utility.",
+            "dependencies": [
+              "15.1"
+            ],
+            "details": "• File: `alert_agent/scheduler/core.py`.\n• Function `create_scheduler()` returns a started `AsyncIOScheduler(timezone=get_jlm_tz())`.\n• Configure default job stores and executors (ThreadPoolExecutor max_workers=10).\n• Expose singleton pattern or dependency-injection friendly factory.",
+            "status": "pending",
+            "testStrategy": "Unit-test that `scheduler.timezone.zone` equals \"Asia/Jerusalem\" and that `scheduler.state` is `STATE_RUNNING` after creation."
+          },
+          {
+            "id": 3,
+            "title": "Daily Orchestrator Job Registration",
+            "description": "Register a cron job that triggers the orchestrator at 10:00 AM local Jerusalem time with correct DST handling and 5-minute misfire grace.",
+            "dependencies": [
+              "15.1",
+              "15.2"
+            ],
+            "details": "• Function `register_daily_job(scheduler, run_job)` in `core.py`.\n• Use `scheduler.add_job(run_job, 'cron', hour=10, minute=0, misfire_grace_time=300, id='daily_orchestrator')`.\n• Guard against duplicate job IDs when `register_daily_job` is called multiple times.",
+            "status": "pending",
+            "testStrategy": "Parametrised freezegun test: freeze at 09:59, advance 61 seconds, assert mocked `run_job` called exactly once; repeat for a date in DST and one outside."
+          },
+          {
+            "id": 4,
+            "title": "CLI Entry Point & One-Shot Mode",
+            "description": "Expose command `python -m alert_agent.scheduler --run_once` that either schedules normally or runs the orchestrator immediately for local testing.",
+            "dependencies": [
+              "15.3"
+            ],
+            "details": "• Module `alert_agent/scheduler/__main__.py` parses `--run_once` using argparse.\n• When flag present: call `asyncio.run(run_job())` and exit.\n• Otherwise: create scheduler, register job, keep event loop alive with `asyncio.Event().wait()`.",
+            "status": "pending",
+            "testStrategy": "Invoke `subprocess.run(['python','-m','alert_agent.scheduler','--run_once'])` in tests and assert orchestrator stub executed and process exits with code 0."
+          },
+          {
+            "id": 5,
+            "title": "Persistence, Graceful Shutdown & Integration Tests",
+            "description": "Persist scheduler within orchestrator process, handle SIGINT/SIGTERM for clean shutdown, and deliver full integration test suite.",
+            "dependencies": [
+              "15.2",
+              "15.3",
+              "15.4"
+            ],
+            "details": "• Register `signal.signal` handlers that call `await scheduler.shutdown(wait=False)` and `loop.stop()`.\n• Ensure orchestrator keeps a reference to the running scheduler for future job additions.\n• Write integration tests using `pytest-asyncio` to spin up the full scheduler, send `os.kill(os.getpid(), signal.SIGINT)` and assert graceful exit.\n• Document manual test: `TZ=Asia/Jerusalem python -m alert_agent.scheduler`.",
+            "status": "pending",
+            "testStrategy": "End-to-end test starts scheduler in background, waits for simulated job trigger, sends SIGTERM, then checks that `scheduler.state` becomes `STATE_STOPPED` and no unhandled exceptions are raised."
+          },
+          {
+            "id": 6,
+            "title": "Cleanup and Code Organization",
+            "description": "Remove temporary files, organize imports, and ensure clean code structure",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "15.1",
+              "15.2",
+              "15.3",
+              "15.4",
+              "15.5"
+            ],
+            "parentTaskId": 15
+          },
+          {
+            "id": 7,
+            "title": "Quality Gate: Tests and Linting",
+            "description": "Run comprehensive tests and linting checks to ensure code quality standards",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "15.6"
+            ],
+            "parentTaskId": 15
+          },
+          {
+            "id": 8,
+            "title": "Context7 MCP Research: External Package Dependencies",
+            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "15.7"
+            ],
+            "parentTaskId": 15
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "title": "Grafana MCP Alert Collector",
+        "description": "Implement async data collector that fetches previous 24h alerts from Grafana MCP using httpx and returns normalised objects.",
+        "details": "• Endpoint: `/api/alertmanager/grafana/api/v2/alerts?since=<iso>` (example; confirm via mcp.json). Use bearer token header.\n• Calculate `since = now - lookback_hours` in UTC; include timezone in query.\n• Design dataclass Alert(\n  id:str, service:str, severity:str, starts_at:dt, ends_at:Optional[dt], description:str, status:str)\n• Handle pagination (Grafana returns link header) with async recursion.\n• Retry w/ backoff on 5xx using backoff lib.\n",
+        "testStrategy": "Mock httpx.AsyncClient with respx: ensure pagination handled; verify that 24h lookback filter applied; error + retry path covered.",
+        "priority": "high",
+        "dependencies": [
+          14
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Grafana MCP API specification & configuration",
+            "description": "Research and verify the exact Grafana MCP Alertmanager endpoint, required query parameters, authentication method, and pagination link-header format. Capture example responses in fixtures and document environment variables (e.g., GRAFANA_MCP_TOKEN, GRAFANA_MCP_BASE_URL).",
+            "dependencies": [],
+            "details": "Deliver a concise API reference (endpoint paths, required headers, pagination scheme, rate limits) and create a typed settings object (pydantic BaseSettings) that loads base URL and bearer token from the environment or .env file.",
+            "status": "pending",
+            "testStrategy": "Mock one discovery call with respx to ensure the settings object correctly injects the bearer token and base URL into an httpx.AsyncClient instance."
+          },
+          {
+            "id": 2,
+            "title": "Alert dataclass design & parsing helpers",
+            "description": "Define the Alert dataclass and utility functions that map raw Grafana alert JSON into normalised Alert objects, handling optional fields and timezone-aware datetime parsing.",
+            "dependencies": [
+              "16.1"
+            ],
+            "details": "Implement Alert(id: str, service: str, severity: str, starts_at: datetime, ends_at: Optional[datetime], description: str, status: str). Provide from_grafana(payload: dict) -> Alert and list_from_response(resp_json: list) -> List[Alert]. Ensure all datetime values are converted to UTC and are tz-aware.",
+            "status": "pending",
+            "testStrategy": "Unit tests with example payloads covering missing endsAt, unknown severity, and timezone offsets; validate that the resulting Alert instances are correct and comparable."
+          },
+          {
+            "id": 3,
+            "title": "Async fetcher with lookback query construction",
+            "description": "Implement an async function fetch_alert_page since=<iso> that builds the query using UTC now() - lookback_hours (default 24) and performs a single HTTP GET with httpx including bearer token header.",
+            "dependencies": [
+              "16.1"
+            ],
+            "details": "Use httpx.AsyncClient with a 10 s timeout. Compute since_iso = (datetime.utcnow() - timedelta(hours=lookback)).isoformat(timespec='seconds') + 'Z'. Return httpx.Response for further processing.",
+            "status": "pending",
+            "testStrategy": "respx route asserting correct URL & headers; parametrised tests for different lookback_hours values."
+          },
+          {
+            "id": 4,
+            "title": "Pagination, retry/backoff, and aggregation to Alert objects",
+            "description": "Compose the recursive collector that follows Link headers to fetch all pages, applies exponential backoff (backoff.on_exception) on 5xx, aggregates results, and returns List[Alert] using the parsing helpers.",
+            "dependencies": [
+              "16.2",
+              "16.3"
+            ],
+            "details": "Implement async def collect_alerts(lookback_hours=24) -> List[Alert]. On each response, check response.headers['Link'] for rel=\"next\"; call itself until exhausted. Wrap network calls with backoff expo (max_tries=5, jitter). Transform each page’s JSON via list_from_response and extend the result list.",
+            "status": "pending",
+            "testStrategy": "respx mock with three-page scenario including one 500 -> 200 retry; assert total Alert count equals combined pages and no duplicates."
+          },
+          {
+            "id": 5,
+            "title": "Comprehensive unit & integration tests for collector",
+            "description": "Create pytest-asyncio test suite covering happy path, pagination depth >1, lookback filtering, retry logic, and malformed responses.",
+            "dependencies": [
+              "16.4"
+            ],
+            "details": "Use respx to simulate Grafana API, factory functions for dynamic payloads, and freezegun to freeze time for lookback validation. Include coverage targets in pyproject.toml.",
+            "status": "pending",
+            "testStrategy": "Run pytest ‑q; assert >95 % coverage on collector module, all scenarios pass, and no unexpected httpx requests occur."
+          },
+          {
+            "id": 6,
+            "title": "Cleanup and Code Organization",
+            "description": "Remove temporary files, organize imports, and ensure clean code structure",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "16.1",
+              "16.2",
+              "16.3",
+              "16.4",
+              "16.5"
+            ],
+            "parentTaskId": 16
+          },
+          {
+            "id": 7,
+            "title": "Quality Gate: Tests and Linting",
+            "description": "Run comprehensive tests and linting checks to ensure code quality standards",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "16.6"
+            ],
+            "parentTaskId": 16
+          },
+          {
+            "id": 8,
+            "title": "Context7 MCP Research: External Package Dependencies",
+            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "16.7"
+            ],
+            "parentTaskId": 16
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "title": "OpenRouter Claude 4 Sonnet Integration & Alert Grouping",
+        "description": "Send collected alerts to Claude via OpenRouter for intelligent grouping and receive structured JSON clusters.",
+        "details": "• Use https://openrouter.ai/api `POST /v1/chat/completions` with header `Authorization: Bearer <OPENROUTER_API_KEY>`.\n• Chat payload:\n  system: \"You are an SRE assistant. Respond ONLY with JSON...\"\n  user: provide alerts list & grouping instructions.\n• Use model `anthropic.claude-4-sonnet:beta` (as of 2024-06) `temperature=0.2`, `max_tokens=1024`.\n• Validate Claude response with pydantic model GroupedAlerts {groups: List[Group]} to catch hallucinations.\n• Fallback: If Claude fails validation, rerun with smaller chunk or mark ungrouped.\n",
+        "testStrategy": "Unit test using vcrpy cassette for known response; schema validation error triggers fallback; cost tracking: assert token estimate < configured limit.",
+        "priority": "high",
+        "dependencies": [
+          16
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "OpenRouter Client Setup",
+            "description": "Create an async HTTP client that handles authentication, headers, and base URL for OpenRouter API calls.",
+            "dependencies": [],
+            "details": "• Use httpx.AsyncClient with a `Bearer <OPENROUTER_API_KEY>` header injected via environment variable.\n• Centralise endpoint `/v1/chat/completions`, default query params (temperature=0.2, max_tokens=1024, model=anthropic.claude-4-sonnet:beta).\n• Attach retry with exponential back-off for 429/5xx.\n• Ensure clean shutdown with async context manager.",
+            "status": "pending",
+            "testStrategy": "respx mocked endpoint returns static 200; assert headers present, retries on 5xx, and proper timeout handling."
+          },
+          {
+            "id": 2,
+            "title": "Chat Payload Builder & Sender",
+            "description": "Generate system/user messages from raw alerts and dispatch the request through the OpenRouter client.",
+            "dependencies": [
+              "17.1"
+            ],
+            "details": "• Accept List[Alert] and grouping instructions.\n• Compose JSON per OpenRouter spec with `system` and `user` keys.\n• Serialize alerts compactly to minimise tokens; include lookback window.\n• Invoke client from 17.1 and return raw Claude JSON string.",
+            "status": "pending",
+            "testStrategy": "Unit test serialisation against snapshot; vcrpy cassette to verify correct body is sent and model parameters are set."
+          },
+          {
+            "id": 3,
+            "title": "Response Parsing & Pydantic Validation",
+            "description": "Validate Claude's JSON against the GroupedAlerts schema and convert it into domain objects.",
+            "dependencies": [
+              "17.2"
+            ],
+            "details": "• Define Pydantic models: Group, GroupedAlerts.\n• Load Claude raw text, strip code fences if present, then `json.loads`.\n• Raise ValidationError on schema mismatch or missing fields.",
+            "status": "pending",
+            "testStrategy": "Feed known good/bad payloads; assert that valid passes and invalid raises; property-based tests for random field omission."
+          },
+          {
+            "id": 4,
+            "title": "Fallback Chunking & Retry Logic",
+            "description": "Implement recovery path when validation fails: split alerts into smaller batches or mark as ungrouped.",
+            "dependencies": [
+              "17.3"
+            ],
+            "details": "• On ValidationError, if alerts > threshold (e.g., 50), split list and recursively call 17.2.\n• Track recursion depth to avoid infinite loops.\n• If still invalid after max attempts, return fallback structure `{groups: []}` with all alerts ungrouped.",
+            "status": "pending",
+            "testStrategy": "Simulate failure via mocked invalid response, assert chunking executed and final output conforms to schema."
+          },
+          {
+            "id": 5,
+            "title": "End-to-End Orchestrator & Cost Guard",
+            "description": "Tie everything together into a single `group_alerts(alerts: List[Alert]) -> GroupedAlerts` API with token cost monitoring.",
+            "dependencies": [
+              "17.1",
+              "17.2",
+              "17.3",
+              "17.4"
+            ],
+            "details": "• Measure prompt + completion tokens using tiktoken or heuristic and compare against configured limit.\n• Log per-call cost estimate.\n• Provide high-level trace logs for debugging.\n• Expose as reusable library function for Task 18.",
+            "status": "pending",
+            "testStrategy": "Full integration test with vcrpy cassette; assert end-to-end success, token estimate < limit, and fallback path covered."
+          },
+          {
+            "id": 6,
+            "title": "Cleanup and Code Organization",
+            "description": "Remove temporary files, organize imports, and ensure clean code structure",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "17.1",
+              "17.2",
+              "17.3",
+              "17.4",
+              "17.5"
+            ],
+            "parentTaskId": 17
+          },
+          {
+            "id": 7,
+            "title": "Quality Gate: Tests and Linting",
+            "description": "Run comprehensive tests and linting checks to ensure code quality standards",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "17.6"
+            ],
+            "parentTaskId": 17
+          },
+          {
+            "id": 8,
+            "title": "Context7 MCP Research: External Package Dependencies",
+            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "17.7"
+            ],
+            "parentTaskId": 17
+          }
+        ]
+      },
+      {
+        "id": 18,
+        "title": "Summary Generator & Formatter",
+        "description": "Create human-readable markdown summary including executive overview, grouped details, and actionable items.",
+        "details": "• Compose template with Jinja2==3.1.3:\n  - Executive metrics: total alerts, unique services, critical count\n  - Per-group bullet list with severity emoji (🔥 Critical, ⚠️ Warning)\n  - Resolution status table.\n• Inject Claude explanation: second Claude call (optional) to refine wording; reuse 17’s grouped data to keep token cost low.\n• Ensure Slack message ≤ 4000 chars; split threads if larger.\n",
+        "testStrategy": "Render summary with fake grouped data; assert Markdown syntax; length check unit test; snapshot test with pytest-approval.",
+        "priority": "medium",
+        "dependencies": [
+          17
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Markdown Jinja2 Template",
+            "description": "Create a Jinja2 (v3.1.3) markdown template that includes an executive overview section (total alerts, unique services, critical count), per-group bullet lists with severity emojis, and a resolution-status table.",
+            "dependencies": [],
+            "details": "Save template under src/alert_agent/templates/summary.md.j2 with clear block names for optional sections.",
+            "status": "pending",
+            "testStrategy": "Render template with stub context data and verify presence of all required placeholders via pytest."
+          },
+          {
+            "id": 2,
+            "title": "Implement Summary Renderer",
+            "description": "Write a Python function that loads grouped alert data from Task 17, populates the Jinja2 template, and returns raw markdown text.",
+            "dependencies": [
+              "18.1"
+            ],
+            "details": "Place implementation in src/alert_agent/summary.py; ensure minimal token footprint by passing pre-grouped data.",
+            "status": "pending",
+            "testStrategy": "Unit test with fake alert data, asserting metrics counts and proper emoji inclusion."
+          },
+          {
+            "id": 3,
+            "title": "Add Optional Claude Refinement Step",
+            "description": "Integrate an optional second Claude call that refines the generated markdown while maintaining token efficiency by sending only the rendered summary.",
+            "dependencies": [
+              "18.2"
+            ],
+            "details": "Expose flag refine_with_claude: bool; if true, call Claude and return its response; otherwise return original text.",
+            "status": "pending",
+            "testStrategy": "Mock Claude API with respx, assert request payload size and that fallback returns original text when disabled."
+          },
+          {
+            "id": 4,
+            "title": "Implement Slack Length Guard & Thread Splitter",
+            "description": "Create utility that checks summary length (≤4000 chars) and, if exceeded, splits it into logically ordered thread messages.",
+            "dependencies": [
+              "18.3"
+            ],
+            "details": "Return List[str] ready for Task 19; preserve markdown integrity across splits.",
+            "status": "pending",
+            "testStrategy": "Feed synthetic 8000-char summary, assert output list of ≤4000-char chunks with correct ordering."
+          },
+          {
+            "id": 5,
+            "title": "Comprehensive Test & Snapshot Suite",
+            "description": "Write pytest tests covering rendering, refinement, length checking, and snapshot approval of final markdown.",
+            "dependencies": [
+              "18.2",
+              "18.4"
+            ],
+            "details": "Use pytest-approval for snapshot; include length boundary cases and emoji verification.",
+            "status": "pending",
+            "testStrategy": "Run CI workflow that executes pytest with snapshot comparison and coverage ≥90%."
+          },
+          {
+            "id": 6,
+            "title": "Cleanup and Code Organization",
+            "description": "Remove temporary files, organize imports, and ensure clean code structure",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "18.1",
+              "18.2",
+              "18.3",
+              "18.4",
+              "18.5"
+            ],
+            "parentTaskId": 18
+          },
+          {
+            "id": 7,
+            "title": "Quality Gate: Tests and Linting",
+            "description": "Run comprehensive tests and linting checks to ensure code quality standards",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "18.6"
+            ],
+            "parentTaskId": 18
+          },
+          {
+            "id": 8,
+            "title": "Context7 MCP Research: External Package Dependencies",
+            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "18.7"
+            ],
+            "parentTaskId": 18
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "title": "Slack Notifier",
+        "description": "Deliver summary to configured Slack channel with retries and thread support.",
+        "details": "• Use Slack Web API `chat.postMessage` via httpx; endpoint `https://slack.com/api/chat.postMessage`.\n• Header `Authorization: Bearer xoxb-...`, `Content-Type: application/json`.\n• Payload: {channel: SLACK_CHANNEL_ID, text: summary, mrkdwn: true}.\n• If message > 4000 chars, split & post threaded replies using `thread_ts`.\n• Retry on `rate_limited` error with exponential backoff.\n",
+        "testStrategy": "Use respx to mock Slack endpoints; verify auth header; large message splitting; 429 response triggers retry logic.",
+        "priority": "high",
+        "dependencies": [
+          18,
+          14
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Slack API Configuration",
+            "description": "Provide secure configuration handling for Slack API credentials and channel ID.",
+            "dependencies": [],
+            "details": "• Read `SLACK_BOT_TOKEN` and `SLACK_CHANNEL_ID` from environment variables or a secrets manager.\n• Validate presence at application startup and raise descriptive error if missing.\n• Expose a dataclass/config object that downstream functions can import.",
+            "status": "pending",
+            "testStrategy": "Unit-test that missing env vars raise `ConfigError`; mock env to ensure values propagate to config object."
+          },
+          {
+            "id": 2,
+            "title": "Low-level Slack `chat.postMessage` Client",
+            "description": "Implement a reusable async function to call Slack `chat.postMessage` via httpx.",
+            "dependencies": [
+              "19.1"
+            ],
+            "details": "• Build request with header `Authorization: Bearer <token>` and `Content-Type: application/json`.\n• Accept params: channel, text, thread_ts (optional), mrkdwn (default true).\n• Return parsed JSON response and raise `SlackApiError` for non-ok replies (except 429 handled later).",
+            "status": "pending",
+            "testStrategy": "Mock HTTPS call with respx; assert correct headers/payload; verify error handling on non-ok JSON."
+          },
+          {
+            "id": 3,
+            "title": "Message Splitting & Threaded Posting",
+            "description": "Create helper that splits summaries >4000 characters and posts threaded replies.",
+            "dependencies": [
+              "19.2"
+            ],
+            "details": "• Determine Slack hard limit (4,000 chars).\n• Slice text at word boundaries; first chunk is root message, subsequent chunks posted with `thread_ts` of root.\n• Return array of message timestamps for possible auditing.",
+            "status": "pending",
+            "testStrategy": "Feed 8,500-char dummy text; assert two API calls: one root, one thread; verify split sizes and `thread_ts` propagation."
+          },
+          {
+            "id": 4,
+            "title": "Exponential Backoff & Retry Logic",
+            "description": "Add automatic retries for `rate_limited` (HTTP 429) responses with exponential backoff.",
+            "dependencies": [
+              "19.2",
+              "19.3"
+            ],
+            "details": "• Detect 429 status or Slack JSON error `rate_limited`.\n• Implement backoff: start 1s, double each retry up to max 5 attempts.\n• Respect `Retry-After` header if present.\n• Make retry wrapper reusable around any Slack API call.",
+            "status": "pending",
+            "testStrategy": "respx returns 429 twice then 200; assert function waits appropriate cumulative time (patch `asyncio.sleep`)."
+          },
+          {
+            "id": 5,
+            "title": "Comprehensive Test Suite & CI Integration",
+            "description": "Write and integrate tests covering configuration, posting, threading, and retry logic.",
+            "dependencies": [
+              "19.2",
+              "19.3",
+              "19.4"
+            ],
+            "details": "• Use pytest + respx snapshots.\n• Test auth header presence, splitting correctness, thread linkage, retry path, and error surfaces.\n• Add workflow step in CI to run tests on PRs.",
+            "status": "pending",
+            "testStrategy": "≥90% coverage; failing Slack mocks cause test failure; CI badge indicates passing status."
+          },
+          {
+            "id": 6,
+            "title": "Cleanup and Code Organization",
+            "description": "Remove temporary files, organize imports, and ensure clean code structure",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "19.1",
+              "19.2",
+              "19.3",
+              "19.4",
+              "19.5"
+            ],
+            "parentTaskId": 19
+          },
+          {
+            "id": 7,
+            "title": "Quality Gate: Tests and Linting",
+            "description": "Run comprehensive tests and linting checks to ensure code quality standards",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "19.6"
+            ],
+            "parentTaskId": 19
+          },
+          {
+            "id": 8,
+            "title": "Context7 MCP Research: External Package Dependencies",
+            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "19.7"
+            ],
+            "parentTaskId": 19
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "title": "Unified Logging, Error Handling & Observability",
+        "description": "Integrate Loguru for structured logs, add global exception handler and notification on failure.",
+        "details": "• Configure Loguru to rotate daily, level=INFO.\n• Wrap each stage (collector, AI, notifier) in try/except; on fatal error send Slack DM to on-call via secondary Slack channel.\n• Create metrics counters (success, failure, duration) with Prometheus client (optional, lightweight) for future scraping.\n• Use backoff decorators for API interactions (max_tries=3).\n",
+        "testStrategy": "Simulate exception in collector; assert error logged and failure Slack message posted. Check log file rotation by forcing midnight rollover.",
+        "priority": "medium",
+        "dependencies": [
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure Loguru for Unified Structured Logging",
+            "description": "Set up Loguru as the central logger with daily rotation and default level INFO for the entire service.",
+            "dependencies": [],
+            "details": "Add Loguru to requirements, create logging config module that initializes Loguru sink rotating at midnight (retention=7 days, compression=\"zip\"), set format to include timestamp, level, module, and json message field.",
+            "status": "pending",
+            "testStrategy": "Run component with DEBUG logs, verify log file creation, forced rollover via monkeypatch of time to midnight, assert new file appears."
+          },
+          {
+            "id": 2,
+            "title": "Implement Global Exception Handler with Loguru Integration",
+            "description": "Install sys.excepthook override and asyncio exception handler to capture uncaught exceptions and log them via Loguru with stacktrace.",
+            "dependencies": [
+              "20.1"
+            ],
+            "details": "Create exception_handler.py; on exception, call logger.exception and re-raise or terminate gracefully; integrate handler in app entrypoint.",
+            "status": "pending",
+            "testStrategy": "Trigger deliberate ZeroDivisionError in subprocess; assert log contains exception type, message, and traceback."
+          },
+          {
+            "id": 3,
+            "title": "Add Slack DM Notification on Fatal Errors",
+            "description": "On fatal errors captured by the global handler, post a direct message to the on-call engineer in a secondary Slack channel.",
+            "dependencies": [
+              "20.2"
+            ],
+            "details": "Use Slack Web API chat.postMessage with OAuth token from env; message includes service name, timestamp, and truncated traceback; retry with exponential backoff 3 attempts.",
+            "status": "pending",
+            "testStrategy": "Mock Slack API using responses library; simulate 500 error on first call, ensure retry logic then success; assert correct payload."
+          },
+          {
+            "id": 4,
+            "title": "Integrate Prometheus Metrics Counters",
+            "description": "Expose success, failure, and duration metrics for each stage (collector, AI, notifier) using the Prometheus client library.",
+            "dependencies": [
+              "20.1"
+            ],
+            "details": "Create metrics.py initializing Counter(success_total, failure_total) and Histogram(duration_seconds); expose /metrics endpoint via multiprocess if needed.",
+            "status": "pending",
+            "testStrategy": "Run local server, perform two successful and one failed invocations, scrape /metrics, assert counter values == 2 and 1 respectively."
+          },
+          {
+            "id": 5,
+            "title": "Apply Backoff Decorators & Error-Aware Wrappers to All Stages",
+            "description": "Wrap API interactions for collector, AI, and notifier with backoff.on_exception(max_tries=3) and ensure try/except blocks record metrics and trigger Slack alerts on unrecoverable errors.",
+            "dependencies": [
+              "20.2",
+              "20.4"
+            ],
+            "details": "Refactor stage functions to decorator style; increment metrics in success/failure paths; on final failure call global handler which logs and notifies Slack.",
+            "status": "pending",
+            "testStrategy": "Simulate intermittent API failure returning 500 twice then success; verify backoff delays, success metric increment; simulate constant failure, ensure after 3 tries Slack alert sent and failure metric incremented."
+          },
+          {
+            "id": 6,
+            "title": "Cleanup and Code Organization",
+            "description": "Remove temporary files, organize imports, and ensure clean code structure",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "20.1",
+              "20.2",
+              "20.3",
+              "20.4",
+              "20.5"
+            ],
+            "parentTaskId": 20
+          },
+          {
+            "id": 7,
+            "title": "Quality Gate: Tests and Linting",
+            "description": "Run comprehensive tests and linting checks to ensure code quality standards",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "20.6"
+            ],
+            "parentTaskId": 20
+          },
+          {
+            "id": 8,
+            "title": "Context7 MCP Research: External Package Dependencies",
+            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "20.7"
+            ],
+            "parentTaskId": 20
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "title": "Orchestrator Assembly & CLI Entry Point",
+        "description": "Glue scheduler, collector, AI processor, summary generator and notifier into a cohesive async workflow.",
+        "details": "• `orchestrator.py` main async function:\n```\nasync def run_daily():\n    alerts = await collect_alerts()\n    grouped = await group_alerts(alerts)\n    summary = render_summary(grouped)\n    await send_slack(summary)\n```\n• Use `asyncio.run(run_daily())` for one-shot; expose `cli.py` with Typer==0.12.3 for commands `run-now`, `start-scheduler`.\n• Ensure graceful shutdown (scheduler.shutdown(wait=False)).\n",
+        "testStrategy": "End-to-end test with dependency injection and mocks; run `typer` command in CI; assert all stages executed and Slack mock called.",
+        "priority": "high",
+        "dependencies": [
+          15,
+          16,
+          17,
+          18,
+          19,
+          20
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement core async orchestrator logic",
+            "description": "Create orchestrator.py with `async def run_daily()` that sequentially calls `collect_alerts`, `group_alerts`, `render_summary`, and `send_slack` using awaited coroutines.",
+            "dependencies": [],
+            "details": "Define type signatures, ensure each stage is injected via default parameters for testability, and propagate exceptions upwards without swallowing.",
+            "status": "pending",
+            "testStrategy": "Unit-test run_daily with stubbed coroutine functions via `pytest-asyncio`, asserting call order and value propagation."
+          },
+          {
+            "id": 2,
+            "title": "Add asyncio runner & graceful shutdown",
+            "description": "Wrap `run_daily` in a `def run_now()` that calls `asyncio.run(run_daily())`; implement signal handlers (SIGINT, SIGTERM) that cancel pending tasks and ensure scheduler.shutdown(wait=False) if scheduler exists.",
+            "dependencies": [
+              "21.1"
+            ],
+            "details": "Use `asyncio.current_task().cancel()` on signal; include finally block to log completion; expose `shutdown()` helper.",
+            "status": "pending",
+            "testStrategy": "Simulate signals with `pytest` monkeypatch; assert shutdown invoked and no pending tasks remain."
+          },
+          {
+            "id": 3,
+            "title": "Integrate daily scheduler",
+            "description": "Create `start_scheduler()` that configures an APScheduler AsyncIOScheduler to trigger `run_daily` at 09:00 UTC (or configurable time) and starts the event loop until cancelled.",
+            "dependencies": [
+              "21.2"
+            ],
+            "details": "Add config for cron timing, pass coroutine reference, store scheduler instance globally for shutdown, and log job execution results.",
+            "status": "pending",
+            "testStrategy": "Use `apscheduler.schedulers.asyncio.AsyncIOScheduler` in tests with `advance_time` to fire job immediately; assert run_daily called and scheduler.shutdown executed on cancel."
+          },
+          {
+            "id": 4,
+            "title": "Create Typer CLI entry point",
+            "description": "Build cli.py with Typer==0.12.3 exposing `run-now` (calls run_now) and `start-scheduler` (calls start_scheduler). Provide --verbosity flag and auto-generated help.",
+            "dependencies": [
+              "21.3"
+            ],
+            "details": "Register app = Typer(); use `@app.command()` decorators; parse environment variables for config overrides; guard main block with `if __name__ == '__main__': app()`.",
+            "status": "pending",
+            "testStrategy": "Invoke commands with Typer’s CLI runner in tests; assert exit code 0 and that corresponding orchestrator functions were executed via mocks."
+          },
+          {
+            "id": 5,
+            "title": "End-to-end orchestration & CLI integration test",
+            "description": "Develop comprehensive tests that spin up the CLI command in a subprocess with environment-defined mocks, verifying full pipeline execution and Slack notification call.",
+            "dependencies": [
+              "21.4"
+            ],
+            "details": "Use pytest’s `subprocess` fixture; inject fake HTTP server for collector, mock AI processor, capture stdout/stderr and exit code; ensure graceful exit on SIGTERM.",
+            "status": "pending",
+            "testStrategy": "CI job runs `python -m cli run-now` and `start-scheduler` for a single tick; assert mocks received expected data and process terminates cleanly."
+          },
+          {
+            "id": 6,
+            "title": "Cleanup and Code Organization",
+            "description": "Remove temporary files, organize imports, and ensure clean code structure",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "21.1",
+              "21.2",
+              "21.3",
+              "21.4",
+              "21.5"
+            ],
+            "parentTaskId": 21
+          },
+          {
+            "id": 7,
+            "title": "Quality Gate: Tests and Linting",
+            "description": "Run comprehensive tests and linting checks to ensure code quality standards",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "21.6"
+            ],
+            "parentTaskId": 21
+          },
+          {
+            "id": 8,
+            "title": "Context7 MCP Research: External Package Dependencies",
+            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "21.7"
+            ],
+            "parentTaskId": 21
+          }
+        ]
+      },
+      {
+        "id": 22,
+        "title": "Test Suite & Quality Gate Automation",
+        "description": "Implement pytest-based unit & integration tests, linters, and GitHub Actions workflow.",
+        "details": "• tests/ directory: collector_test.py, ai_test.py, summary_test.py, notifier_test.py, orchestrator_test.py\n• Use `pytest-asyncio` for async functions; `coverage==7.4.4` target ≥80%.\n• GitHub Actions CI YAML:\n  - matrix python: [3.11,3.12-beta]\n  - steps: checkout, setup-python, install deps, run `black --check`, `isort --check`, `mypy`, `pytest --cov`.\n• Badge generation and PR blocking on failures.\n",
+        "testStrategy": "Run `pytest` locally; assert coverage threshold; run GA workflow in pull request; ensure fail on lint error.",
+        "priority": "medium",
+        "dependencies": [
+          21
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure Testing & Coverage Toolchain",
+            "description": "Add pytest, pytest-asyncio, and coverage (>=7.4.4) to project; create pytest.ini with async marker support and configure coverage minimum ≥80%.",
+            "dependencies": [],
+            "details": "• Update pyproject.toml/requirements-dev.txt with test dependencies.\n• Draft pytest.ini: add asyncio_mode = auto, testpaths = tests, addopts = --cov=src --cov-report=term-missing --cov-fail-under=80.\n• Validate tooling locally with `pytest -q`.",
+            "status": "pending",
+            "testStrategy": "Run `pytest --collect-only` to ensure discovery; intentionally add a failing threshold to verify exit code propagates."
+          },
+          {
+            "id": 2,
+            "title": "Implement Component-Level Unit Tests",
+            "description": "Create/complete collector_test.py, ai_test.py, summary_test.py, notifier_test.py, orchestrator_test.py covering edge-cases and error handling.",
+            "dependencies": [
+              "22.1"
+            ],
+            "details": "• Aim for ≥70% line coverage per module.\n• Use pytest fixtures & monkeypatch for isolation.\n• Mock external I/O (HTTP, Slack) with pytest-mock or respx.",
+            "status": "pending",
+            "testStrategy": "Run `pytest -k 'not integration' --cov` and assert per-module coverage meets target using coverage API."
+          },
+          {
+            "id": 3,
+            "title": "Develop End-to-End Integration Tests",
+            "description": "Write integration tests exercising async workflow across collector → ai → summary → notifier using in-memory or stub services.",
+            "dependencies": [
+              "22.1",
+              "22.2"
+            ],
+            "details": "• Place tests in tests/integration/ with marker @pytest.mark.integration.\n• Spin up mock HTTP servers with httpx.AsyncClient + pytest-asyncio.\n• Ensure deterministic results via fixed seeds.",
+            "status": "pending",
+            "testStrategy": "Invoke `pytest -m integration --cov-append` locally; ensure combined coverage ≥80%."
+          },
+          {
+            "id": 4,
+            "title": "Set Up Code Quality Linters & Type Checking",
+            "description": "Configure black, isort, and mypy with strict settings; add pyproject.toml sections and optional pre-commit hook definitions.",
+            "dependencies": [
+              "22.1"
+            ],
+            "details": "• black line length 88; isort profile=black.\n• mypy: strict=True, ignore_missing_imports for 3rd-party.\n• Document commands: `black --check .`, `isort --check .`, `mypy src/`.",
+            "status": "pending",
+            "testStrategy": "Run each tool locally; insert an intentional style/type error to confirm non-zero exit."
+          },
+          {
+            "id": 5,
+            "title": "Automate CI Quality Gate with GitHub Actions",
+            "description": "Create .github/workflows/ci.yml running lint, type check, unit & integration tests across Python 3.11 and 3.12-beta; generate coverage badge and enforce PR blocking.",
+            "dependencies": [
+              "22.1",
+              "22.2",
+              "22.3",
+              "22.4"
+            ],
+            "details": "• Use matrix strategy: python-version: [3.11, 3.12-beta].\n• Steps: checkout → setup-python → cache → install deps → run black/isort/mypy → pytest --cov.\n• Upload coverage to Codecov or generate badge via shields.io.\n• Require status checks in branch protection settings.",
+            "status": "pending",
+            "testStrategy": "Open PR with intentional failure; verify GA fails and PR is blocked. Merge fix and confirm green pipeline & badge update."
+          },
+          {
+            "id": 6,
+            "title": "Cleanup and Code Organization",
+            "description": "Remove temporary files, organize imports, and ensure clean code structure",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "22.1",
+              "22.2",
+              "22.3",
+              "22.4",
+              "22.5"
+            ],
+            "parentTaskId": 22
+          },
+          {
+            "id": 7,
+            "title": "Quality Gate: Tests and Linting",
+            "description": "Run comprehensive tests and linting checks to ensure code quality standards",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "22.6"
+            ],
+            "parentTaskId": 22
+          },
+          {
+            "id": 8,
+            "title": "Context7 MCP Research: External Package Dependencies",
+            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "22.7"
+            ],
+            "parentTaskId": 22
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-07-29T15:57:21.028Z",
+      "updated": "2025-07-30T12:14:48.638Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

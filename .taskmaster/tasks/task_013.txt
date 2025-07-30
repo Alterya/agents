@@ -1,0 +1,99 @@
+# Task ID: 13
+# Title: Project Scaffolding & Dependency Definition
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Create repository, isolate Python 3.11 environment and lock core dependencies for all modules of the Daily Alert Summary Agent.
+# Details:
+• Initialise git repo and add standard .gitignore (Python, venv, secrets)
+• pyproject.toml (preferred) or requirements.txt with pinned libs:
+  - python 3.11
+  - httpx==0.27.0 (2024-05)
+  - APScheduler==3.10.4 (Jerusalem TZ handled by pytz)
+  - python-dotenv==1.0.1
+  - pydantic==2.7.0 for config validation
+  - loguru==0.7.2
+  - backoff==2.2.1
+  - tzdata==2024.1 (if system zoneinfo missing)
+  - pytest==8.2.0, pytest-asyncio==0.23.6 (dev)
+• Directory layout:
+  src/
+    alert_agent/
+      __init__.py
+      config.py
+      scheduler.py
+      collector.py
+      ai_processor.py
+      summary.py
+      notifier.py
+      orchestrator.py
+  tests/
+• Pre-commit hooks: black==24.4.2, isort==5.13.2, mypy==1.10.0
+
+
+# Test Strategy:
+Run `python -m pip install -r requirements.txt`; verify `python -c 'import httpx, apscheduler, pydantic'` succeeds; run `python -c 'import zoneinfo, datetime; print(datetime.datetime.now().astimezone().tzname())'` to ensure tzdata installed.
+
+# Subtasks:
+## 1. Initialize Git repository and baseline .gitignore [pending]
+### Dependencies: None
+### Description: Create the project’s VCS foundation and ensure sensitive or transient files are ignored.
+### Details:
+• Run `git init` in project root.
+• Add a comprehensive .gitignore covering Python bytecode, virtual-env directories, OS files, IDE configs, and secret files (.env, *.pem).
+• Commit initial empty repository state with message “chore: initial repo & .gitignore”.
+
+## 2. Create canonical directory structure for code and tests [pending]
+### Dependencies: 13.1
+### Description: Lay out src/ and tests/ folders with required module stubs.
+### Details:
+• Generate folder tree:
+  src/alert_agent/ (__init__.py, config.py, scheduler.py, collector.py, ai_processor.py, summary.py, notifier.py, orchestrator.py)
+  tests/ (empty __init__.py)
+• Add placeholder docstrings in each module to pass import.
+• Commit as “chore: scaffold package layout”.
+
+## 3. Author dependency manifest with pinned versions [pending]
+### Dependencies: 13.1
+### Description: Define Python 3.11 requirement and lock library versions through pyproject.toml (preferred) or requirements.txt.
+### Details:
+• Write pyproject.toml using PEP-621 metadata and `[project.dependencies]` section listing exact versions for httpx, APScheduler, python-dotenv, pydantic, loguru, backoff, tzdata, and optional `[project.optional-dependencies.dev]` for pytest/pytest-asyncio.
+• Include build-system table using `hatchling` or `setuptools`.
+• Add explanatory comments on version pin dates.
+• Commit as “feat: dependency manifest”.
+
+## 4. Create isolated Python 3.11 virtual environment and lock deps [pending]
+### Dependencies: 13.1, 13.3
+### Description: Provision environment, install and freeze exact versions for reproducibility.
+### Details:
+• Use `python3.11 -m venv .venv` (or pyenv + virtualenv).
+• Activate and run `pip install -e .[dev]`.
+• Generate `requirements-lock.txt` via `pip freeze > requirements-lock.txt` or rely on poetry/rye lock file.
+• Document activation instructions in README.
+• Commit as “chore: env setup & deps lock”.
+
+## 5. Configure developer tooling: pre-commit hooks & linters [pending]
+### Dependencies: 13.1, 13.3, 13.4
+### Description: Automate code formatting and static analysis for every commit.
+### Details:
+• Add `.pre-commit-config.yaml` pins: black==24.4.2, isort==5.13.2, mypy==1.10.0.
+• Run `pre-commit install` inside venv.
+• Update pyproject.toml with tool configs for black and isort (line length 100, known_first_party alert_agent).
+• Commit as “chore: pre-commit & lint setup”.
+
+## 6. Cleanup and Code Organization [pending]
+### Dependencies: 13.1, 13.2, 13.3, 13.4, 13.5
+### Description: Remove temporary files, organize imports, and ensure clean code structure
+### Details:
+
+
+## 7. Quality Gate: Tests and Linting [pending]
+### Dependencies: 13.6
+### Description: Run comprehensive tests and linting checks to ensure code quality standards
+### Details:
+
+
+## 8. Context7 MCP Research: External Package Dependencies [pending]
+### Dependencies: 13.7
+### Description: Use Context7 MCP to research and validate external Python packages and dependencies
+### Details:

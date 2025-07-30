@@ -1,0 +1,65 @@
+# Task ID: 18
+# Title: Summary Generator & Formatter
+# Status: pending
+# Dependencies: 17
+# Priority: medium
+# Description: Create human-readable markdown summary including executive overview, grouped details, and actionable items.
+# Details:
+• Compose template with Jinja2==3.1.3:
+  - Executive metrics: total alerts, unique services, critical count
+  - Per-group bullet list with severity emoji (🔥 Critical, ⚠️ Warning)
+  - Resolution status table.
+• Inject Claude explanation: second Claude call (optional) to refine wording; reuse 17’s grouped data to keep token cost low.
+• Ensure Slack message ≤ 4000 chars; split threads if larger.
+
+
+# Test Strategy:
+Render summary with fake grouped data; assert Markdown syntax; length check unit test; snapshot test with pytest-approval.
+
+# Subtasks:
+## 1. Design Markdown Jinja2 Template [pending]
+### Dependencies: None
+### Description: Create a Jinja2 (v3.1.3) markdown template that includes an executive overview section (total alerts, unique services, critical count), per-group bullet lists with severity emojis, and a resolution-status table.
+### Details:
+Save template under src/alert_agent/templates/summary.md.j2 with clear block names for optional sections.
+
+## 2. Implement Summary Renderer [pending]
+### Dependencies: 18.1
+### Description: Write a Python function that loads grouped alert data from Task 17, populates the Jinja2 template, and returns raw markdown text.
+### Details:
+Place implementation in src/alert_agent/summary.py; ensure minimal token footprint by passing pre-grouped data.
+
+## 3. Add Optional Claude Refinement Step [pending]
+### Dependencies: 18.2
+### Description: Integrate an optional second Claude call that refines the generated markdown while maintaining token efficiency by sending only the rendered summary.
+### Details:
+Expose flag refine_with_claude: bool; if true, call Claude and return its response; otherwise return original text.
+
+## 4. Implement Slack Length Guard & Thread Splitter [pending]
+### Dependencies: 18.3
+### Description: Create utility that checks summary length (≤4000 chars) and, if exceeded, splits it into logically ordered thread messages.
+### Details:
+Return List[str] ready for Task 19; preserve markdown integrity across splits.
+
+## 5. Comprehensive Test & Snapshot Suite [pending]
+### Dependencies: 18.2, 18.4
+### Description: Write pytest tests covering rendering, refinement, length checking, and snapshot approval of final markdown.
+### Details:
+Use pytest-approval for snapshot; include length boundary cases and emoji verification.
+
+## 6. Cleanup and Code Organization [pending]
+### Dependencies: 18.1, 18.2, 18.3, 18.4, 18.5
+### Description: Remove temporary files, organize imports, and ensure clean code structure
+### Details:
+
+
+## 7. Quality Gate: Tests and Linting [pending]
+### Dependencies: 18.6
+### Description: Run comprehensive tests and linting checks to ensure code quality standards
+### Details:
+
+
+## 8. Context7 MCP Research: External Package Dependencies [pending]
+### Dependencies: 18.7
+### Description: Use Context7 MCP to research and validate external Python packages and dependencies
+### Details:

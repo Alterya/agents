@@ -1,0 +1,79 @@
+# Task ID: 17
+# Title: OpenRouter Claude 4 Sonnet Integration & Alert Grouping
+# Status: pending
+# Dependencies: 16
+# Priority: high
+# Description: Send collected alerts to Claude via OpenRouter for intelligent grouping and receive structured JSON clusters.
+# Details:
+• Use https://openrouter.ai/api `POST /v1/chat/completions` with header `Authorization: Bearer <OPENROUTER_API_KEY>`.
+• Chat payload:
+  system: "You are an SRE assistant. Respond ONLY with JSON..."
+  user: provide alerts list & grouping instructions.
+• Use model `anthropic.claude-4-sonnet:beta` (as of 2024-06) `temperature=0.2`, `max_tokens=1024`.
+• Validate Claude response with pydantic model GroupedAlerts {groups: List[Group]} to catch hallucinations.
+• Fallback: If Claude fails validation, rerun with smaller chunk or mark ungrouped.
+
+
+# Test Strategy:
+Unit test using vcrpy cassette for known response; schema validation error triggers fallback; cost tracking: assert token estimate < configured limit.
+
+# Subtasks:
+## 1. OpenRouter Client Setup [pending]
+### Dependencies: None
+### Description: Create an async HTTP client that handles authentication, headers, and base URL for OpenRouter API calls.
+### Details:
+• Use httpx.AsyncClient with a `Bearer <OPENROUTER_API_KEY>` header injected via environment variable.
+• Centralise endpoint `/v1/chat/completions`, default query params (temperature=0.2, max_tokens=1024, model=anthropic.claude-4-sonnet:beta).
+• Attach retry with exponential back-off for 429/5xx.
+• Ensure clean shutdown with async context manager.
+
+## 2. Chat Payload Builder & Sender [pending]
+### Dependencies: 17.1
+### Description: Generate system/user messages from raw alerts and dispatch the request through the OpenRouter client.
+### Details:
+• Accept List[Alert] and grouping instructions.
+• Compose JSON per OpenRouter spec with `system` and `user` keys.
+• Serialize alerts compactly to minimise tokens; include lookback window.
+• Invoke client from 17.1 and return raw Claude JSON string.
+
+## 3. Response Parsing & Pydantic Validation [pending]
+### Dependencies: 17.2
+### Description: Validate Claude's JSON against the GroupedAlerts schema and convert it into domain objects.
+### Details:
+• Define Pydantic models: Group, GroupedAlerts.
+• Load Claude raw text, strip code fences if present, then `json.loads`.
+• Raise ValidationError on schema mismatch or missing fields.
+
+## 4. Fallback Chunking & Retry Logic [pending]
+### Dependencies: 17.3
+### Description: Implement recovery path when validation fails: split alerts into smaller batches or mark as ungrouped.
+### Details:
+• On ValidationError, if alerts > threshold (e.g., 50), split list and recursively call 17.2.
+• Track recursion depth to avoid infinite loops.
+• If still invalid after max attempts, return fallback structure `{groups: []}` with all alerts ungrouped.
+
+## 5. End-to-End Orchestrator & Cost Guard [pending]
+### Dependencies: 17.1, 17.2, 17.3, 17.4
+### Description: Tie everything together into a single `group_alerts(alerts: List[Alert]) -> GroupedAlerts` API with token cost monitoring.
+### Details:
+• Measure prompt + completion tokens using tiktoken or heuristic and compare against configured limit.
+• Log per-call cost estimate.
+• Provide high-level trace logs for debugging.
+• Expose as reusable library function for Task 18.
+
+## 6. Cleanup and Code Organization [pending]
+### Dependencies: 17.1, 17.2, 17.3, 17.4, 17.5
+### Description: Remove temporary files, organize imports, and ensure clean code structure
+### Details:
+
+
+## 7. Quality Gate: Tests and Linting [pending]
+### Dependencies: 17.6
+### Description: Run comprehensive tests and linting checks to ensure code quality standards
+### Details:
+
+
+## 8. Context7 MCP Research: External Package Dependencies [pending]
+### Dependencies: 17.7
+### Description: Use Context7 MCP to research and validate external Python packages and dependencies
+### Details:
