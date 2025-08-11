@@ -2,7 +2,8 @@ import asyncio
 import os
 
 from agents import Agent, Runner, SQLiteSession
-from agents.mcp.server import MCPServerStdio
+
+from src.resources.mcps.grafana import MCP as grafana_mcp
 
 from slack_sdk.webhook import WebhookClient
 
@@ -13,24 +14,7 @@ load_dotenv()
 TARGET_CHANNEL = os.environ["SLACK_CHANNEL_ID"]
 
 async def main():
-    grafana_mcp = MCPServerStdio(                          # <-- our npx subprocess
-        params={
-            "command": "docker",
-            "args": [
-                "run",
-                "--rm",
-                "-i",
-                "-e",
-                f"GRAFANA_URL={os.environ['GRAFANA_URL']}",
-                "-e",
-                f"GRAFANA_API_KEY={os.environ['GRAFANA_API_KEY']}",
-                "mcp/grafana",
-                "-t",
-                "stdio"
-            ],
-        },
-        client_session_timeout_seconds=90,
-    )
+    
     print("Connecting to grafana mcp")
     await grafana_mcp.connect()
     print("Connected to grafana mcp")
