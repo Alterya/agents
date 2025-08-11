@@ -1,3 +1,50 @@
+<context>
+# Overview
+Agent Wars Website is a focused platform that helps prompt engineers and non-technical users improve prompts and identify weaknesses like hallucinations, goal failures, and character inconsistency through repeated conversational testing. The product provides a fun, futuristic interface and powerful tooling to run one-off “battles” and scalable test runs against prebuilt agents.
+
+# Core Features
+- Landing Page: Blue futuristic theme with 3D moving elements and an interactive node graph showcasing system capabilities.
+- Agent Wars Hub: Run concurrent battles between a chosen LLM+system prompt vs. a prebuilt agent from a local DB. Conversations stop when the goal is achieved or after 25 messages. Multiple battles can run in parallel.
+- Scale Testing: Configure model, system prompt, and run count; select a prebuilt agent; execute many conversations in the background with per-run reports stored in DB and a summarized analysis (failures, prompt issues, and a revised prompt suggestion).
+- PromptBro: Guided prompt creation experience where a custom LLM agent asks guiding questions; user iterates with free text and later performs additional checks/fixes (to be added later).
+
+# User Experience
+- Primary users: Prompt engineers and builders refining prompts; secondary: non-technical users learning to craft strong prompts.
+- Key flows:
+  - Explore landing page, see visualizations, click through to features.
+  - In Agent Wars Hub, configure model+system prompt, pick prebuilt agent, launch one or more battles, view live transcripts and stop conditions.
+  - In Scale Testing, configure batch parameters, run N conversations asynchronously, view summary and download/export results.
+  - In PromptBro, answer guiding questions and refine prompt with iterative feedback.
+</context>
+<PRD>
+# Technical Architecture
+- Frontend: Next.js (React) + TypeScript; UI: Tailwind + shadcn/ui; 3D/graph: Three.js + React Three Fiber + a lightweight node-graph library (e.g., react-force-graph) with a blue futuristic theme.
+- Backend: Node.js + TypeScript (Next.js route handlers) or a slim Express server if needed. Background jobs with simple queue (BullMQ) or Next.js Route Handler + worker approach.
+- LLM Providers: OpenAI and OpenRouter only. Abstract via a provider layer with a shared interface to run chats.
+- Database: Postgres (via Prisma). Entities: Agent (prebuilt), Conversation, Message, RunReport, PromptTemplate.
+- Infra: Deployed to Vercel (frontend + serverless) and Neon/Supabase for Postgres; or Docker-based deployment as fallback.
+
+# Development Roadmap (MVP)
+- Implement per-page features with minimal cross-cutting infra to keep scope low. One task per page plus a few shared tasks.
+- Cross-cutting: LLM provider abstraction, DB schema + migrations, background runner for scale tests.
+
+# Logical Dependency Chain
+1) Shared foundation (DB schema + LLM provider layer)
+2) Landing page visuals
+3) Agent Wars Hub battle runner
+4) Scale Testing batch runner + reporting
+5) PromptBro guided prompt tool
+
+# Risks and Mitigations
+- 3D performance: Use lightweight scenes and lazy-load assets.
+- Cost control: Add rate limiting and provider key selection; cap run counts.
+- Async scale: Queue jobs and stream incremental updates to UI.
+
+# Appendix
+- Only OpenAI and OpenRouter supported initially.
+- Final three subtasks of every task: Cleanup, Quality Gate (tests/lint), and Context7 MCP research for libraries/packages.
+- Deep research required to break down subtasks effectively.
+</PRD>
 # Daily Alert Summary Agent - Product Requirements Document
 
 ## Project Overview

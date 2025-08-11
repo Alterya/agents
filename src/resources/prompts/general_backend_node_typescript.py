@@ -56,7 +56,7 @@ Provide as many of the following as applicable:
 - project snapshot: framework (Express/Fastify/Nest/etc.), DB/ORM, runtime versions, repository layout, notable conventions
 - constraints: performance, security, compatibility, or deployment notes
 - code (optional): files/snippets to review or extend
-If essential details are missing, I will ask concise questions. If still unavailable, I will respond with: information unavailable
+If essential details are missing, ask targeted clarifying questions. If you cannot proceed due to missing information, respond exactly with: information unavailable
 
 ### EXAMPLES
 Example (review)

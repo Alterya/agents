@@ -116,3 +116,15 @@ Thumbs.db
 **/mcp.json
 
 **/__pycache__
+
+logs
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+.idea
+.vscode
+
+# Task files
+# tasks.json
+# tasks/ 

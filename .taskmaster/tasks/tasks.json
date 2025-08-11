@@ -1,766 +1,495 @@
 {
   "master": {
+    "tasks": [],
+    "metadata": {
+      "created": "2025-07-29T15:57:21.028Z",
+      "updated": "2025-08-11T14:29:14.350Z",
+      "description": "Tasks for master context"
+    }
+  },
+  "agent-wars": {
     "tasks": [
       {
-        "id": 13,
-        "title": "Project Scaffolding & Dependency Definition",
-        "description": "Create repository, isolate Python 3.11 environment and lock core dependencies for all modules of the Daily Alert Summary Agent.",
-        "details": "• Initialise git repo and add standard .gitignore (Python, venv, secrets)\n• pyproject.toml (preferred) or requirements.txt with pinned libs:\n  - python 3.11\n  - httpx==0.27.0 (2024-05)\n  - APScheduler==3.10.4 (Jerusalem TZ handled by pytz)\n  - python-dotenv==1.0.1\n  - pydantic==2.7.0 for config validation\n  - loguru==0.7.2\n  - backoff==2.2.1\n  - tzdata==2024.1 (if system zoneinfo missing)\n  - pytest==8.2.0, pytest-asyncio==0.23.6 (dev)\n• Directory layout:\n  src/\n    alert_agent/\n      __init__.py\n      config.py\n      scheduler.py\n      collector.py\n      ai_processor.py\n      summary.py\n      notifier.py\n      orchestrator.py\n  tests/\n• Pre-commit hooks: black==24.4.2, isort==5.13.2, mypy==1.10.0\n",
+        "id": 1,
+        "title": "Shared: Database schema and Prisma models",
+        "description": "Design and implement Postgres schema and Prisma models for Agent, Conversation, Message, RunReport, and PromptTemplate, including migrations, seed data for prebuilt agents, and basic data-access utilities.",
+        "details": "Implementation subtasks (target 5):\n1) Implement schema + migrations\n- Use Prisma v5.x with Postgres. Entities and fields:\n  - Agent: id (cuid, PK), name (string, unique), description (string), systemPrompt (text), persona (json), createdAt, updatedAt, isActive (bool), tags (string[])\n  - Conversation: id (cuid, PK), agentId (FK->Agent), model (string), systemPrompt (text), goal (text), goalReached (bool, default false), endedReason (enum: 'goal'|'limit'|'error'|'manual'|'timeout'), messageLimit (int, default 25), messageCount (int, default 0), runId (string|null), startedAt, endedAt (date|null)\n  - Message: id (cuid, PK), conversationId (FK->Conversation), role (enum: 'system'|'user'|'assistant'|'tool'), content (text), tokensIn (int|null), tokensOut (int|null), costUsd (decimal(10,5)|null), createdAt\n  - RunReport: id (cuid, PK), runId (string, unique), agentId (FK->Agent), model (string), systemPrompt (text), runCount (int), failures (json), summary (text), revisedPrompt (text), stats (json), createdAt\n  - PromptTemplate: id (cuid, PK), name (string, unique), description (string), template (text), variables (string[]), lastUsedAt (date|null), createdAt, updatedAt\n- Indexes: Conversation(agentId), Message(conversationId, createdAt), Agent(name), RunReport(runId)\n- Prisma schema (pseudo):\n  model Agent { id String @id @default(cuid()) name String @unique description String? systemPrompt String persona Json? isActive Boolean @default(true) tags String[] @default([]) conversations Conversation[] createdAt DateTime @default(now()) updatedAt DateTime @updatedAt }\n  model Conversation { id String @id @default(cuid()) agentId String agent Agent @relation(fields: [agentId], references: [id]) model String systemPrompt String? goal String? goalReached Boolean @default(false) endedReason EndReason? messageLimit Int @default(25) messageCount Int @default(0) runId String? startedAt DateTime @default(now()) endedAt DateTime? messages Message[] @@index([agentId]) }\n  enum EndReason { goal limit error manual timeout }\n  model Message { id String @id @default(cuid()) conversationId String conversation Conversation @relation(fields: [conversationId], references: [id]) role Role content String tokensIn Int? tokensOut Int? costUsd Decimal? @db.Decimal(10,5) createdAt DateTime @default(now()) @@index([conversationId, createdAt]) }\n  enum Role { system user assistant tool }\n  model RunReport { id String @id @default(cuid()) runId String @unique agentId String agent Agent @relation(fields: [agentId], references: [id]) model String systemPrompt String? runCount Int failures Json? summary String? revisedPrompt String? stats Json? createdAt DateTime @default(now()) }\n  model PromptTemplate { id String @id @default(cuid()) name String @unique description String? template String variables String[] @default([]) lastUsedAt DateTime? createdAt DateTime @default(now()) updatedAt DateTime @updatedAt }\n- Run: npx prisma migrate dev -n init\n\n2) Seed and minimal data-access utils\n- Create prisma/seed.ts to insert 3–5 prebuilt Agents with distinct personas.\n- Add lightweight repository helpers (e.g., getActiveAgents, createConversation, appendMessage, completeConversation, saveRunReport, upsertPromptTemplate).\n\n3) Cleanup\n- Remove sample data not used in MVP, ensure nullable fields match usage, verify cascade delete behavior (prefer ON DELETE CASCADE for Message on Conversation).\n\n4) Quality Gate (run tests/lint)\n- Add scripts: prisma:generate, prisma:migrate, prisma:seed. Run typecheck. Ensure Prisma Client generated.\n\n5) Context7 MCP research for external packages/libraries used\n- Prisma v5 docs, Neon/Supabase connection pool guidance for serverless (use pgbouncer/pooler or Prisma Data Proxy). Verify Vercel Postgres/Neon best practices; ensure DATABASE_URL uses connection pooling.\n\n<info added on 2025-08-11T15:37:22.943Z>\nEnhancements (research-backed):\n\n- Schema additions and changes (Prisma v5, Postgres):\n  - Message: add seq Int (monotonically increasing per conversation), @@index([conversationId, seq]); keep existing @@index([conversationId, createdAt]). In appendMessage, assign seq transactionally as max(seq)+1 for the conversation to support incremental polling.\n  - Conversation: add tokensInTotal Int @default(0), tokensOutTotal Int @default(0), costUsdTotal Decimal? @db.Decimal(12,6) @default(0).\n  - RunReport: add tokensInTotal Int @default(0), tokensOutTotal Int @default(0), costUsdTotal Decimal? @db.Decimal(12,6) @default(0).\n  - Enums:\n    - JudgeMode { auto, human, hybrid }\n    - BattleWinner { A, B, draw, undecided }\n  - Battle:\n    - id String @id @default(cuid())\n    - conversationAId String, conversationBId String\n    - conversationA Conversation @relation(fields: [conversationAId], references: [id])\n    - conversationB Conversation @relation(fields: [conversationBId], references: [id])\n    - participantA Json?, participantB Json?\n    - goal String?\n    - winner BattleWinner?\n    - endedReason EndReason?\n    - judgeMode JudgeMode?\n    - judgeRationale String?\n    - metrics Json?\n    - isBlind Boolean @default(true)\n    - createdAt DateTime @default(now()), updatedAt DateTime @updatedAt\n    - judgeDecisions JudgeDecision[]\n    - @@index([conversationAId]), @@index([conversationBId])\n  - JudgeDecision:\n    - id String @id @default(cuid())\n    - battleId String\n    - battle Battle @relation(fields: [battleId], references: [id])\n    - evaluationRunId String?\n    - evaluationRun EvaluationRun? @relation(fields: [evaluationRunId], references: [id])\n    - judgeMode JudgeMode\n    - winner BattleWinner\n    - rationale String?\n    - metrics Json?\n    - createdAt DateTime @default(now())\n    - failureTags DecisionFailureTag[] (m:n)\n    - @@index([battleId]), @@index([evaluationRunId])\n  - EvaluationRun:\n    - id String @id @default(cuid())\n    - name String @unique\n    - description String?\n    - judgeMode JudgeMode?\n    - isBlind Boolean @default(true)\n    - config Json?\n    - stats Json?\n    - createdAt DateTime @default(now()), updatedAt DateTime @updatedAt\n    - decisions JudgeDecision[]\n    - metrics EvaluationMetric[]\n  - EvaluationMetric:\n    - id String @id @default(cuid())\n    - evaluationRunId String\n    - run EvaluationRun @relation(fields: [evaluationRunId], references: [id])\n    - key String\n    - value Float?\n    - details Json?\n    - createdAt DateTime @default(now())\n    - @@index([evaluationRunId])\n  - FailureTag:\n    - id String @id @default(cuid())\n    - slug String @unique\n    - description String?\n  - DecisionFailureTag (join table):\n    - judgeDecisionId String\n    - failureTagId String\n    - judgeDecision JudgeDecision @relation(fields: [judgeDecisionId], references: [id])\n    - failureTag FailureTag @relation(fields: [failureTagId], references: [id])\n    - @@id([judgeDecisionId, failureTagId])\n    - @@index([failureTagId])\n  - Rating:\n    - id String @id @default(cuid())\n    - subject String @unique\n    - mu Float\n    - sigma Float\n    - games Int @default(0)\n    - createdAt DateTime @default(now()), updatedAt DateTime @updatedAt\n\n- Repository helpers (add/modify):\n  - appendMessage: within a transaction, compute next seq for the conversation (SELECT max(seq)+1 FOR UPDATE or equivalent), insert Message with seq, and increment Conversation.messageCount plus aggregate totals (tokensInTotal, tokensOutTotal, costUsdTotal).\n  - getMessagesSinceSeq(conversationId: string, sinceSeq: number, limit = 100): returns messages where seq > sinceSeq ordered by seq asc (uses @@index([conversationId, seq])).\n  - completeConversation: no change beyond existing behavior.\n  - saveRunReport: accept tokensInTotal?, tokensOutTotal?, costUsdTotal? and persist; if not provided, compute aggregates from related conversations/messages where applicable.\n  - Battle helpers: createBattle({ conversationAId, conversationBId, participantA?, participantB?, goal?, isBlind? }), recordJudgeDecision({ battleId, evaluationRunId?, judgeMode, winner, rationale?, metrics?, failureTagSlugs?: string[] }).\n  - Rating helpers: upsertRating({ subject, mu, sigma, games? }).\n\n- Indexing:\n  - Maintain Message @@index([conversationId, createdAt]).\n  - Add Message @@index([conversationId, seq]). If seq cannot be set for legacy messages, fallback read path may use @@index([conversationId, id]) temporarily.\n\n- Cost and usage aggregation:\n  - Store per-message tokens and cost as already defined; update Conversation and RunReport aggregate totals on each message append and on run report save. Ensure Decimal precision is sufficient for totals (12,6 recommended).\n\n- Serverless Prisma pooling and env:\n  - Use pooled DATABASE_URL with pgbouncer=true, connection_limit=1, sslmode=require, connect_timeout=5 (or similar). Use DIRECT_URL (non-pooled) for prisma migrate/studio.\n  - Consider Prisma Accelerate/Data Proxy for Edge or higher concurrency; if enabled, add the accelerate generator and route reads accordingly.\n  - Example:\n    - DATABASE_URL=postgresql://user:pass@pool-host/db?sslmode=require&pgbouncer=true&connection_limit=1&connect_timeout=5\n    - DIRECT_URL=postgresql://user:pass@direct-host/db?sslmode=require\n\n- Migrations:\n  - Create a follow-up migration adding new models, enums, fields, and indexes (e.g., npx prisma migrate dev -n eval_battles_seq_aggregates). Backfill seq for existing messages per conversation using a window function or application-side script.\n\n- Tests (augment):\n  - Verify Message.seq is strictly increasing per conversation under concurrency; getMessagesSinceSeq returns correct window.\n  - Validate aggregate totals update on Conversation and RunReport.\n  - CRUD for Battle, JudgeDecision, EvaluationRun, EvaluationMetric, FailureTag, Rating; m:n tagging works.\n  - Index usage: EXPLAIN on messages since seq and standard read path.\n\n- Research references:\n  - Add .taskmaster/docs/research notes summarizing Prisma pooling (pgbouncer, pooled vs direct URLs, connection_limit) and the evaluation/battle schema rationale with links to source docs and examples.\n</info added on 2025-08-11T15:37:22.943Z>",
+        "testStrategy": "- Unit: Vitest tests for repository helpers using a test Postgres (Docker) or Neon branch DB.\n- Migration validation: Apply migrations on a fresh DB, run basic CRUD flows.\n- Seed sanity: Ensure at least one Agent present and selectable.\n- Performance: Verify indexes via EXPLAIN on Message read path.\n- Rollback: Test down migration and re-apply without data loss for non-critical fields.",
         "priority": "high",
         "dependencies": [],
-        "status": "done",
+        "status": "pending",
         "subtasks": [
           {
             "id": 1,
-            "title": "Initialize Git repository and baseline .gitignore",
-            "description": "Create the project’s VCS foundation and ensure sensitive or transient files are ignored.",
+            "title": "Implement Prisma schema and initial migration",
+            "description": "Define Prisma v5 schema for Agent, Conversation, Message, RunReport, and PromptTemplate with enums, relations, indexes, defaults, and cascade rules. Generate the initial migration and Prisma Client.",
             "dependencies": [],
-            "details": "• Run `git init` in project root.\n• Add a comprehensive .gitignore covering Python bytecode, virtual-env directories, OS files, IDE configs, and secret files (.env, *.pem).\n• Commit initial empty repository state with message “chore: initial repo & .gitignore”.\n<info added on 2025-07-30T10:56:16.181Z>\n• Completed implementation: repository confirmed initialized, .gitignore replaced with Python-centric patterns (bytecode, venv, dist/test artefacts, secrets, OS & IDE files) and committed as “chore: initial repo & .gitignore” (hash 46585c2).  \n• Verification: repository contains exactly one commit; ignored file check passes for all specified patterns.  \n• Subtask marked complete; advance to 13.2 to scaffold canonical src/ and tests/ directories.\n</info added on 2025-07-30T10:56:16.181Z>",
-            "status": "done"
+            "details": "Tasks:\n- Create prisma/schema.prisma with datasource (provider: postgresql) and generator client.\n- Models:\n  - Agent: id(cuid, PK), name(unique), description?, systemPrompt, persona(Json?), isActive(default true), tags(String[] default []), conversations(Conversation[]), createdAt(now), updatedAt(@updatedAt).\n  - Conversation: id(cuid), agentId(FK->Agent), model, systemPrompt?, goal?, goalReached(default false), endedReason(enum EndReason?), messageLimit(default 25), messageCount(default 0), runId?, startedAt(now), endedAt?, messages(Message[]); @@index([agentId]).\n  - Message: id(cuid), conversationId(FK->Conversation onDelete: Cascade), role(enum Role), content(text), tokensIn?, tokensOut?, costUsd Decimal @db.Decimal(10,5)?, createdAt(now); @@index([conversationId, createdAt]).\n  - RunReport: id(cuid), runId(unique), agentId(FK->Agent), model, systemPrompt?, runCount, failures(Json?), summary?, revisedPrompt?, stats(Json?), createdAt(now).\n  - PromptTemplate: id(cuid), name(unique), description?, template, variables(String[] default []), lastUsedAt?, createdAt(now), updatedAt(@updatedAt).\n  - Enums: EndReason { goal, limit, error, manual, timeout }, Role { system, user, assistant, tool }.\n- Create indexes per spec: Conversation(agentId), Message(conversationId, createdAt), Agent(name unique), RunReport(runId unique).\n- Run: npx prisma migrate dev -n init; then npx prisma generate.",
+            "status": "pending",
+            "testStrategy": "Validate schema: npx prisma validate. Apply migration on a fresh DB (Docker Postgres or Neon branch). Verify relations and indexes exist. Delete a Conversation and confirm its Messages are cascade-deleted. Quick CRUD smoke via Prisma Client."
           },
           {
             "id": 2,
-            "title": "Create canonical directory structure for code and tests",
-            "description": "Lay out src/ and tests/ folders with required module stubs.",
+            "title": "Seed prebuilt agents and implement minimal repository helpers",
+            "description": "Add seed script to insert 3–5 prebuilt Agents with distinct personas, and implement lightweight data-access utilities for common operations.",
             "dependencies": [
-              "13.1"
+              "1.1"
             ],
-            "details": "• Generate folder tree:\n  src/alert_agent/ (__init__.py, config.py, scheduler.py, collector.py, ai_processor.py, summary.py, notifier.py, orchestrator.py)\n  tests/ (empty __init__.py)\n• Add placeholder docstrings in each module to pass import.\n• Commit as “chore: scaffold package layout”.\n<info added on 2025-07-30T11:00:04.070Z>\n• Scaffolding finished: src/alert_agent/ and tests/ directories created with all eight module files plus tests/__init__.py (9 files, ~230 LOC).  \n• Each module contains placeholder docstrings, function stubs, and __all__ exports where applicable.  \n• Changes committed under hash e09d9b6 with message “chore: scaffold package layout”.  \n• Subtask 13.2 now complete; hand-off to 13.3 for pyproject.toml dependency manifest.\n</info added on 2025-07-30T11:00:04.070Z>",
-            "status": "done"
+            "details": "Tasks:\n- Create prisma/seed.ts inserting 3–5 Agents (e.g., Generalist, Prompt Tuner, Evaluator, Researcher, Code Reviewer) with unique name, systemPrompt, persona JSON, tags.\n- Implement repository helpers (e.g., src/lib/db or src/repo):\n  - getActiveAgents(): Promise<Agent[]>.\n  - createConversation({ agentId, model, systemPrompt?, goal?, messageLimit? }): Promise<Conversation>.\n  - appendMessage(conversationId, { role, content, tokensIn?, tokensOut?, costUsd? }): Promise<Message> (increment messageCount in a transaction).\n  - completeConversation(conversationId, { endedReason, goalReached, endedAt? }): Promise<Conversation>.\n  - saveRunReport({ runId, agentId, model, systemPrompt?, runCount, failures?, summary?, revisedPrompt?, stats? }): Promise<RunReport>.\n  - upsertPromptTemplate({ name, description?, template, variables }): Promise<PromptTemplate> (upsert by unique name).\n- Ensure types are inferred from Prisma Client; add basic error handling for unique constraint violations.",
+            "status": "pending",
+            "testStrategy": "Manual: Run seed and verify Agents exist. Programmatic: Create a conversation, append messages, check messageCount increments, complete conversation updates status, upsert prompt template returns same id on repeat."
           },
           {
             "id": 3,
-            "title": "Author dependency manifest with pinned versions",
-            "description": "Define Python 3.11 requirement and lock library versions through pyproject.toml (preferred) or requirements.txt.",
+            "title": "Cleanup and alignment with MVP",
+            "description": "Remove unused sample data, confirm nullable fields and defaults match usage, verify cascade behavior and indexes, and adjust schema if needed.",
             "dependencies": [
-              "13.1"
+              "1.1",
+              "1.2"
             ],
-            "details": "• Write pyproject.toml using PEP-621 metadata and `[project.dependencies]` section listing exact versions for httpx, APScheduler, python-dotenv, pydantic, loguru, backoff, tzdata, and optional `[project.optional-dependencies.dev]` for pytest/pytest-asyncio.\n• Include build-system table using `hatchling` or `setuptools`.\n• Add explanatory comments on version pin dates.\n• Commit as “feat: dependency manifest”.\n<info added on 2025-07-30T11:57:32.256Z>\n• Dependency manifest finalized via Poetry: created pyproject.toml targeting Python 3.10, declaring pinned production deps (httpx 0.27.0, APScheduler 3.10.4, python-dotenv 1.0.1, pydantic 2.7.0, loguru 0.7.2, backoff 2.2.1, tzdata 2024.1) with dated inline comments.  \n• Added comprehensive development group: pytest 8.2.0, pytest-asyncio 0.23.6, black 24.4.2, isort 5.13.2, mypy 1.10.0, pre-commit, coverage.  \n• Switched build-system to Poetry (poetry-core backend) and populated `[tool.poetry]` metadata, dependency tables, and `scripts` exposing `alert-agent` CLI.  \n• Embedded tool configs (black, isort, mypy, pytest, coverage) within pyproject and set package layout to `src/alert_agent`.  \n• Manifest committed as `feat: dependency manifest` (hash bafe20b).  \n• Subtask complete; hand-off to 13.4 for Poetry virtual-env creation and lockfile generation.\n</info added on 2025-07-30T11:57:32.256Z>",
-            "status": "done"
+            "details": "Tasks:\n- Remove any unused sample models/data. Confirm optional fields (e.g., description?, systemPrompt? on Conversation, RunReport) and defaults (goalReached=false, messageLimit=25, messageCount=0).\n- Verify onDelete: Cascade for Message->Conversation; keep Agent->Conversation as Restrict (or explicit NoAction) to avoid accidental loss; document behavior.\n- Re-run prisma format and generate a follow-up migration if tweaks are required.\n- Validate indexes: Conversation(agentId), Message(conversationId, createdAt), Agent(name unique), RunReport(runId unique).",
+            "status": "pending",
+            "testStrategy": "Apply updated migration on a new DB; run EXPLAIN on common queries (messages by conversation ordered by createdAt desc limit 20) to confirm index usage. Delete a Conversation and ensure Messages cascade; attempt deleting an Agent with Conversations and ensure it is blocked (if Restrict)."
           },
           {
             "id": 4,
-            "title": "Create isolated Python 3.11 virtual environment and lock deps",
-            "description": "Provision environment, install and freeze exact versions for reproducibility.",
+            "title": "Quality gate: scripts, generate client, typecheck, lint, and repository tests",
+            "description": "Add package scripts, ensure Prisma Client generation, and run typecheck/lint plus Vitest repository tests against a test Postgres.",
             "dependencies": [
-              "13.1",
-              "13.3"
+              "1.1",
+              "1.2",
+              "1.3"
             ],
-            "details": "• Use `python3.11 -m venv .venv` (or pyenv + virtualenv).\n• Activate and run `pip install -e .[dev]`.\n• Generate `requirements-lock.txt` via `pip freeze > requirements-lock.txt` or rely on poetry/rye lock file.\n• Document activation instructions in README.\n• Commit as “chore: env setup & deps lock”.\n<info added on 2025-07-30T12:03:47.966Z>\n• Environment provisioned with Poetry: `poetry env use python3.10` and `poetry install` (42 packages resolved and installed)  \n• Syntax fixes applied to pyproject.toml (escaped coverage paths)  \n• Generated and committed 72 KB `poetry.lock` for deterministic builds  \n• Verified key imports, timezone handling, and package export integrity  \n• Extended README with setup instructions, Poetry workflow, and architecture overview  \n• Changes committed as “chore: env setup & deps lock” (dcba130) – subtask ready to hand off to 13.5\n</info added on 2025-07-30T12:03:47.966Z>",
-            "status": "done"
+            "details": "Tasks:\n- package.json scripts: prisma:generate (prisma generate), prisma:migrate (prisma migrate dev), prisma:seed (prisma db seed), test (vitest run), typecheck (tsc --noEmit), lint (eslint .).\n- Configure Prisma seed hook: package.json { \"prisma\": { \"seed\": \"tsx prisma/seed.ts\" } } (or ts-node).\n- Test DB: Docker Postgres or Neon branch; set DATABASE_URL (dev), DATABASE_URL_TEST (CI). Use DIRECT_URL for migrations if using a pooler.\n- Vitest: tests for getActiveAgents, createConversation + appendMessage (transaction + counter), completeConversation (ended flags/reason), upsertPromptTemplate (id stable on repeat), saveRunReport (unique runId).\n- Ensure prisma generate runs before tests and CI uses fresh DB with migrations and seed.",
+            "status": "pending",
+            "testStrategy": "Run sequence: prisma:generate -> prisma:migrate (against test DB) -> prisma:seed -> typecheck -> lint -> vitest. Assertions: all repos function; no unique/index violations; Prisma Client imports compile."
           },
           {
             "id": 5,
-            "title": "Configure developer tooling: pre-commit hooks & linters",
-            "description": "Automate code formatting and static analysis for every commit.",
-            "dependencies": [
-              "13.1",
-              "13.3",
-              "13.4"
-            ],
-            "details": "• Add `.pre-commit-config.yaml` pins: black==24.4.2, isort==5.13.2, mypy==1.10.0.\n• Run `pre-commit install` inside venv.\n• Update pyproject.toml with tool configs for black and isort (line length 100, known_first_party alert_agent).\n• Commit as “chore: pre-commit & lint setup”.\n<info added on 2025-07-30T12:19:38.438Z>\n✅ COMPLETED  \n\n• Added fully-pinned `.pre-commit-config.yaml` (black 24.4.2, isort 5.13.2, mypy 1.10.0) and installed hooks with `poetry run pre-commit install`.  \n• Enabled additional quality checks: whitespace/EOF cleanup, merge-conflict detection, YAML/TOML/JSON validation, Bandit security scan (tests/ excluded), Python debug-statement blocker.  \n• Extended `pyproject.toml` with matching black/isort settings (line-length 100, profile=black, known_first_party=alert_agent).  \n• Applied type-annotation fixes across 7 modules; all mypy checks now pass.  \n• Verified hook suite: black formats, isort orders, mypy validates, CI exits 0; 34 files auto-formatted on first commit.  \n• Commit recorded as `chore: pre-commit & lint setup` (hash 8af0a9f).  \n\nSubtask 13.5 is now complete; ready to move to 13.6 (cleanup & code organisation).\n</info added on 2025-07-30T12:19:38.438Z>",
-            "status": "done"
-          },
-          {
-            "id": 6,
-            "title": "Cleanup and Code Organization",
-            "description": "Remove temporary files, organize imports, and ensure clean code structure",
-            "details": "<info added on 2025-07-30T12:22:24.652Z>\nCompleted cleanup and code organization:\n\n• Removed unused alerts_summery directory  \n• Imports, formatting, and type hints all validate clean (isort, black, mypy)  \n• No temporary or cache files outside .venv; structure conforms to src/package layout  \n• Repository working tree is clean; pre-commit hooks all pass  \n\nValidated directory tree:  \n  src/alert_agent/ (8 modules)  \n  tests/  \n  .venv/ (git-ignored)  \n  .taskmaster/  \n  .cursor/  \n\nCommitted as “chore: cleanup and code organization” (hash 461b216). Subtask 13.6 is finished and ready to hand off to Quality Gate (13.7).\n</info added on 2025-07-30T12:22:24.652Z>",
-            "status": "done",
-            "dependencies": [
-              "13.1",
-              "13.2",
-              "13.3",
-              "13.4",
-              "13.5"
-            ],
-            "parentTaskId": 13
-          },
-          {
-            "id": 7,
-            "title": "Quality Gate: Tests and Linting",
-            "description": "Run comprehensive tests and linting checks to ensure code quality standards",
-            "details": "<info added on 2025-07-30T12:30:14.628Z>\nQuality Gate completed and documented:\n\n• Implemented tests/test_basic.py with four foundational checks (package import, individual module import, metadata, placeholder callability).  \n• Added pytest-cov; current baseline coverage 57 %.  \n• All tooling clean: pytest (4 / 4), mypy (8 files, 0 issues), black, isort, bandit, and pre-commit hooks.  \n• Optimised mypy/pre-commit configs—code under src/ only, tests isolated with ignore_missing_imports.  \n• Manual verification confirms package imports, seven modules present, core deps functional, version 0.1.0 correct.  \n• Committed under hash 7d3b438: “feat: add comprehensive test suite and complete quality gate”.\n\nSubtask 13.7 now satisfies quality gate requirements; ready to advance to dependency research (13.8).\n</info added on 2025-07-30T12:30:14.628Z>",
-            "status": "done",
-            "dependencies": [
-              "13.6"
-            ],
-            "parentTaskId": 13
-          },
-          {
-            "id": 8,
-            "title": "Context7 MCP Research: External Package Dependencies",
-            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
-            "details": "<info added on 2025-07-30T12:33:46.980Z>\nContext7 MCP research completed and external dependencies validated.\n\nDependencies approved\n• httpx==0.27.0 – async-first client with connection pooling, HTTP/2, robust timeout handling.  \n• pydantic==2.7.0 – high-performance data/config validation, rich type support, strong community.  \n• APScheduler==3.10.4 – Jerusalem-aware scheduling, sync/async APIs, clean shutdown hooks.\n\nKey findings\n• All versions current, stable and free of known CVEs; licences compatible.  \n• Integration patterns verified for our async architecture (Grafana polling, Slack posting).  \n• Performance characteristics meet requirements; community support is strong.\n\nImplementation notes\n• Perform HTTP calls with `async with httpx.AsyncClient()` and add backoff retries.  \n• Define configuration models using Pydantic `ConfigDict` and custom validators.  \n• Start APScheduler with `timezone=\"Asia/Jerusalem\"` and ensure graceful shutdown via context manager.\n\nOutcome\n• Dependency list in parent task is confirmed; lock versions in pyproject/requirements.  \n• Research phase finished—subtask 13.8 can be closed and work proceeds to Task 14.\n</info added on 2025-07-30T12:33:46.980Z>",
-            "status": "done",
-            "dependencies": [
-              "13.7"
-            ],
-            "parentTaskId": 13
+            "title": "Context7 MCP research: Prisma v5 + serverless Postgres pooling",
+            "description": "Research and document best practices for Prisma v5 with Postgres on Neon/Supabase/Vercel, focusing on connection pooling and environment configuration.",
+            "dependencies": [],
+            "details": "Scope:\n- Docs to review: Prisma v5 (PostgreSQL, Accelerate/Data Proxy), Neon pgbouncer/pooler, Vercel Postgres with Prisma, Supabase pooled connections.\n- Recommendations:\n  - Use a pooled DATABASE_URL in serverless (Neon/Vercel pooler or Supabase pooler port 6543) to prevent connection storms; use DIRECT_URL for migrations.\n  - For PgBouncer, add connection string params: pgbouncer=true, sslmode=require, connection_timeout/pgbouncer settings; disable prepared statements if needed via ?pgbouncer=true.\n  - Consider Prisma Accelerate/Data Proxy in high-concurrency serverless; configure generator accelerate if adopted.\n  - CI/CD: run migrations in a controlled step using DIRECT_URL (non-pooled) to avoid pooler limitations.\n- Example env:\n  - DATABASE_URL=postgresql://user:pass@neon-pool-host/db?sslmode=require&pgbouncer=true&connect_timeout=5\n  - DIRECT_URL=postgresql://user:pass@neon-direct-host/db?sslmode=require\n  - For Supabase: use pooled url (port 6543) as DATABASE_URL; non-pooled as DIRECT_URL for migrations.\n- Notes: keep relationMode=foreignKeys; ensure Decimal(10,5) is supported; avoid long-running transactions in serverless.",
+            "status": "pending",
+            "testStrategy": "Manual validation: run a 50-parallel request test using repository helpers against pooled DATABASE_URL and confirm no 'too many connections' errors. Run migrations using DIRECT_URL to ensure compatibility with pooler. Document findings and finalize env templates."
           }
         ]
       },
       {
-        "id": 14,
-        "title": "Centralised Configuration & Secret Management",
-        "description": "Implement environment & YAML driven configuration loader with validation.",
-        "details": "• .env template keys: GRAFANA_URL, GRAFANA_TOKEN, OPENROUTER_API_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID\n• config.yaml defaults: schedule_time: \"10:00\", timezone: \"Asia/Jerusalem\", lookback_hours: 24, openrouter: {model: \"anthropic.claude-4-sonnet\", temperature: 0.2, max_tokens: 2048}\n• Use python-dotenv to load .env → os.environ. Use pydantic BaseModel to validate & expose strongly-typed Config object.\n• Allow override via CLI flags/environment hierarchy.\n• Example:\n```\nclass Settings(BaseSettings):\n    grafana_url: AnyHttpUrl\n    grafana_token: SecretStr\n    ...\n    class Config: env_file = \".env\", env_file_encoding = \"utf-8\"\n```\n",
+        "id": 2,
+        "title": "Shared: LLM provider abstraction (OpenAI + OpenRouter) with unified chat and cost/safety guards",
+        "description": "Create a provider layer that unifies chat completion across OpenAI and OpenRouter, exposing a single interface with model selection, token caps, and basic rate limiting. Include retries and optional streaming support.",
+        "details": "Implementation subtasks (target 5):\n1) Implement provider interface and adapters\n- Install openai@^4.55.0 (latest major v4). Use the same client for OpenRouter by overriding baseURL and apiKey.\n- Interface:\n  type ChatMessage = { role: 'system'|'user'|'assistant'|'tool', content: string };\n  type ChatOptions = { provider: 'openai'|'openrouter', model: string, maxTokens?: number, temperature?: number, stop?: string[], stream?: boolean };\n  async function chat(messages: ChatMessage[], opts: ChatOptions): Promise<{ text: string, usage?: { inputTokens: number, outputTokens: number }, raw: any }>\n- OpenAI example:\n  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });\n  const resp = await client.chat.completions.create({ model: opts.model, messages, max_tokens: opts.maxTokens ?? 512, temperature: opts.temperature ?? 0.2 });\n- OpenRouter example:\n  const client = new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' });\n  const resp = await client.chat.completions.create({ model: opts.model, messages, max_tokens: opts.maxTokens ?? 512, temperature: opts.temperature ?? 0.2, extra_headers: { 'HTTP-Referer': process.env.OPENROUTER_SITE || '', 'X-Title': 'Agent Wars' } });\n- Map usage tokens from resp.choices[0] and resp.usage.\n\n2) Cost/safety guards and retries\n- Enforce caps: maxTokens per call <= 512 (configurable), max messages per conversation <= 25, allowed models whitelist.\n- Basic rate limiting with in-memory LRU (per IP/per API key) using lru-cache; fallback no-op in serverless multi-instance, but keep caps. Exponential backoff retries with abort after 2 retries on 429/5xx.\n- Redact secrets from prompts via simple regex before logging.\n\n3) Cleanup\n- Centralize env validation with zod: OPENAI_API_KEY? OPENROUTER_API_KEY? Ensure helpful error messages.\n\n4) Quality Gate (run tests/lint)\n- Vitest unit tests mocking OpenAI client. Cases: OpenAI vs OpenRouter path, token cap enforced, retry on 429, model not allowed.\n\n5) Context7 MCP research for external packages/libraries used\n- OpenAI Node SDK v4 docs (Responses vs Chat Completions—use chat.completions for broader model support). OpenRouter API compatibility notes. lru-cache best practices in serverless environments.\n\n<info added on 2025-08-11T15:38:40.961Z>\nResearch-backed enhancements to provider layer and guards:\n\n- OpenRouter integration\n  - Include required headers HTTP-Referer and X-Title on every OpenRouter request (chat and models).\n  - Add GET /models fetch with 6h TTL cache (lru-cache). Cache fields: model id, context_length (tokens), and pricing.prompt/completion (USD per 1M tokens). Expose getModelInfo(model) -> { contextTokens, promptUSDPerMTok, completionUSDPerMTok }.\n  - Normalize all pricing computations to per-1M tokens: cost = (prompt_tokens/1e6)*promptUSDPerMTok + (completion_tokens/1e6)*completionUSDPerMTok. Surface context length via getModelInfo for guard checks and observability.\n  - For OpenAI models, seed a static pricing map for common models with env override (OPENAI_PRICING_JSON) and include context lengths; fall back to conservative defaults if unknown.\n\n- Guardrails and limits\n  - Preflight token estimate using tokenizer encodings:\n    - o200k_base for gpt-4o family (gpt-4o, gpt-4.1, o3, mini variants).\n    - cl100k_base for gpt-4 (legacy), gpt-3.5, and similar.\n    - Fallback heuristic for unknown models. Reject when estimated inputTokens + requested maxTokens > model contextTokens.\n  - Budget caps: enforce MAX_USD_PER_REQUEST and MAX_USD_PER_SESSION (config). Estimate pre-call cost using pricing and token estimate; hard-stop if exceeding budget. Session budget sourced from persisted Conversation totals when available; allow per-call override (opts.budgetUSD) for ephemeral sessions.\n  - Model whitelist remains required; also validate against the cached /models catalog when provider=openrouter to catch unavailable models.\n  - Concurrency limiter keyed by provider:model with configurable limits:\n    - Defaults via CONCURRENCY_DEFAULT (e.g., 4).\n    - Per-key overrides via CONCURRENCY_OVERRIDES CSV (e.g., openai:gpt-4o=2,openrouter:anthropic/claude-3-haiku=10).\n    - Implement a keyed semaphore/queue to bound concurrent calls fairly.\n  - Retries/backoff: up to 2 retries on 429/5xx with exponential backoff and full jitter. If Retry-After header is present, honor it (seconds or HTTP-date), capped by a MAX_BACKOFF_MS ceiling. Include jitter on all backoff delays.\n\n- Streaming API\n  - Add chatStream(messages, opts) for streaming use-cases:\n    - opts.streamMode: 'iterator' returns an AsyncIterable of delta chunks.\n    - opts.streamMode: 'web' returns a Web ReadableStream suitable for Next.js/SSE routes.\n    - Preserve existing chat() for non-streaming; both paths share guards and retries (retry only on initial call).\n  - Enforce per-request timeout with AbortController (REQUEST_TIMEOUT_MS, default 60000) applied to streaming and non-streaming. Ensure streams terminate within ~60s; abort and surface a timeout error if exceeded.\n\n- Usage and cost accounting\n  - Reconcile token usage via response.usage (prompt_tokens, completion_tokens). For streaming, capture final usage when provided by SDK; if missing, fall back to preflight estimate for budgeting only and mark usageEstimated=true.\n  - Compute usdIn/usdOut/totalUSD using normalized per-1M pricing from getModelInfo or OpenAI pricing map.\n  - Persist on Message: inputTokens, outputTokens, usdIn, usdOut, totalUSD, provider, model, usageEstimated flag. Aggregate on Conversation and RunReport (incremental totals and counts).\n\n- Tests (extend Vitest suite)\n  - OpenRouter: assert HTTP-Referer and X-Title headers on chat and models requests; verify /models cache with ~6h TTL (no refetch within TTL, refetch after expiry).\n  - Guardrails: token estimation blocks requests exceeding context; budget caps reject when estimated cost exceeds per-request/session budget; whitelist rejections; concurrency limiter never exceeds configured parallelism.\n  - Retries/backoff: validate exponential backoff with jitter and honoring Retry-After (use fake timers).\n  - Pricing: verify normalization per 1M tokens and correct USD computation from a sample usage.\n  - Streaming: chatStream returns AsyncIterable and Web ReadableStream variants; iterator yields ordered deltas; timeout aborts long-running streams.\n\n- Config additions\n  - REQUEST_TIMEOUT_MS (default 60000), PRICING_CACHE_TTL_HOURS (default 6), MAX_USD_PER_REQUEST, MAX_USD_PER_SESSION, CONCURRENCY_DEFAULT, CONCURRENCY_OVERRIDES, OPENAI_PRICING_JSON (optional), RETRY_MAX_BACKOFF_MS (cap for Retry-After and exponential backoff).\n\n- References for research doc (subtask 5)\n  - OpenRouter best practices: required headers, /models endpoint schema, pricing fields, context_length.\n  - OpenAI pricing and token estimation: official pricing tables and tokenizer encodings (cl100k_base, o200k_base) and guidance on usage.\n</info added on 2025-08-11T15:38:40.961Z>",
+        "testStrategy": "- Unit tests validate both providers and edge cases (caps, errors, retries).\n- Contract tests: Snapshot minimal request/response mapping.\n- Smoke test against real APIs gated by CI secret flags (avoid cost by running only on demand).\n- Security: Ensure no PII/logging of prompt content beyond hashes in tests.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement provider interface and adapters (OpenAI + OpenRouter)",
+            "description": "Create a unified chat() using OpenAI Node SDK v4 for both OpenAI and OpenRouter, supporting non-streaming and optional streaming, with normalized response mapping.",
+            "dependencies": [],
+            "details": "Install openai@^4.55.0. Define types: type ChatMessage = { role: 'system'|'user'|'assistant'|'tool', content: string }; type ChatOptions = { provider: 'openai'|'openrouter', model: string, maxTokens?: number, temperature?: number, stop?: string[], stream?: boolean }. Export async function chat(messages: ChatMessage[], opts: ChatOptions): Promise<{ text: string, usage?: { inputTokens: number, outputTokens: number }, raw: any }>. Use the same OpenAI client for both providers; for OpenAI: new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); for OpenRouter: new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' }). For OpenRouter, pass extra_headers: { 'HTTP-Referer': process.env.OPENROUTER_SITE || '', 'X-Title': 'Agent Wars' }. Call client.chat.completions.create({ model: opts.model, messages, max_tokens: opts.maxTokens ?? 512, temperature: opts.temperature ?? 0.2, stop: opts.stop, stream: opts.stream }). Non-streaming: return choices[0].message.content || ''. Streaming: consume streamed chunks, append delta content to build final text, and capture final usage when available; resolve with assembled text and usage. Normalize usage to { inputTokens: resp.usage?.prompt_tokens ?? 0, outputTokens: resp.usage?.completion_tokens ?? 0 }. Return { text, usage, raw: resp }.",
+            "status": "pending",
+            "testStrategy": "Manual smoke script (dev-only) to hit both providers with a short prompt; verify text returned and usage fields present when non-streaming. Full unit tests added in subtask 4."
+          },
+          {
+            "id": 2,
+            "title": "Add cost/safety guards, rate limiting, and retries",
+            "description": "Enforce token and message caps, model whitelist, basic in-memory rate limiting, exponential backoff retries on 429/5xx, and prompt redaction before logging.",
+            "dependencies": [
+              "2.1"
+            ],
+            "details": "Implement guard layer wrapping chat(): caps: maxTokens per call <= 512 (configurable via env, default 512); max messages per conversation <= 25; reject if exceeded. Enforce allowed models whitelist from env (e.g., ALLOWED_MODELS=comma-separated); default to a safe small set if unset. Add simple in-memory rate limiter using lru-cache keyed by IP or API key with sliding window (e.g., 60 requests/60s configurable) and TTL; if serverless multi-instance detected, allow opt-out via RATE_LIMIT_ENABLED=false but keep caps. Implement exponential backoff with jitter for 429/5xx: up to 2 retries (total 3 attempts) with delays ~250ms, 750ms. Redact secrets in any logs via regex (e.g., api keys, bearer tokens, emails) before printing. Expose minimal metadata (attempts, provider) in raw for observability. Ensure streaming path also passes through guards and retries (retry only on initial call errors, not mid-stream).",
+            "status": "pending",
+            "testStrategy": "Unit: simulate inputs exceeding caps; assert rejection. Mock client to throw 429 then succeed; assert 2 retries max and delay sequencing (use fake timers). Validate whitelist rejection for disallowed model. Validate rate limiter blocks after threshold."
+          },
+          {
+            "id": 3,
+            "title": "Cleanup: Centralize environment and config validation",
+            "description": "Create a config module using zod to validate environment variables and runtime options with clear error messages.",
+            "dependencies": [
+              "2.1"
+            ],
+            "details": "Add config.ts with zod schemas: At least one of OPENAI_API_KEY or OPENROUTER_API_KEY must be present; OPENROUTER_SITE optional; ALLOWED_MODELS optional CSV -> string[]; MAX_TOKENS_PER_CALL default 512; MAX_MESSAGES_PER_CONVO default 25; RATE_LIMIT_ENABLED default true; RATE_LIMIT_RPM default 60. Export getConfig() returning typed config and helpers. Validate at module load and throw descriptive errors with remediation hints. Replace scattered env reads in provider/guards with config getters.",
+            "status": "pending",
+            "testStrategy": "Unit: when neither API key is set, expect a precise zod error; when only one is set, config loads; CSV parsing produces array; numeric envs parsed and clamped to sane bounds."
+          },
+          {
+            "id": 4,
+            "title": "Quality Gate: tests and lint",
+            "description": "Add Vitest unit tests mocking OpenAI client, plus lint/format checks. Cover provider routing, caps, retries, whitelist, and streaming assembly.",
+            "dependencies": [
+              "2.1",
+              "2.2",
+              "2.3"
+            ],
+            "details": "Set up Vitest with tsconfig paths; mock openai client module to control responses for both OpenAI and OpenRouter paths. Tests: (1) routes to correct baseURL and headers per provider; (2) enforces maxTokens cap (reject > 512); (3) retries on 429 then succeeds; (4) rejects disallowed model; (5) streaming: emit deltas across chunks and assert assembled text and usage mapping; (6) rate limiter blocks after N requests. Add ESLint + Prettier scripts and CI tasks (test, lint).",
+            "status": "pending",
+            "testStrategy": "Run vitest with coverage; ensure all critical branches covered. Lint passes with no warnings. Optional snapshot for normalized request payload (model, messages, max_tokens)."
+          },
+          {
+            "id": 5,
+            "title": "Context7 MCP research for external packages/libraries",
+            "description": "Research and document SDK and library usage to de-risk implementation choices.",
+            "dependencies": [],
+            "details": "Produce docs/research-llm-provider.md summarizing: OpenAI Node SDK v4 chat.completions vs responses; streaming API patterns and how to capture usage; OpenRouter API compatibility and required headers; model naming differences and availability; lru-cache patterns suitable for rate limiting in serverless (TTL, max size, pitfalls); best practices for exponential backoff with jitter. Include links to official docs and minimal code snippets. Add decisions/risks section and confirm our API choices align with findings.",
+            "status": "pending",
+            "testStrategy": "Acceptance: document exists with sources and answers to checklist; peer review confirms accuracy and that implementation aligns with recommendations."
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Shared: Background execution APIs for battles and batch runs with persistence and streaming updates",
+        "description": "Implement Next.js Route Handlers to start and monitor battles and scale tests. Provide an in-process runner by default with optional BullMQ+Redis when REDIS_URL is set. Persist conversations and messages; expose polling and basic SSE endpoints.",
+        "details": "Implementation subtasks (target 5):\n1) Implement runners and routes\n- Runners (server-only): runBattle(job), runScaleTest(job). Stop when goal reached or 25 messages.\n- Goal check strategy: after each assistant reply, ask a lightweight classifier prompt (system: 'Given the goal: <goal>, did the last assistant message achieve it? Answer yes/no.') using the same provider with tiny model (e.g., gpt-4o-mini or openrouter/anthropic/haiku via OpenRouter if allowed in whitelist). Parse yes => goalReached.\n- Persistence: createConversation(agentId, model, systemPrompt, goal), appendMessage(role, content, tokensIn/out, cost), completeConversation(endedReason).\n- Routes (examples under app/api):\n  POST /api/battles/start -> { jobId }\n  GET /api/battles/:jobId/status -> { progress, conversationId, endedReason }\n  GET /api/battles/:conversationId/messages -> paginated messages\n  POST /api/scale/start -> { runId }\n  GET /api/scale/:runId/status -> { progress, completed, total }\n  GET /api/scale/:runId/report -> RunReport\n- SSE (best-effort): GET /api/stream/:conversationId -> text/event-stream using an EventEmitter; for Vercel multi-instance, keep polling as primary.\n\n2) Queue strategy + caps\n- Default: In-memory queue with p-queue or simple FIFO and concurrency=3. On Vercel, keep N small and per-request processing under timeout; for longer runs, dispatch multiple sequential calls inside the runner.\n- Optional: If process.env.REDIS_URL, initialize BullMQ Queue/Worker (Upstash Redis compatible) for durability. Name queues 'battles' and 'scale-tests'.\n- Caps: runCount <= 10, messageLimit <= 25, per-IP concurrent jobs <= 3.\n- Retry on transient LLM failures with exponential backoff.\n\n3) Cleanup\n- Ensure jobs handle abort signals; clear listeners; guard against duplicate runs; sanitize inputs.\n\n4) Quality Gate (run tests/lint)\n- Integration tests: fake provider to simulate goal reached and errors. Test stop conditions and persistence.\n- Contract tests for each route. Lint and typecheck pass.\n\n5) Context7 MCP research for external packages/libraries used\n- BullMQ vs in-process trade-offs on Vercel; Upstash Redis guidance; Next.js Route Handlers streaming (SSE) limitations and recommended polling fallback.\n\nPseudo-code (runner core):\nasync function runBattle({ agentId, model, systemPrompt, goal }) {\n  const conv = await repo.createConversation(...);\n  let i=0; let goalReached=false;\n  const sys = systemPrompt || agent.systemPrompt;\n  const msgs = [ { role:'system', content: sys }, { role:'user', content: goal || 'Begin.' } ];\n  while(i < 25 && !goalReached){\n    const res = await llm.chat(msgs, { provider, model, maxTokens: 512 });\n    await repo.appendMessage(conv.id,'assistant',res.text,res.usage?.inputTokens,res.usage?.outputTokens);\n    i++;\n    const verdict = await llm.chat([\n      { role:'system', content:`Given the goal: ${goal}. Did the last assistant message achieve it? Reply yes/no.`},\n      { role:'user', content: res.text }\n    ],{ provider, model: tinyModel, maxTokens:10 });\n    if(/\\byes\\b/i.test(verdict.text)) goalReached=true;\n  }\n  const endedReason = goalReached ? 'goal' : (i>=25 ? 'limit' : 'error');\n  await repo.completeConversation(conv.id, endedReason);\n  return { conversationId: conv.id, endedReason };\n}\n\n<info added on 2025-08-11T15:40:08.248Z>\nResearch-backed enhancements and clarifications\n\n- Architecture and runtime strategy\n  - Polling-first status updates on Vercel; reserve SSE for short-lived, interactive streams only. Default UX should poll /status and /messages incrementally; SSE is best-effort.\n  - Durable background execution: prefer BullMQ with Upstash Redis and a dedicated off-Vercel worker (e.g., Fly/Railway/Render). The Next.js app must never run a BullMQ Worker on Vercel instances; only enqueue and read job state.\n  - Fallback path: if REDIS_URL is missing or no active worker heartbeat is detected, run the in-process runner with low concurrency as a temporary fallback.\n\n- Endpoint refinements\n  - Status shape: return minimal JSON with state (queued|running|completed|failed|canceled|timeout), progress (0..1), turn/messageCount, conversationId, endedReason (if terminal), and optional counts (for scale runs: { goal, limit, error, canceled }).\n  - Incremental messages: add sinceSeq param to GET /api/battles/:conversationId/messages to stream deltas; each Message row includes a monotonically increasing seq per conversation. Response includes nextSeq for client continuation.\n  - Persist per-turn progress: after each assistant turn, persist progress fields (turn count, lastSeq, lastActivityAt, partial usage totals) so /status can respond from DB without relying on in-memory state.\n\n- Queue and worker details\n  - Singletons: initialize BullMQ Queue instances once per route module; guard with globalThis to avoid duplicate queues across hot reloads.\n  - Worker placement: only in the external worker service. Vercel routes must not instantiate Workers. Workers read from queues 'battles' and 'scale-tests'.\n  - Rate limiting: configure BullMQ limiter to avoid provider 429s (e.g., limiter { max, duration } tuned per provider/model). Keep queue concurrency aligned with provider limits.\n  - Job identity and idempotency: use conversationId as the canonical jobId; enforce idempotency by returning the existing job if the same idempotency key or conversationId is provided.\n  - Retention: set removeOnComplete and removeOnFail with age and count caps (e.g., complete: { age: 86400, count: 1000 }, fail: { age: 604800, count: 1000 }) to bound Redis memory.\n  - Health/heartbeat: maintain a Redis heartbeat key (e.g., worker:background:heartbeat:{region}) with a short TTL (30–60s). Routes check this to decide BullMQ vs in-process fallback.\n\n- Judge pipeline (per-turn)\n  - Two-stage stopping criteria: run a fast judge every turn (tiny model yes/no) and require a strong confirm before stopping on goal (e.g., larger model or stricter rubric). Deterministic validators (regex/schema/unit checks) run first; if they definitively pass/fail, skip LLM judge.\n  - Persistence: store JudgeDecision rows per turn with fields { conversationId, turn, verdict: yes|no|uncertain, confidence, criteriaApplied[], model, latencyMs, createdAt }. Expose repository helpers to append and query decisions.\n  - Stopping rule: only mark goalReached when fast judge=yes and strong confirm=yes (or deterministic pass). Conflicts default to continue-until-cap.\n\n- Cancellation and caps\n  - Cancellation flag: support a cancel key in Redis/DB (e.g., cancel:conversation:{id}). Worker/runner polls between model calls; on cancel, terminate gracefully, complete conversation with endedReason='manual'.\n  - Message cap enforcement: hard-stop at messageLimit=25 regardless of judge outcome; expose plateau detection as optional (e.g., no improvement over K turns) without changing the hard cap.\n  - Optional endpoint: POST /api/battles/:jobId/cancel sets the cancel flag and returns acknowledged=true.\n\n- References and ADR notes\n  - Document in the ADR: Vercel guidance on SSE vs polling for Route Handlers and serverless timeouts; BullMQ with Upstash Redis best practices (limiter, retention, heartbeat, external worker pattern); example configs for limiter and removeOnComplete/Fail.\n</info added on 2025-08-11T15:40:08.248Z>",
+        "testStrategy": "- Integration: Start battle and assert conversation reaches 'goal' given mocked LLM; another test reaches 'limit' at 25.\n- API: Postman/contract tests for each endpoint; pagination verified.\n- Queue: Unit tests for in-memory FIFO; if REDIS_URL present in CI, spin a BullMQ worker and run one job.\n- Performance: Verify caps prevent runaway costs; simulate 10-run scale test completes under timeouts.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement server runners: runBattle and runScaleTest with persistence and goal-check",
+            "description": "Build server-only runners that execute battles and scale tests, persist conversations/messages, and determine termination via goal or message limit.",
+            "dependencies": [],
+            "details": "Implement runBattle(job) and runScaleTest(job) using the provider abstraction (Task 2) and repositories (Task 1). runBattle flow: createConversation(agentId, model, systemPrompt, goal) -> loop until goalReached or 25 messages -> after each assistant reply, appendMessage with tokens/cost -> run a tiny-model classifier chat to determine goalReached (yes/no) -> completeConversation(endedReason: 'goal'|'limit'|'error'). Emit progress events after each assistant turn (EventEmitter keyed by conversationId) for SSE consumers. Capture and propagate AbortSignal. runScaleTest: accept {runCount<=10, concurrency<=3, messageLimit<=25, ...}, orchestrate N battle runs, aggregate results (counts by endedReason, latency, usage totals), and persist a RunReport via repository. Ensure retries on transient LLM errors with exponential backoff and per-run token caps using provider options.",
+            "status": "pending",
+            "testStrategy": "Integration tests with a fake provider: (a) goal reached on turn 1 (classifier returns 'yes'), (b) limit reached at 25 turns with classifier 'no', (c) transient error retried and then succeeds, (d) AbortSignal cancels cleanly and completes conversation with 'error' or 'timeout'. Verify create/append/complete repository calls and progress events emission."
+          },
+          {
+            "id": 2,
+            "title": "Implement Next.js Route Handlers, SSE stream, and queue layer (in-memory default, BullMQ optional)",
+            "description": "Expose API endpoints to start and monitor battles/scale tests, wire runners through an in-process queue by default, and enable BullMQ+Redis when REDIS_URL is set.",
+            "dependencies": [
+              "3.1"
+            ],
+            "details": "Routes: POST /api/battles/start -> {jobId}; GET /api/battles/:jobId/status -> {progress, conversationId, endedReason}; GET /api/battles/:conversationId/messages?page&limit -> paginated; POST /api/scale/start -> {runId}; GET /api/scale/:runId/status -> {progress, completed, total}; GET /api/scale/:runId/report -> RunReport; GET /api/stream/:conversationId -> text/event-stream using Node runtime. Queue: default in-memory FIFO (e.g., p-queue) with concurrency=3; when process.env.REDIS_URL is present, initialize BullMQ Queue/Worker ('battles', 'scale-tests') compatible with Upstash Redis. Validate inputs and enforce caps: runCount<=10, messageLimit<=25, per-IP concurrent jobs<=3. Map jobId/runId to conversationId(s) and progress. For SSE: subscribe to EventEmitter per conversationId; send events on new assistant messages and on completion; document polling as the primary pattern on Vercel multi-instance. Ensure proper runtime config (runtime: 'nodejs') and guard single worker initialization in serverless environments.",
+            "status": "pending",
+            "testStrategy": "Contract tests for each route: start returns IDs, status transitions as runs progress, pagination returns stable slices, report aggregates correctly. SSE: connect, receive incremental events in order, and auto-complete event on finish (fallback to polling validated by periodic status checks). Queue tests: enqueue/dequeue order honored with concurrency=3, BullMQ path executes when REDIS_URL is set (behind CI flag)."
+          },
+          {
+            "id": 3,
+            "title": "Cleanup and hardening: aborts, caps, dedupe, and input sanitization",
+            "description": "Ensure robust lifecycle management, guardrails, and safe handling across runners, queues, and routes.",
+            "dependencies": [
+              "3.1",
+              "3.2"
+            ],
+            "details": "Implement AbortSignal wiring end-to-end; clear EventEmitter listeners on completion/error; add idempotency keys on start endpoints to avoid duplicate runs; enforce per-IP concurrency<=3 with in-memory (and Redis-backed when available) counters; sanitize and validate agentId/model/goal inputs; redact sensitive fields from logs; implement exponential backoff and jitter for provider retries; normalize error mapping to consistent status/errors; add TTL eviction for in-memory maps (jobs, emitters) to prevent leaks; ensure BullMQ workers close gracefully on process signals. Confirm messageLimit and runCount caps enforced in both route validation and runner execution.",
+            "status": "pending",
+            "testStrategy": "Simulate duplicate POST /start with same idempotency key -> single job created; exceed per-IP cap -> 429; abort mid-run -> listeners removed and resources freed; invalid inputs -> 400 with sanitized details; retry logic -> transient failures eventually succeed with capped attempts; memory leak guard -> emitters count returns to baseline after completion."
+          },
+          {
+            "id": 4,
+            "title": "Quality Gate: tests, lint, and type safety",
+            "description": "Add comprehensive tests and static checks to ensure correctness and maintainability.",
+            "dependencies": [
+              "3.1",
+              "3.2"
+            ],
+            "details": "Set up Vitest for unit/integration tests; add route contract tests and provider fakes; include coverage for stop conditions, persistence, pagination, queue behavior, and SSE. Add TypeScript strict mode, ESLint, and Prettier. Ensure CI runs: typecheck, lint, test. Provide minimal fixtures for Agents and Conversations for deterministic tests.",
+            "status": "pending",
+            "testStrategy": "CI pipeline: pnpm typecheck, pnpm lint, pnpm test with coverage thresholds (lines>=80%). Playwright or supertest-based API tests verify endpoints; snapshot minimal JSON contracts; mocked Redis path exercised via CI flag to avoid external dependencies by default."
+          },
+          {
+            "id": 5,
+            "title": "Context7 MCP research: queue, Redis, and Next.js streaming trade-offs",
+            "description": "Research external packages/libraries and platform constraints to finalize defaults and document decisions.",
+            "dependencies": [],
+            "details": "Produce an ADR summarizing: (1) In-memory queue vs BullMQ on Vercel (cold starts, multi-instance, durability, cost); (2) Upstash Redis specifics (connection limits, TLS, BullMQ compat, recommended settings, TTLs); (3) Next.js Route Handlers streaming constraints (Node runtime only for SSE, edge incompatibilities, buffering, headers); (4) Polling fallback cadence and backoff; (5) p-queue configuration guidance and operational caps; (6) Retry strategies for LLM providers and rate limiting considerations. Include recommended defaults and code snippets to align implementation.",
+            "status": "pending",
+            "testStrategy": "Peer review of ADR; acceptance criteria: decisions are referenced in code comments, environment/runtime guidance documented, and defaults implemented match the ADR."
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Page: Landing Page with 3D visuals and interactive node graph",
+        "description": "Build the marketing/overview page with a blue futuristic theme, lightweight 3D scene (React Three Fiber + Three.js), and an interactive node graph (react-force-graph) illustrating system capabilities. Emphasize performance and lazy loading.",
+        "details": "Implementation subtasks (target 5):\n1) Implement 3D + node graph UI\n- Next.js App Router page at / with TailwindCSS and shadcn/ui. Dynamic import of 3D canvas and graph to avoid SSR.\n- 3D: @react-three/fiber v9 + @react-three/drei helpers. Minimal scene: animated glTF nodes or primitives with bloom/postprocessing kept off for perf, orbit controls disabled on mobile.\n- Graph: react-force-graph (2D) with ~20 nodes representing features; hover tooltips; click to navigate to Hub/Scale/PromptBro.\n- Theme: Tailwind + CSS variables for blues; backdrop-blur panels; gradient text.\n- Accessibility: prefers-reduced-motion disables heavy animations.\n\n2) Perf and UX polish\n- Lazy load components with suspense fallbacks; use requestAnimationFrame throttling; useResizeObserver to tune dpr; Lighthouse budget.\n\n3) Cleanup\n- Remove unused shaders/assets; compress textures; ensure components are client-only where needed (\"use client\").\n\n4) Quality Gate (run tests/lint)\n- Playwright smoke test: page loads, FPS above threshold via Performance API, nav via graph clicks works.\n- ESLint/TypeScript clean.\n\n5) Context7 MCP research for external packages/libraries used\n- React Three Fiber/drei latest docs; react-force-graph rendering performance tips; Next.js dynamic import patterns for client-only libs.\n\nPseudo-code (client components):\nfunction Scene(){ /* Canvas, ambientLight, rotating meshes */ }\nfunction CapabilitiesGraph(){ /* ForceGraph2D with nodes/links, onNodeClick router.push */ }\n\n<info added on 2025-08-11T15:41:13.433Z>\nResearch-backed enhancements:\n- R3F performance\n  - Load Canvas and any Three-only code via next/dynamic (ssr:false) to keep it client-only.\n  - Default Canvas frameloop='demand'; switch to 'always' only during user interaction; on prefers-reduced-motion or when tab is hidden, use frameloop='never'.\n  - Use drei AdaptiveDpr and PerformanceMonitor to auto-tune quality; clamp DPR to min 1 and max 1.5 on typical devices (up to 1.75 on high-end). Drive clamp via ResizeObserver and simple heuristics (e.g., performance memory if available).\n  - Keep scene minimal: no shadows or postprocessing, simple materials, tiny glTF or primitives.\n  - On mobile and/or reduced motion, do not mount the Scene; render a static optimized hero image instead.\n- Graph performance\n  - Use ForceGraph2D with warmupTicks and cooldownTicks (e.g., warmup 30–60, cooldown 80–120) to settle layout quickly; after first settle, freeze layout (set cooldownTicks=0 or stopAnimation) and increase d3VelocityDecay.\n  - Implement nodeCanvasObject for custom node + label rendering; precompute/cache label text widths to avoid repeated measureText calls.\n  - Use nodePointerAreaPaint to enlarge pointer hit areas for small nodes to improve hover/click accuracy without visual changes.\n  - Render tooltip as an overlay HTML element positioned on pointermove, throttled via requestAnimationFrame; avoid triggering canvas rerenders for tooltip updates.\n  - Clamp renderer pixelRatio to ~1–1.5 for large/high-DPR cases; limit linkDirectionalParticles and other animations for stability.\n- UX and loading\n  - Lazy-load heavy assets/components behind Suspense with lightweight skeletons; set prefetch=off for 3D/graph chunks; preconnect to any external asset/CDN origins.\n  - Compress models/textures (KTX2/Draco for glTF; WebP/AVIF for images) and inline tiny assets; disable OrbitControls on mobile and node dragging on touch devices.\n- CI and quality gates\n  - Lighthouse budget remains enforced; extend Playwright FPS sanity using Performance API to assert idle FPS >= 45 and that DPR clamping is active (read devicePixelRatio).\n  - Axe-core checks include tooltip contrast and reduced-motion compliance.\n  - Add a Playwright case toggling prefers-reduced-motion to assert static fallback is rendered and 3D is not mounted.\n- References to include in /docs/landing-3d-graph.md\n  - @react-three/fiber v9 best practices (frameloop, suspense), drei AdaptiveDpr and PerformanceMonitor usage.\n  - react-force-graph optimization tips (nodeCanvasObject, nodePointerAreaPaint, warmup/cooldown, pixelRatio).\n  - Next.js dynamic import patterns for client-only libraries.\n</info added on 2025-08-11T15:41:13.433Z>",
+        "testStrategy": "- Visual: Playwright screenshot diff for hero + graph.\n- Performance: Lighthouse CI with thresholds (TTI < 2.5s on Fast 3G emulation, main thread blocking < 250ms).\n- Accessibility: axe-core checks, reduced motion respected.\n- Navigation: clicking nodes routes to target pages.",
         "priority": "medium",
         "dependencies": [
-          13
+          1,
+          2
         ],
         "status": "pending",
         "subtasks": [
           {
             "id": 1,
-            "title": "Create .env template and environment loader",
-            "description": "Draft a .env.example file containing all required keys and implement logic that uses python-dotenv to load variables into os.environ at application start-up.",
+            "title": "Implement landing page UI with 3D scene and interactive graph",
+            "description": "Create the Next.js App Router page at '/' with TailwindCSS and shadcn/ui. Dynamically import client-only 3D Scene and ForceGraph components to avoid SSR. Build a minimal React Three Fiber v9 scene (drei helpers, ambient light, a few animated primitives or small glTF, no postprocessing) and a react-force-graph 2D graph (~20 nodes) with hover tooltips and onNodeClick routing to /hub, /scale, /promptbro. Apply blue futuristic theme (CSS variables, gradient text, backdrop-blur panels) and basic a11y (reduced motion support).",
             "dependencies": [],
-            "details": "Keys: GRAFANA_URL, GRAFANA_TOKEN, OPENROUTER_API_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID. Provide helper load_dotenv() call in a dedicated config/__init__.py executed before any settings access.\n<info added on 2025-07-30T14:30:44.320Z>\nCompleted implementation. Added comprehensive .env.example containing GRAFANA_MCP_BASE_URL, GRAFANA_MCP_TOKEN, OPENROUTER_API_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID plus optional advanced settings; committed to repo while .env stays git-ignored.\n\nIntroduced load_config() helper in src/alert_agent/config.py that wraps python-dotenv’s load_dotenv with smart discovery across common paths and override=False, preserving existing env vars.\n\nsrc/alert_agent/__init__.py now invokes load_config() at import time, guaranteeing variables are loaded before any Settings access.\n\nVariable precedence: CLI > process env > .env file > hard-coded defaults.\n</info added on 2025-07-30T14:30:44.320Z>",
-            "status": "in-progress"
+            "details": "Deliverables: 1) app/(marketing)/page.tsx with hero + placeholders; 2) components/Scene.tsx (Canvas, minimal meshes, disable OrbitControls on mobile); 3) components/CapabilitiesGraph.tsx (nodes/links, custom tooltip, onNodeClick -> router.push); 4) Dynamic imports with ssr:false and suspense fallbacks; 5) Theme tokens and gradient styles. Add data-testid attributes for canvas and graph roots.",
+            "status": "pending",
+            "testStrategy": "Manual dev check: page loads without SSR errors, 3D renders, graph shows nodes with tooltips, clicking routes correctly. Verify prefers-reduced-motion disables animations. Basic TypeScript passes."
           },
           {
             "id": 2,
-            "title": "Define Pydantic Settings model with validation",
-            "description": "Create Settings(BaseSettings) class that validates required secrets and typed URLs, incorporates default values, and exposes a singleton Config object.",
+            "title": "Performance and UX polish (lazy load, DPR, throttling, budgets)",
+            "description": "Optimize rendering and loading: lazy load heavy components with Suspense fallbacks; tune devicePixelRatio based on container size and hardware; throttle animations; set frameloop to 'demand' where possible; configure Lighthouse performance budget; ensure reduced motion disables intensive updates.",
             "dependencies": [
-              "14.1"
+              "4.1"
             ],
-            "details": "Include nested OpenRouterConfig model. Use SecretStr for tokens. Configure env_file='.env', env_file_encoding='utf-8'.\n<info added on 2025-07-30T14:36:59.491Z>\nImplementation completed with secure token handling:\n\n• SecretStr imported and applied to all sensitive fields:\n  - GrafanaConfig.token\n  - SlackConfig.bot_token\n  - AIConfig.openrouter_api_key\n• Token validators refactored to use SecretStr.get_secret_value(); new validate_api_key added to AIConfig.\n• All original nested models, URL validations and defaults retained.\n• AppConfig still points to .env with utf-8 encoding.\n• All tests, type-checks and pre-commit hooks pass, confirming backward-compatible integration.\n</info added on 2025-07-30T14:36:59.491Z>",
-            "status": "in-progress"
+            "details": "Implement: 1) next/dynamic with loading skeletons; 2) useResizeObserver to clamp DPR (e.g., 0.75–1.5) for Canvas; 3) conditionally pause/limit rotations and graph cooldownTicks; 4) rAF throttling for UI effects; 5) disable node drag and orbit on mobile; 6) prefetch=off for heavy routes; 7) lighthouse-budget.json with TTI < 2.5s (Fast 3G), main-thread < 250ms. Instrument simple FPS meter via requestAnimationFrame and Performance API for smoke checks.",
+            "status": "pending",
+            "testStrategy": "Run Lighthouse locally: meet budgets. Observe FPS meter >= target (e.g., >45fps on mid-tier device) when idle. Confirm lazy loading via network waterfall and bundle analyzer shows smaller initial JS."
           },
           {
             "id": 3,
-            "title": "Implement YAML configuration loader and merge logic",
-            "description": "Load config.yaml, apply defaults, and merge with environment variables according to precedence: CLI > ENV > YAML > code defaults.",
+            "title": "Cleanup: assets, compression, and client-only boundaries",
+            "description": "Remove unused shaders/assets, compress textures/models, and ensure client-only boundaries are correct with 'use client'. Audit bundle for unused imports and heavy modules.",
             "dependencies": [
-              "14.1",
-              "14.2"
+              "4.1",
+              "4.2"
             ],
-            "details": "Use ruamel.yaml or PyYAML to parse, then pass merged dict to Settings(**kwargs) for validation.\n<info added on 2025-07-30T14:45:58.670Z>\nImplementation complete:\n\n• Added PyYAML (6.0.1) to prod deps and types-PyYAML to dev deps, updated lockfile  \n• Introduced config.yaml.example with fully documented defaults covering app, grafana, slack, openrouter, scheduler, logging and feature flags  \n• Implemented load_yaml_config()  \n  – Safe YAML parsing (yaml.safe_load, utf-8) with smart discovery in common paths  \n  – Graceful handling of absent file and detailed parse errors  \n  – Converts nested keys to ENV format (e.g. grafana.timeout_seconds → GRAFANA_TIMEOUT_SECONDS)  \n• Extended load_config() merge pipeline  \n  1. YAML (lowest) → env (non-destructive)  \n  2. .env via python-dotenv  \n  3. Pydantic Settings(**merged) for validation  \n  – Correct bool/type casting, precedence: ENV > YAML > code defaults  \n• All quality gates pass (black, isort, mypy, bandit, pre-commit) and CLI behaviour verified  \n• Backwards compatible with existing ENV-only setups and ready for CLI overrides in 14.4\n</info added on 2025-07-30T14:45:58.670Z>",
-            "status": "in-progress"
+            "details": "Actions: 1) Purge unused drei helpers and shaders; 2) Compress textures (WebP/AVIF for images; optional KTX2/Draco for glTF if used); 3) Verify all R3F/graph components have 'use client' and are excluded from SSR; 4) Use next-bundle-analyzer to confirm reductions; 5) Code-split optional UI blocks (modals/tooltips) and remove dead code.",
+            "status": "pending",
+            "testStrategy": "Compare bundle/analyze reports before/after; ensure no runtime warnings about SSR. Spot-check visual parity post-compression."
           },
           {
             "id": 4,
-            "title": "Add CLI override interface",
-            "description": "Integrate argparse/typer command-line flags to override any Settings field and allow custom YAML path specification.",
+            "title": "Quality Gate: tests, lint, accessibility, and performance checks",
+            "description": "Add Playwright smoke tests, Lighthouse CI, axe-core accessibility checks, and ESLint/TypeScript cleanliness. Validate navigation via graph clicks and a minimum FPS threshold via Performance API.",
             "dependencies": [
-              "14.3"
+              "4.1",
+              "4.2",
+              "4.3"
             ],
-            "details": "Expose --grafana-url, --schedule-time, --config-path, etc. Convert CLI args to dict and feed into merge chain.",
-            "status": "in-progress"
-          },
-          {
-            "id": 6,
-            "title": "Cleanup and Code Organization",
-            "description": "Remove temporary files, organize imports, and ensure clean code structure",
-            "details": "",
+            "details": "Implement: 1) Playwright: load '/', assert [data-testid='scene-canvas'] and [data-testid='capabilities-graph'] visible; click a known node -> expect route change; 2) FPS probe script exposes window.__fpsSample for test assertions; 3) axe-core integration for key views; 4) Lighthouse CI with thresholds; 5) ESLint/TS scripts in CI.",
             "status": "pending",
-            "dependencies": [
-              "14.1",
-              "14.2",
-              "14.3",
-              "14.4"
-            ],
-            "parentTaskId": 14
-          },
-          {
-            "id": 8,
-            "title": "Context7 MCP Research: External Package Dependencies",
-            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
-            "details": "",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 14
-          }
-        ]
-      },
-      {
-        "id": 15,
-        "title": "Jerusalem-Aware Daily Scheduler",
-        "description": "Set up APScheduler job that triggers orchestrator at 10:00 AM Asia/Jerusalem with DST correctness.",
-        "details": "• Use `AsyncIOScheduler(timezone=\"Asia/Jerusalem\")`.\n• Job definition example:\n```\nscheduler.add_job(run_job, 'cron', hour=10, minute=0, misfire_grace_time=300)\n```\n• Provide CLI `python -m alert_agent.scheduler --run_once` for local test.\n• Persist scheduler in orchestrator with graceful shutdown signals (SIGINT/SIGTERM).\n",
-        "priority": "high",
-        "dependencies": [
-          14
-        ],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Timezone & Environment Preparation",
-            "description": "Ensure the application can resolve \"Asia/Jerusalem\" correctly on every platform, including Docker Alpine images where zoneinfo may be absent.",
-            "dependencies": [],
-            "details": "• Add tzdata==2024.1 to dependencies and document that it must be installed in prod images.\n• Create utility function `get_jlm_tz()` that returns `zoneinfo.ZoneInfo(\"Asia/Jerusalem\")` and falls back to `pytz` when necessary.\n• Validate DST behaviour by printing offsets for known summer/winter dates during boot.\n• Expose this utility in `alert_agent.utils.time` for reuse by scheduler and tests.",
-            "status": "pending"
-          },
-          {
-            "id": 2,
-            "title": "AsyncIOScheduler Initialization",
-            "description": "Create a scheduler module that builds and starts an `AsyncIOScheduler` instance using the Jerusalem timezone utility.",
-            "dependencies": [
-              "15.1"
-            ],
-            "details": "• File: `alert_agent/scheduler/core.py`.\n• Function `create_scheduler()` returns a started `AsyncIOScheduler(timezone=get_jlm_tz())`.\n• Configure default job stores and executors (ThreadPoolExecutor max_workers=10).\n• Expose singleton pattern or dependency-injection friendly factory.",
-            "status": "pending"
-          },
-          {
-            "id": 3,
-            "title": "Daily Orchestrator Job Registration",
-            "description": "Register a cron job that triggers the orchestrator at 10:00 AM local Jerusalem time with correct DST handling and 5-minute misfire grace.",
-            "dependencies": [
-              "15.1",
-              "15.2"
-            ],
-            "details": "• Function `register_daily_job(scheduler, run_job)` in `core.py`.\n• Use `scheduler.add_job(run_job, 'cron', hour=10, minute=0, misfire_grace_time=300, id='daily_orchestrator')`.\n• Guard against duplicate job IDs when `register_daily_job` is called multiple times.",
-            "status": "pending"
-          },
-          {
-            "id": 4,
-            "title": "CLI Entry Point & One-Shot Mode",
-            "description": "Expose command `python -m alert_agent.scheduler --run_once` that either schedules normally or runs the orchestrator immediately for local testing.",
-            "dependencies": [
-              "15.3"
-            ],
-            "details": "• Module `alert_agent/scheduler/__main__.py` parses `--run_once` using argparse.\n• When flag present: call `asyncio.run(run_job())` and exit.\n• Otherwise: create scheduler, register job, keep event loop alive with `asyncio.Event().wait()`.",
-            "status": "pending"
-          },
-          {
-            "id": 6,
-            "title": "Cleanup and Code Organization",
-            "description": "Remove temporary files, organize imports, and ensure clean code structure",
-            "details": "",
-            "status": "pending",
-            "dependencies": [
-              "15.1",
-              "15.2",
-              "15.3",
-              "15.4"
-            ],
-            "parentTaskId": 15
-          },
-          {
-            "id": 8,
-            "title": "Context7 MCP Research: External Package Dependencies",
-            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
-            "details": "",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 15
-          },
-          {
-            "id": 9,
-            "title": "Persistence & Graceful Shutdown",
-            "description": "Persist scheduler within orchestrator process and handle SIGINT/SIGTERM for clean shutdown.",
-            "details": "• Register signal.signal handlers that call await scheduler.shutdown(wait=False) and loop.stop()\n• Ensure orchestrator keeps a reference to the running scheduler for future job additions\n• Document manual test: TZ=Asia/Jerusalem python -m alert_agent.scheduler",
-            "status": "pending",
-            "dependencies": [
-              "15.2",
-              "15.3",
-              "15.4"
-            ],
-            "parentTaskId": 15
-          }
-        ]
-      },
-      {
-        "id": 16,
-        "title": "Grafana MCP Alert Collector",
-        "description": "Implement async data collector that fetches previous 24h alerts from Grafana MCP using httpx and returns normalised objects.",
-        "details": "• Endpoint: `/api/alertmanager/grafana/api/v2/alerts?since=<iso>` (example; confirm via mcp.json). Use bearer token header.\n• Calculate `since = now - lookback_hours` in UTC; include timezone in query.\n• Design dataclass Alert(\n  id:str, service:str, severity:str, starts_at:dt, ends_at:Optional[dt], description:str, status:str)\n• Handle pagination (Grafana returns link header) with async recursion.\n• Retry w/ backoff on 5xx using backoff lib.\n",
-        "priority": "high",
-        "dependencies": [
-          14
-        ],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Grafana MCP API specification & configuration",
-            "description": "Research and verify the exact Grafana MCP Alertmanager endpoint, required query parameters, authentication method, and pagination link-header format. Capture example responses in fixtures and document environment variables (e.g., GRAFANA_MCP_TOKEN, GRAFANA_MCP_BASE_URL).",
-            "dependencies": [],
-            "details": "Deliver a concise API reference (endpoint paths, required headers, pagination scheme, rate limits) and create a typed settings object (pydantic BaseSettings) that loads base URL and bearer token from the environment or .env file.",
-            "status": "pending"
-          },
-          {
-            "id": 2,
-            "title": "Alert dataclass design & parsing helpers",
-            "description": "Define the Alert dataclass and utility functions that map raw Grafana alert JSON into normalised Alert objects, handling optional fields and timezone-aware datetime parsing.",
-            "dependencies": [
-              "16.1"
-            ],
-            "details": "Implement Alert(id: str, service: str, severity: str, starts_at: datetime, ends_at: Optional[datetime], description: str, status: str). Provide from_grafana(payload: dict) -> Alert and list_from_response(resp_json: list) -> List[Alert]. Ensure all datetime values are converted to UTC and are tz-aware.",
-            "status": "pending"
-          },
-          {
-            "id": 3,
-            "title": "Async fetcher with lookback query construction",
-            "description": "Implement an async function fetch_alert_page since=<iso> that builds the query using UTC now() - lookback_hours (default 24) and performs a single HTTP GET with httpx including bearer token header.",
-            "dependencies": [
-              "16.1"
-            ],
-            "details": "Use httpx.AsyncClient with a 10 s timeout. Compute since_iso = (datetime.utcnow() - timedelta(hours=lookback)).isoformat(timespec='seconds') + 'Z'. Return httpx.Response for further processing.",
-            "status": "pending"
-          },
-          {
-            "id": 4,
-            "title": "Pagination, retry/backoff, and aggregation to Alert objects",
-            "description": "Compose the recursive collector that follows Link headers to fetch all pages, applies exponential backoff (backoff.on_exception) on 5xx, aggregates results, and returns List[Alert] using the parsing helpers.",
-            "dependencies": [
-              "16.2",
-              "16.3"
-            ],
-            "details": "Implement async def collect_alerts(lookback_hours=24) -> List[Alert]. On each response, check response.headers['Link'] for rel=\"next\"; call itself until exhausted. Wrap network calls with backoff expo (max_tries=5, jitter). Transform each page’s JSON via list_from_response and extend the result list.",
-            "status": "pending"
-          },
-          {
-            "id": 6,
-            "title": "Cleanup and Code Organization",
-            "description": "Remove temporary files, organize imports, and ensure clean code structure",
-            "details": "",
-            "status": "pending",
-            "dependencies": [
-              "16.1",
-              "16.2",
-              "16.3",
-              "16.4"
-            ],
-            "parentTaskId": 16
-          },
-          {
-            "id": 8,
-            "title": "Context7 MCP Research: External Package Dependencies",
-            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
-            "details": "",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 16
-          }
-        ]
-      },
-      {
-        "id": 17,
-        "title": "OpenRouter Claude 4 Sonnet Integration & Alert Grouping",
-        "description": "Send collected alerts to Claude via OpenRouter for intelligent grouping and receive structured JSON clusters.",
-        "details": "• Use https://openrouter.ai/api `POST /v1/chat/completions` with header `Authorization: Bearer <OPENROUTER_API_KEY>`.\n• Chat payload:\n  system: \"You are an SRE assistant. Respond ONLY with JSON...\"\n  user: provide alerts list & grouping instructions.\n• Use model `anthropic.claude-4-sonnet:beta` (as of 2024-06) `temperature=0.2`, `max_tokens=1024`.\n• Validate Claude response with pydantic model GroupedAlerts {groups: List[Group]} to catch hallucinations.\n• Fallback: If Claude fails validation, rerun with smaller chunk or mark ungrouped.\n",
-        "priority": "high",
-        "dependencies": [
-          16
-        ],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "OpenRouter Client Setup",
-            "description": "Create an async HTTP client that handles authentication, headers, and base URL for OpenRouter API calls.",
-            "dependencies": [],
-            "details": "• Use httpx.AsyncClient with a `Bearer <OPENROUTER_API_KEY>` header injected via environment variable.\n• Centralise endpoint `/v1/chat/completions`, default query params (temperature=0.2, max_tokens=1024, model=anthropic.claude-4-sonnet:beta).\n• Attach retry with exponential back-off for 429/5xx.\n• Ensure clean shutdown with async context manager.",
-            "status": "pending"
-          },
-          {
-            "id": 2,
-            "title": "Chat Payload Builder & Sender",
-            "description": "Generate system/user messages from raw alerts and dispatch the request through the OpenRouter client.",
-            "dependencies": [
-              "17.1"
-            ],
-            "details": "• Accept List[Alert] and grouping instructions.\n• Compose JSON per OpenRouter spec with `system` and `user` keys.\n• Serialize alerts compactly to minimise tokens; include lookback window.\n• Invoke client from 17.1 and return raw Claude JSON string.",
-            "status": "pending"
-          },
-          {
-            "id": 3,
-            "title": "Response Parsing & Pydantic Validation",
-            "description": "Validate Claude's JSON against the GroupedAlerts schema and convert it into domain objects.",
-            "dependencies": [
-              "17.2"
-            ],
-            "details": "• Define Pydantic models: Group, GroupedAlerts.\n• Load Claude raw text, strip code fences if present, then `json.loads`.\n• Raise ValidationError on schema mismatch or missing fields.",
-            "status": "pending"
-          },
-          {
-            "id": 4,
-            "title": "Fallback Chunking & Retry Logic",
-            "description": "Implement recovery path when validation fails: split alerts into smaller batches or mark as ungrouped.",
-            "dependencies": [
-              "17.3"
-            ],
-            "details": "• On ValidationError, if alerts > threshold (e.g., 50), split list and recursively call 17.2.\n• Track recursion depth to avoid infinite loops.\n• If still invalid after max attempts, return fallback structure `{groups: []}` with all alerts ungrouped.",
-            "status": "pending"
+            "testStrategy": "CI pipeline runs: Playwright smoke + screenshot for hero/graph; axe shows no serious violations; Lighthouse meets budgets; ESLint/TS pass. Fail build if any threshold unmet."
           },
           {
             "id": 5,
-            "title": "End-to-End Orchestrator & Cost Guard",
-            "description": "Tie everything together into a single `group_alerts(alerts: List[Alert]) -> GroupedAlerts` API with token cost monitoring.",
-            "dependencies": [
-              "17.1",
-              "17.2",
-              "17.3",
-              "17.4"
-            ],
-            "details": "• Measure prompt + completion tokens using tiktoken or heuristic and compare against configured limit.\n• Log per-call cost estimate.\n• Provide high-level trace logs for debugging.\n• Expose as reusable library function for Task 18.",
-            "status": "pending"
-          },
-          {
-            "id": 6,
-            "title": "Cleanup and Code Organization",
-            "description": "Remove temporary files, organize imports, and ensure clean code structure",
-            "details": "",
-            "status": "pending",
-            "dependencies": [
-              "17.1",
-              "17.2",
-              "17.3",
-              "17.4",
-              "17.5"
-            ],
-            "parentTaskId": 17
-          },
-          {
-            "id": 8,
-            "title": "Context7 MCP Research: External Package Dependencies",
-            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
-            "details": "",
-            "status": "pending",
+            "title": "Context7 MCP research: R3F/drei, react-force-graph, Next.js dynamic import",
+            "description": "Research latest stable versions, performance tips, SSR caveats, and recommended props/APIs for @react-three/fiber v9, @react-three/drei, react-force-graph (2D), and Next.js dynamic imports. Produce concise notes and implementation decisions.",
             "dependencies": [],
-            "parentTaskId": 17
+            "details": "Deliverables: /docs/landing-3d-graph.md with: 1) Version pins and changelog notes impacting SSR or perf; 2) R3F best practices (frameloop, DPR, suspense, mobile controls); 3) react-force-graph perf tips (cooldownTicks, nodeCanvasObject, link pruning, hover/tooltip patterns); 4) Next.js dynamic import patterns for client-only libs; 5) Accessibility and reduced-motion considerations. Link primary sources.",
+            "status": "pending",
+            "testStrategy": "Acceptance: reviewed doc with links and actionable decisions referenced by code comments; verify installed versions match pins."
           }
         ]
       },
       {
-        "id": 18,
-        "title": "Summary Generator & Formatter",
-        "description": "Create human-readable markdown summary including executive overview, grouped details, and actionable items.",
-        "details": "• Compose template with Jinja2==3.1.3:\n  - Executive metrics: total alerts, unique services, critical count\n  - Per-group bullet list with severity emoji (🔥 Critical, ⚠️ Warning)\n  - Resolution status table.\n• Inject Claude explanation: second Claude call (optional) to refine wording; reuse 17’s grouped data to keep token cost low.\n• Ensure Slack message ≤ 4000 chars; split threads if larger.\n",
+        "id": 5,
+        "title": "Page: Agent Wars Hub for concurrent battles",
+        "description": "Create the Hub page to configure and run one or more concurrent battles between a chosen LLM model/system prompt and a prebuilt Agent from the DB. Enforce stop when goal reached or after 25 messages. Support multiple sessions with live progress.",
+        "details": "Implementation subtasks (target 5):\n1) Implement Hub UI + orchestration\n- Page /hub with shadcn/ui (Select, Textarea, Button, Card, Tabs). Load agents via GET /api/agents. Form: provider, model (whitelist), agent, system prompt, goal. Start battle -> POST /api/battles/start. Maintain sessions list with jobId and conversationId.\n- Progress: Poll /api/battles/:jobId/status every 1–2s; show spinner/progress bars; fetch messages via /api/battles/:conversationId/messages for display in chat UI.\n- Allow multiple concurrent sessions (array of session cards). Stop button triggers cancel route or marks manual end.\n- Respect 25-message cap and display endedReason.\n\n2) UX and safeguards\n- Disable Start when caps exceeded; show cost estimate per session (naive tokens x model price map optional). Save last-used system prompt to localStorage.\n- Empty states and error banners; skeleton loaders. Keyboard shortcuts for send/retry.\n\n3) Cleanup\n- Debounce polling; unsubscribe on unmount. Remove console logs.\n\n4) Quality Gate (run tests/lint)\n- React Testing Library: form validation, status polling, message rendering.\n- Playwright e2e: start two sessions, see them complete with correct stop conditions (using mocked backend provider).\n\n5) Context7 MCP research for external packages/libraries used\n- shadcn/ui component APIs; Next.js caching/fetch revalidation patterns; guidance on polling vs SSE on Vercel.\n\nPseudo-code (client):\nconst start = async () => { const r = await fetch('/api/battles/start',{method:'POST',body: JSON.stringify(form)}).then(r=>r.json()); setSessions(s=>[...s,{ jobId:r.jobId }]); };\nuseEffect(()=>{ const t=setInterval(()=>sessions.forEach(syncSession)),1000); return ()=>clearInterval(t); },[sessions]);\n\n<info added on 2025-08-11T15:42:24.685Z>\nArena (blind A/B) enhancements for Hub\n- Add an Arena tab with side-by-side, blind A/B sessions. Randomize side assignment per battle; label as “A” and “B” with identical, uniform styling and no identities shown until reveal.\n- Single input broadcast: one user input box sends the same prompt to both sides simultaneously. Disable per-side editing to preserve fairness.\n- Identical generation params: enforce the same temperature, top_p, max_tokens, and stop sequences for both sides (even if one side is a prebuilt Agent). Only system prompts differ per contender.\n- Reveal Participants: add a post-outcome “Reveal Participants” control that swaps anonymized labels for real identities. Add a sticky “Select Winner” control (hidden behind a feature flag) to support future manual vote mode.\n\nOutcome logic and judging\n- Primary outcome: goal-first wins (first side to reach goal). If both reach the goal, break ties by in order: fewer turns, then fewer tokens, then lower median latency. Allow explicit tie if all tie-breakers are equal.\n- Fallback judge: optional “LLM-as-judge” button that evaluates both final transcripts via a small model and returns structured JSON: { winner: 'A'|'B'|'tie', reasoning: string, scores: { helpfulness: number, correctness: number, conciseness: number } }. Do not reveal identities in the judge prompt; include the goal and both transcripts with side tags only. Parse JSON strictly with graceful failure and surface judge reasoning in UI.\n\nFairness and budget controls\n- Identity masking: hide model/agent names, provider logos, and any distinguishing UI until reveal; ensure uniform bubble style, timestamps, and avatars across sides.\n- Length normalization: in outcome display, show normalized efficiency metrics (tokens/turn, latency/turn) and use them only as tie-breakers (do not bias the live display).\n- Per-session budget cap: allow setting a spend cap (USD) per arena battle; display live spend per side using the existing price map and token usage when available. Auto-stop a side that hits its cap and mark endedReason=“limit:budget”.\n\nPolling and incremental fetching\n- Poll cadence: 1–2s while running; if no changes detected for 3 consecutive polls, back off to 3–5s; stop polling when terminal. Resume fast polling on any change.\n- Incremental messages: prefer GET /api/battles/:conversationId/messages?sinceSeq=<n> to fetch only new messages. Track lastSeq per side; status endpoint should include lastSeq and current spend/tokens if available. Fallback to full fetch only if sinceSeq unsupported.\n- Avoid long-lived SSE; keep short-lived polling with staggered intervals across sessions to reduce contention.\n\nRatings preparation (optional, future-ready)\n- On outcome (manual or judge), emit an arenaOutcome event payload { battleId, contenderA: {...}, contenderB: {...}, winner: 'A'|'B'|'tie', metrics: { turns, tokens, latency }, judge: { scores, reasoning }? } to a lightweight client-side queue and POST /api/arena/outcomes (mock or no-op for now).\n- Leave hooks to aggregate offline via Elo/BTL/TrueSkill. Plan a future Rating table (contenderId, mu, sigma, wins, losses, ties, lastUpdated) and store outcomes in RunReport for reproducibility.\n\nResearch references\n- Expand docs/hub-research.md with a section summarizing LMSYS Chatbot Arena UI/UX and evaluation patterns: blind A/B, single-input broadcast, reveal-after-vote, tie allowance, and rating aggregation methods (Elo/BTL/TrueSkill). Include links and prompt/rubric examples for LLM-as-judge.\n</info added on 2025-08-11T15:42:24.685Z>",
+        "testStrategy": "- Unit: Validate form, model whitelist, and disabling logic.\n- Integration: Mock API to simulate job progressing from 0->100 and verify UI updates.\n- E2E: Run with fake provider to assert multiple sessions can run concurrently and stop at goal or 25.",
         "priority": "medium",
         "dependencies": [
-          17
+          1,
+          2,
+          3
         ],
         "status": "pending",
         "subtasks": [
           {
             "id": 1,
-            "title": "Design Markdown Jinja2 Template",
-            "description": "Create a Jinja2 (v3.1.3) markdown template that includes an executive overview section (total alerts, unique services, critical count), per-group bullet lists with severity emojis, and a resolution-status table.",
+            "title": "Implement Hub UI and session orchestration",
+            "description": "Build /hub page with shadcn/ui form to configure and start one or more battles, manage sessions list, and display live conversations.",
             "dependencies": [],
-            "details": "Save template under src/alert_agent/templates/summary.md.j2 with clear block names for optional sections.",
-            "status": "pending"
+            "details": "Create app/hub/page.tsx with shadcn/ui components (Select, Textarea, Input, Button, Card, Tabs). On mount, fetch agents via GET /api/agents and populate agent Select with loading skeletons and error banner on failure. Form fields: provider (openai|openrouter), model (filtered by whitelist for provider), agent (from DB list), system prompt (Textarea), goal (Textarea/Input). Start battle handler: POST /api/battles/start with {provider, model, agentId, systemPrompt, goal}; on success, append a new session card with {jobId, conversationId, provider, model, agentName, startedAt}. For each session card, show header with agent/model, goal, and status chip. Implement polling loop (setInterval 1–2s) per active session to GET /api/battles/:jobId/status; when status returns conversationId (if not given initially) or progress, update session state. Fetch messages for each session via /api/battles/:conversationId/messages to render a simple chat thread (assistant/user roles). Show endedReason when status indicates terminal state (goal|limit|manual|error|timeout) and disable controls for that session. Support multiple concurrent sessions by maintaining an array of sessions in state and rendering independent cards.",
+            "status": "pending",
+            "testStrategy": "Unit: mock GET /api/agents and POST /api/battles/start to verify form submission creates a session with jobId and displays initial card. Integration: mock status endpoint to progress from running to goal/limit and assert UI reflects progress and terminal state; verify multiple sessions render independently."
           },
           {
             "id": 2,
-            "title": "Implement Summary Renderer",
-            "description": "Write a Python function that loads grouped alert data from Task 17, populates the Jinja2 template, and returns raw markdown text.",
+            "title": "UX and safeguards (validation, costs, persistence, controls)",
+            "description": "Harden the Hub experience with validation, disabled states, cost estimate, local persistence, and shortcuts.",
             "dependencies": [
-              "18.1"
+              "5.1"
             ],
-            "details": "Place implementation in src/alert_agent/summary.py; ensure minimal token footprint by passing pre-grouped data.",
-            "status": "pending"
+            "details": "Implement client-side validation: require provider, model (must be in whitelist for selected provider), agent, goal, and optionally system prompt; show inline errors. Disable Start when invalid or if simple caps exceeded (e.g., estimated tokens > model cap). Add naive cost estimate per session near Start button using a static model price map and a simple token estimate (length-based heuristic). Persist last-used system prompt and selected provider/model in localStorage; hydrate on load. Add empty states for no agents and no sessions, error banners for failed actions, and skeleton loaders for initial agents fetch. Add keyboard shortcuts: Cmd/Ctrl+Enter to Start battle when valid; S to Stop selected session. Add Stop button per session: call /api/battles/:jobId/cancel if available; if not, mark manual end locally and stop polling for that session. Surface endedReason prominently and show message count badge, ensuring 25-message cap is communicated.",
+            "status": "pending",
+            "testStrategy": "Unit: verify Start button disables with invalid form or cap exceeded; validate price and token estimate display; ensure localStorage hydration and persistence. Integration: simulate cancel endpoint success/failure and assert UI updates and errors. Accessibility: check focus management and keyboard shortcuts trigger expected handlers."
           },
           {
             "id": 3,
-            "title": "Add Optional Claude Refinement Step",
-            "description": "Integrate an optional second Claude call that refines the generated markdown while maintaining token efficiency by sending only the rendered summary.",
+            "title": "Cleanup and performance polish",
+            "description": "Stabilize polling and resource usage; remove debug output and ensure clean unmount.",
             "dependencies": [
-              "18.2"
+              "5.1",
+              "5.2"
             ],
-            "details": "Expose flag refine_with_claude: bool; if true, call Claude and return its response; otherwise return original text.",
-            "status": "pending"
+            "details": "Refactor polling to avoid thundering herd: debounce or stagger per-session intervals; pause polling when a session reaches a terminal state; backoff on transient 429/5xx with capped retry. Ensure intervals/timeouts and any AbortControllers are cleared on unmount and when a session stops. Guard against duplicate polling by keying intervals by jobId. Batch state updates to minimize re-renders (e.g., use functional setState and React batching). Remove console logs and add minimal structured debug behind a DEBUG flag if needed.",
+            "status": "pending",
+            "testStrategy": "Unit: verify cleanup removes intervals on unmount and when session ends; assert no duplicate polls are scheduled after re-renders. Integration: simulate 429/500 responses and ensure backoff occurs without UI freeze."
           },
           {
             "id": 4,
-            "title": "Implement Slack Length Guard & Thread Splitter",
-            "description": "Create utility that checks summary length (≤4000 chars) and, if exceeded, splits it into logically ordered thread messages.",
+            "title": "Quality Gate: tests, lint, and e2e",
+            "description": "Add automated tests and static checks to ensure reliability of the Hub page.",
             "dependencies": [
-              "18.3"
+              "5.1",
+              "5.2",
+              "5.3"
             ],
-            "details": "Return List[str] ready for Task 19; preserve markdown integrity across splits.",
-            "status": "pending"
+            "details": "React Testing Library: form validation (required fields, model whitelist), Start disabled logic, error banners, and cost estimate rendering. Polling and status: mock status progression from 0→100 and verify spinner/progress and endedReason. Message rendering: mock messages API and assert chat thread updates. Playwright e2e: start two sessions with a mocked backend provider, observe concurrent progress, and verify they stop at goal or 25 messages; test Stop button. Add lint (eslint) and type checks (tsc) to CI. Include mock service worker (MSW) or test-only route mocks to control API responses deterministically.",
+            "status": "pending",
+            "testStrategy": "Unit/Integration: RTL with jest/vitest and MSW for API mocking. E2E: Playwright with deterministic fixtures for agents, start, status, messages, and cancel routes. CI: run eslint and tsc; collect coverage for critical paths."
           },
           {
-            "id": 6,
-            "title": "Cleanup and Code Organization",
-            "description": "Remove temporary files, organize imports, and ensure clean code structure",
-            "details": "",
-            "status": "pending",
-            "dependencies": [
-              "18.1",
-              "18.2",
-              "18.3",
-              "18.4"
-            ],
-            "parentTaskId": 18
-          },
-          {
-            "id": 8,
-            "title": "Context7 MCP Research: External Package Dependencies",
-            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
-            "details": "",
-            "status": "pending",
+            "id": 5,
+            "title": "Context7 MCP research for external packages and patterns",
+            "description": "Research and document component APIs and platform patterns to guide implementation decisions.",
             "dependencies": [],
-            "parentTaskId": 18
+            "details": "Produce docs/hub-research.md summarizing: shadcn/ui component APIs used (Select, Textarea, Button, Card, Tabs) with gotchas for controlled inputs and accessibility; Next.js fetch caching/revalidation patterns (no-store vs revalidate tags) appropriate for client-side polling and when to use server actions; guidance on polling vs SSE on Vercel (limits, connection longevity, edge vs node runtimes), with recommended default of polling every 1–2s and optional SSE behind a feature flag. Include links to official docs and example snippets. Record chosen model whitelist strategy and price map sources.",
+            "status": "pending",
+            "testStrategy": "Review: PR checklist requires link to the research doc; spot-check that cited APIs match versions used; validate that implementation follows documented guidance (polling cadence, caching flags)."
           }
         ]
       },
       {
-        "id": 19,
-        "title": "Slack Notifier",
-        "description": "Deliver summary to configured Slack channel with retries and thread support.",
-        "details": "• Use Slack Web API `chat.postMessage` via httpx; endpoint `https://slack.com/api/chat.postMessage`.\n• Header `Authorization: Bearer xoxb-...`, `Content-Type: application/json`.\n• Payload: {channel: SLACK_CHANNEL_ID, text: summary, mrkdwn: true}.\n• If message > 4000 chars, split & post threaded replies using `thread_ts`.\n• Retry on `rate_limited` error with exponential backoff.\n",
-        "priority": "high",
-        "dependencies": [
-          18,
-          14
-        ],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Slack API Configuration",
-            "description": "Provide secure configuration handling for Slack API credentials and channel ID.",
-            "dependencies": [],
-            "details": "• Read `SLACK_BOT_TOKEN` and `SLACK_CHANNEL_ID` from environment variables or a secrets manager.\n• Validate presence at application startup and raise descriptive error if missing.\n• Expose a dataclass/config object that downstream functions can import.",
-            "status": "pending"
-          },
-          {
-            "id": 2,
-            "title": "Low-level Slack `chat.postMessage` Client",
-            "description": "Implement a reusable async function to call Slack `chat.postMessage` via httpx.",
-            "dependencies": [
-              "19.1"
-            ],
-            "details": "• Build request with header `Authorization: Bearer <token>` and `Content-Type: application/json`.\n• Accept params: channel, text, thread_ts (optional), mrkdwn (default true).\n• Return parsed JSON response and raise `SlackApiError` for non-ok replies (except 429 handled later).",
-            "status": "pending"
-          },
-          {
-            "id": 3,
-            "title": "Message Splitting & Threaded Posting",
-            "description": "Create helper that splits summaries >4000 characters and posts threaded replies.",
-            "dependencies": [
-              "19.2"
-            ],
-            "details": "• Determine Slack hard limit (4,000 chars).\n• Slice text at word boundaries; first chunk is root message, subsequent chunks posted with `thread_ts` of root.\n• Return array of message timestamps for possible auditing.",
-            "status": "pending"
-          },
-          {
-            "id": 4,
-            "title": "Exponential Backoff & Retry Logic",
-            "description": "Add automatic retries for `rate_limited` (HTTP 429) responses with exponential backoff.",
-            "dependencies": [
-              "19.2",
-              "19.3"
-            ],
-            "details": "• Detect 429 status or Slack JSON error `rate_limited`.\n• Implement backoff: start 1s, double each retry up to max 5 attempts.\n• Respect `Retry-After` header if present.\n• Make retry wrapper reusable around any Slack API call.",
-            "status": "pending"
-          },
-          {
-            "id": 6,
-            "title": "Cleanup and Code Organization",
-            "description": "Remove temporary files, organize imports, and ensure clean code structure",
-            "details": "",
-            "status": "pending",
-            "dependencies": [
-              "19.1",
-              "19.2",
-              "19.3",
-              "19.4"
-            ],
-            "parentTaskId": 19
-          },
-          {
-            "id": 8,
-            "title": "Context7 MCP Research: External Package Dependencies",
-            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
-            "details": "",
-            "status": "pending",
-            "dependencies": [],
-            "parentTaskId": 19
-          }
-        ]
-      },
-      {
-        "id": 20,
-        "title": "Unified Logging, Error Handling & Observability",
-        "description": "Integrate Loguru for structured logs, add global exception handler and notification on failure.",
-        "details": "• Configure Loguru to rotate daily, level=INFO.\n• Wrap each stage (collector, AI, notifier) in try/except; on fatal error send Slack DM to on-call via secondary Slack channel.\n• Create metrics counters (success, failure, duration) with Prometheus client (optional, lightweight) for future scraping.\n• Use backoff decorators for API interactions (max_tries=3).\n",
+        "id": 6,
+        "title": "Page: Scale Testing for batch runs and summarized report",
+        "description": "Provide a Scale Testing page to configure model/system prompt/run count, select an Agent, execute N background conversations, persist results, and display a summarized RunReport including failures, prompt issues, and a revised prompt.",
+        "details": "Implementation subtasks (target 5):\n1) Implement Scale UI + run orchestration\n- Page /scale with form: provider, model, agent, system prompt, goal (optional), runCount (cap <= 10). POST /api/scale/start -> runId.\n- Show run progress via GET /api/scale/:runId/status; display per-run conversation links; when complete, fetch /api/scale/:runId/report and render summary + revised prompt with copy-to-clipboard.\n\n2) Summarization workflow\n- After all runs, compile failures and issues. Use LLM to summarize and propose revised prompt. Store in RunReport.\n- Summarizer prompt outline: \"You are PromptBro Analyst. Given N conversations with outcomes and failure cases, produce: 1) failure modes, 2) hallucinations, 3) goal failures, 4) character inconsistency, 5) revised prompt with rationale.\" Limit tokens to stay under caps.\n\n3) Cleanup\n- Prevent duplicate submissions; guard against leaving page mid-run; clear intervals on unmount.\n\n4) Quality Gate (run tests/lint)\n- Integration: Mock scale run that completes and returns a deterministic summary. Validate revised prompt rendering.\n- E2E: User configures 5 runs, sees progress, and final report.\n\n5) Context7 MCP research for external packages/libraries used\n- Prompt engineering patterns for automated summarization; token budgeting strategies; UI patterns for progress displays.\n\nPseudo-code (server summarizer):\nconst summary = await llm.chat([{ role:'system', content: SUMMARY_SYSTEM_PROMPT }, { role:'user', content: JSON.stringify(runsLite) }], { provider, model: summarizerModel, maxTokens: 512 });\nawait repo.saveRunReport({ runId, revisedPrompt: extractPrompt(summary.text), summary: summary.text, stats });\n\n<info added on 2025-08-11T15:43:50.571Z>\nResearch-backed enhancements\n\nEvaluation\n- Integrate Promptfoo as the primary evaluator for completed conversations. For each transcript, run assertions for: goal adherence, toxicity, refusal, and formatting. Normalize Promptfoo results to EvaluationResult { assertion, pass, score?, details } and derive FailureTag[] per conversation.\n- FailureTag mapping: goal adherence -> GOAL_MISS; toxicity -> TOXICITY; refusal -> REFUSAL; formatting -> FORMAT_ERROR. Allow additional tags via config.\n- Optional Python evaluator behind feature flag (FEATURE_EVAL_PY=1) using DeepEval/TruLens. Expose a simple HTTP contract POST /eval with { conversationId, transcript, goal } -> { results: EvaluationResult[] }. Merge back into the same FailureTag schema. Fallback to Promptfoo when flag is off or worker is unavailable.\n\nReporting extensions\n- Extend RunReport.stats to include:\n  - winRate (successes/total), averageTurns, p50/p95 turns\n  - tokenStats: prompt/completion/total (avg, p95), totals across batch\n  - latencyStats: avg, p95, max (per-turn and per-run if available)\n  - cost: estimatedUsd, actualUsd (if token usage returned), deltaUsd\n  - topFailureModes: [{ tag, count, sampleConversationIds }]\n  - judgeStats: per-assertion pass/fail counts and passRate\n- Revised prompt generation: require concise rationale ≤100 words; include rationale in report.revisedPromptRationale. Keep JSON-structured summarizer output to reliably parse prompt and rationale.\n- Include per-conversation evaluation summary in report payload: [{ conversationId, failureTags, assertionResults }].\n\nCost and concurrency controls\n- Preflight budget: before starting runs, estimate total cost using dynamic pricing for the selected provider/model. Cache pricing with TTL and fall back to configured defaults if lookup fails. Show estimatedUsd and require confirmation if exceeding user-supplied maxBudgetUsd.\n- Caps: enforce per-run and total budget caps. Abort or pause additional launches when projected or actual cost would exceed caps; include a clear error state in UI.\n- Concurrency: throttle to 3 (default) up to 5 max; stagger launches with 200–400ms jitter to reduce 429. On 429/5xx, apply exponential backoff with jitter and bounded retries. Surface throttling state in status API.\n- API changes:\n  - POST /api/scale/start accepts { maxBudgetUsd?, maxConcurrency? (<=5), evaluator?: 'promptfoo'|'python' } and returns { runId, estimatedUsd }.\n  - GET /api/scale/:runId/status includes { spendingUsd?, throttling?: { active: boolean, concurrency, queueDepth } }.\n  - GET /api/scale/:runId/report includes extended stats, judgeStats, topFailureModes, revisedPromptRationale, and per-conversation evaluation summaries.\n\nUI enhancements\n- Progress polling and per-run conversation links as implemented; add:\n  - Budget and cost card: estimated vs actual with a progress bar and cap indicators.\n  - Summary badges for common failure modes (GOAL_MISS, TOXICITY, REFUSAL, FORMAT_ERROR) with counts; clicking filters the per-run list.\n  - Stats cards for win-rate, avg turns, p95 latency, and total tokens/cost.\n  - Copy-to-clipboard for revised prompt (existing), plus a separate copy for concise rationale.\n  - Non-blocking toast/inline alerts when throttling/backoffs occur or budget caps are hit.\n\nImplementation notes\n- Promptfoo config lives alongside code (e.g., /evaluators/promptfoo.config.ts) and is generated per-run with assertion thresholds and optional judge model. Run programmatically, not via CLI, to gather structured results.\n- Provider pricing: fetch dynamically (OpenAI/OpenRouter) via provider adapter; cache in-memory with periodic refresh and allow overrides via config.\n- Concurrency/backoff: use a queue (e.g., p-queue) with concurrency control and jittered scheduling; centralize 429 detection and retry policy.\n\nAdditional tests\n- Unit: mapping from Promptfoo results to FailureTag; budget estimator with dynamic pricing and caps; revisedPrompt rationale length enforcement; pricing cache TTL behavior.\n- Integration: mocked Promptfoo run producing mixed pass/fail; verify FailureTag aggregation, judgeStats, and topFailureModes in RunReport; budget preflight abort; concurrency throttling with simulated 429/backoffs.\n- E2E: user sets maxBudgetUsd, starts 5 runs, sees throttling indicators if simulated 429s occur, final report shows badges/stats and copy works.\n\nReferences deliverable\n- Produce a short research doc comparing Promptfoo, DeepEval, and TruLens (criteria: ease of integration, assertion breadth, cost, determinism, maintenance). Include pricing best practices for OpenAI/OpenRouter (dynamic lookup, conservative estimation, caching, and fallbacks) and recommended defaults (concurrency=3, p95 metrics tracked, rationale ≤100 words).\n</info added on 2025-08-11T15:43:50.571Z>",
+        "testStrategy": "- Unit: Summarizer prompt builder outputs deterministic structure.\n- Integration: End-to-end mocked scale run storing conversations and RunReport.\n- UI snapshot tests for summary and revised prompt blocks.\n- Limits: Verify runCount cap and error display when exceeded.",
         "priority": "medium",
         "dependencies": [
-          15,
-          16,
-          17,
-          18,
-          19
+          1,
+          2,
+          3
         ],
         "status": "pending",
         "subtasks": [
           {
             "id": 1,
-            "title": "Configure Loguru for Unified Structured Logging",
-            "description": "Set up Loguru as the central logger with daily rotation and default level INFO for the entire service.",
+            "title": "Implement Scale UI and run orchestration APIs",
+            "description": "Build the /scale page with configuration form and wire up start/status/report endpoints to orchestrate N background conversations and display progress and results.",
             "dependencies": [],
-            "details": "Add Loguru to requirements, create logging config module that initializes Loguru sink rotating at midnight (retention=7 days, compression=\"zip\"), set format to include timestamp, level, module, and json message field.",
-            "status": "pending"
+            "details": "UI: /scale page (shadcn/ui) with fields provider, model, agentId, systemPrompt, goal (optional), runCount (1–10). Validate with zod, disable submit while running, and persist runId in state. APIs: POST /api/scale/start -> { runId }; GET /api/scale/:runId/status -> { status, completed, total, conversationIds }; GET /api/scale/:runId/report -> { summary, revisedPrompt, stats }. Orchestration: on start, launch up to N conversations concurrently using existing agent/conversation services; persist Conversation/Message rows; maintain an in-memory registry for run status and per-run conversationIds; mark complete when all settle. UI: poll status every 1–2s, show progress bar and per-run conversation links; on completion, fetch report and render summary and revised prompt with copy-to-clipboard.",
+            "status": "pending",
+            "testStrategy": "Unit: zod schema validates fields and runCount cap; status/report response schemas. Integration: mock start/status/report to simulate progress and completion; verify UI disables submit and shows per-run links. Snapshot: summary and revised prompt blocks."
           },
           {
             "id": 2,
-            "title": "Implement Global Exception Handler with Loguru Integration",
-            "description": "Install sys.excepthook override and asyncio exception handler to capture uncaught exceptions and log them via Loguru with stacktrace.",
+            "title": "Summarization workflow and RunReport persistence",
+            "description": "Compile results from completed runs, invoke LLM summarizer, extract a revised prompt, and store a RunReport for retrieval.",
             "dependencies": [
-              "20.1"
+              "6.1"
             ],
-            "details": "Create exception_handler.py; on exception, call logger.exception and re-raise or terminate gracefully; integrate handler in app entrypoint.",
-            "status": "pending"
+            "details": "Build runsLite payload: for each conversation include agent/model, goal, goalReached, endedReason, error messages, and trimmed messages/meta (token-capped). Summarizer: call provider abstraction with a system prompt (PromptBro Analyst) producing sections: failure modes, hallucinations, goal failures, character inconsistency, and a revised prompt with rationale; cap maxTokens (e.g., 512), low temperature, retries/backoff. Enforce structured JSON output for reliable parsing; extract revisedPrompt and rationale. Persist RunReport { runId, summary, revisedPrompt, stats (success/fail counts, token/cost if available) }. Expose via GET /api/scale/:runId/report.",
+            "status": "pending",
+            "testStrategy": "Unit: deterministic prompt builder and JSON parser; revisedPrompt extractor with edge cases. Integration: mock LLM to return fixed structured output; verify RunReport saved and served by /report."
           },
           {
             "id": 3,
-            "title": "Add Slack DM Notification on Fatal Errors",
-            "description": "On fatal errors captured by the global handler, post a direct message to the on-call engineer in a secondary Slack channel.",
+            "title": "Cleanup and resilience for Scale runs",
+            "description": "Prevent duplicate submissions, guard navigation mid-run, clear polling, and harden API idempotency and caps.",
             "dependencies": [
-              "20.2"
+              "6.1"
             ],
-            "details": "Use Slack Web API chat.postMessage with OAuth token from env; message includes service name, timestamp, and truncated traceback; retry with exponential backoff 3 attempts.",
-            "status": "pending"
+            "details": "Client: disable Start while running; include idempotencyKey on POST; add beforeunload guard during active runs; clear polling intervals on unmount; abort in-flight fetches on route change. Server: enforce runCount cap (<=10) with 400 on violation; honor idempotencyKey to return existing runId; timeouts and safe error shaping; tolerate server restarts by recomputing status from DB when possible and falling back to registry.",
+            "status": "pending",
+            "testStrategy": "Unit: double-submit guard reducer; idempotencyKey resolver; cap enforcement. Integration: repeated POST with same idempotencyKey returns same runId; verify intervals cleared with fake timers; navigation guard appears only while running."
           },
           {
             "id": 4,
-            "title": "Integrate Prometheus Metrics Counters",
-            "description": "Expose success, failure, and duration metrics for each stage (collector, AI, notifier) using the Prometheus client library.",
+            "title": "Quality Gate: tests, lint, typecheck, and E2E",
+            "description": "Add comprehensive tests and CI checks to ensure reliable behavior from configuration to final report.",
             "dependencies": [
-              "20.1"
+              "6.1",
+              "6.2",
+              "6.3"
             ],
-            "details": "Create metrics.py initializing Counter(success_total, failure_total) and Histogram(duration_seconds); expose /metrics endpoint via multiprocess if needed.",
-            "status": "pending"
+            "details": "Unit: form validation (caps/errors), summarizer prompt builder/parser, revised prompt extractor, endpoint schema validators. Integration: mocked scale run that progresses deterministically and returns a fixed summary; validate UI renders progress, per-run links, and final report. UI snapshot: summary and revised prompt blocks. E2E (Playwright): configure 5 runs, observe progress to completion, assert revised prompt rendered and copy-to-clipboard works. CI: run lint (ESLint), format (Prettier), and tsc typecheck.",
+            "status": "pending",
+            "testStrategy": "Run unit/integration in Vitest with MSW/Nock for HTTP; Playwright for browser flow; CI pipeline gates on lint, typecheck, and tests."
           },
           {
             "id": 5,
-            "title": "Apply Backoff Decorators & Error-Aware Wrappers to All Stages",
-            "description": "Wrap API interactions for collector, AI, and notifier with backoff.on_exception(max_tries=3) and ensure try/except blocks record metrics and trigger Slack alerts on unrecoverable errors.",
-            "dependencies": [
-              "20.2",
-              "20.4"
-            ],
-            "details": "Refactor stage functions to decorator style; increment metrics in success/failure paths; on final failure call global handler which logs and notifies Slack.",
-            "status": "pending"
-          },
-          {
-            "id": 6,
-            "title": "Cleanup and Code Organization",
-            "description": "Remove temporary files, organize imports, and ensure clean code structure",
-            "details": "",
-            "status": "pending",
-            "dependencies": [
-              "20.1",
-              "20.2",
-              "20.3",
-              "20.4",
-              "20.5"
-            ],
-            "parentTaskId": 20
-          },
-          {
-            "id": 8,
-            "title": "Context7 MCP Research: External Package Dependencies",
-            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
-            "details": "",
-            "status": "pending",
+            "title": "Context7 MCP research: libraries and patterns",
+            "description": "Research external packages and patterns for background orchestration, token budgeting, summarization prompting, and progress UI to inform implementation.",
             "dependencies": [],
-            "parentTaskId": 20
+            "details": "Background jobs: compare p-queue/in-memory vs BullMQ/Bree for persistence; start with in-memory, plan BullMQ if needed. Token estimation: js-tiktoken or gpt-tokenizer to budget/truncate runsLite; design to sample/trim messages. Summarization prompts: structured JSON output, avoid chain-of-thought, include concise rationale; fallback strategies when over token budget. UI progress patterns: shadcn/ui Progress/Table, polling vs SSE (begin with polling). Validation and DX: zod for schemas, superjson if needed for rich data, navigator.clipboard with copy-to-clipboard fallback. Document decisions and snippets for adoption.",
+            "status": "pending",
+            "testStrategy": "Produce a brief research doc with chosen defaults, tradeoffs, and minimal PoCs (token counter, progress component) reviewed by the team."
           }
         ]
       },
       {
-        "id": 21,
-        "title": "Orchestrator Assembly & CLI Entry Point",
-        "description": "Glue scheduler, collector, AI processor, summary generator and notifier into a cohesive async workflow.",
-        "details": "• `orchestrator.py` main async function:\n```\nasync def run_daily():\n    alerts = await collect_alerts()\n    grouped = await group_alerts(alerts)\n    summary = render_summary(grouped)\n    await send_slack(summary)\n```\n• Use `asyncio.run(run_daily())` for one-shot; expose `cli.py` with Typer==0.12.3 for commands `run-now`, `start-scheduler`.\n• Ensure graceful shutdown (scheduler.shutdown(wait=False)).\n",
-        "priority": "high",
+        "id": 7,
+        "title": "Page: PromptBro guided prompt creator",
+        "description": "Build a guided prompt creation experience where users input free text and interact with a custom LLM agent that asks clarifying questions. Save resulting prompts as PromptTemplates for reuse. Leave hooks for future checks/fixes.",
+        "details": "Implementation subtasks (target 5):\n1) Implement guided creator UI + backend\n- Page /promptbro with multi-step wizard (shadcn/ui Steps/Tabs): Context, Constraints, Style, Evaluation Criteria. Live preview of assembled prompt.\n- Custom LLM assistant: /api/promptbro/assist that takes current draft and returns next best question or improvement suggestion (uses provider abstraction, small model, capped tokens).\n- Save as PromptTemplate via POST /api/prompts (name, template, variables). List saved templates.\n\n2) Draft assembly + versioning\n- Maintain prompt draft in state with templating variables like {{goal}} {{constraints}}. Provide export and copy.\n- Version saved drafts (append timestamp) and allow restore.\n\n3) Cleanup\n- Persist last draft in localStorage. Remove experimental flags. Ensure server routes validate inputs with zod.\n\n4) Quality Gate (run tests/lint)\n- Unit: Assistant returns a question given a partial draft (mocked LLM). Template save/restore works.\n- E2E: Create and save a prompt, reload page, and see it listed.\n\n5) Context7 MCP research for external packages/libraries used\n- Prompt engineering guidance for question-driven refinement; shadcn/ui patterns for wizards; content security for user text.\n\nPseudo-code (assist route):\nPOST /api/promptbro/assist ->\n  const { draft } = await req.json();\n  const sys = 'You help craft prompts by asking one clarifying question at a time...';\n  const res = await llm.chat([{ role:'system', content: sys }, { role:'user', content: draft }], { provider, model: smallModel, maxTokens: 128 });\n  return { question: res.text };\n\n<info added on 2025-08-11T15:44:37.598Z>\nResearch-backed enhancements:\n\n- Evaluation Criteria generation and persistence\n  - In the Evaluation Criteria step, add a Derive Evaluation Criteria action that POSTs to /api/promptbro/eval-criteria with the current assembled prompt and step context, returning a deterministic JSON checklist.\n  - JSON shape (validated with zod) includes: checklist[] items with id, name, description, weight 0..1 (default 1), required (bool); optional scoring with method (weighted|binary|rubric) and passingThreshold 0..1.\n  - Allow inline editing of the returned checklist before save. Persist this as evaluationCriteria on POST /api/prompts alongside { name, template, variables }. Include evaluationCriteria in GET list responses.\n\n- Assist streaming over SSE (Edge)\n  - Add /api/promptbro/assist/stream running on Edge runtime and emitting Server-Sent Events with a heartbeat every 15–30s. Events: message (partial tokens or final question), heartbeat, done, error.\n  - Default small model gpt-4o-mini (or equivalent via OpenRouter). Enforce strict caps: maxTokens <= 256 and per-request budget <= $0.002. Perform preflight cost estimation using the provider price map; reject with 402/400 if budget would be exceeded. Keep temperature low.\n  - Retain existing non-streaming /api/promptbro/assist for fallback; UI auto-selects SSE when supported and falls back on error.\n\n- Quick checks before save (Promptfoo-style mini suite)\n  - Add /api/promptbro/checks that runs a fast heuristic suite to flag: ambiguity (missing audience, success criteria, timeframe, data sources), prompt injection patterns (e.g., ignore previous, system:, jailbreak markers), output format risks (JSON shape mismatches if evaluationCriteria exists), and constraint coverage (unreferenced required tokens).\n  - Returns { issues: [{ id, severity: low|medium|high, message, hint }], score: 0..100 }.\n  - UI adds Run Quick Checks; on high severity, show a warning and allow override to save.\n\n- Persistence and quotas\n  - Local draft autosave remains with 500ms debounce; surface last autosave time in UI.\n  - Add a configurable per-user daily cap for assist calls (fallback to per-IP when unauthenticated). Env: PROMPTBRO_ASSIST_DAILY_CAP (default 50). Enforce across both /assist and /assist/stream; return 429 when exceeded. Use Redis if available; otherwise in-memory map with TTL.\n\n- Validation and schemas\n  - Extend POST /api/prompts zod schema to accept optional evaluationCriteria JSON and validate its structure.\n  - Add zod schemas for /api/promptbro/eval-criteria input/output and for /api/promptbro/checks input.\n\n- Test strategy additions\n  - Unit: evaluationCriteria schema validation; budget guard rejects when estimated cost > $0.002; quick checks correctly flag known bad cases and pass clean prompts.\n  - Integration: SSE endpoint streams message and heartbeat events; non-streaming fallback works; daily cap triggers 429 after N calls; evaluationCriteria persists and round-trips via GET.\n  - E2E: Derive Evaluation Criteria, edit, save template, reload and see criteria present; run Quick Checks and observe warnings; stream an assist response and see live updates.\n\n- Documentation additions (docs/context7-promptbro.md)\n  - SSE vs polling trade-offs for low-latency, low-QPS interactions; heartbeat recommendations and fallback strategy.\n  - Pricing guardrails: preflight estimation, maxTokens caps, per-request budget, and daily quota patterns.\n  - Judge pipeline: using evaluationCriteria JSON to drive validators and rubric-based judges in future workflows.\n</info added on 2025-08-11T15:44:37.598Z>",
+        "testStrategy": "- Unit: Validate draft builder merges steps correctly and variables render.\n- Integration: Assist route returns a string and UI displays it; saving creates a PromptTemplate row.\n- UX: Playwright flow through steps, save, and restore template.",
+        "priority": "medium",
         "dependencies": [
-          15,
-          16,
-          17,
-          18,
-          19,
-          20
+          1,
+          2
         ],
         "status": "pending",
         "subtasks": [
           {
             "id": 1,
-            "title": "Implement core async orchestrator logic",
-            "description": "Create orchestrator.py with `async def run_daily()` that sequentially calls `collect_alerts`, `group_alerts`, `render_summary`, and `send_slack` using awaited coroutines.",
+            "title": "Build /promptbro wizard UI and Assist API",
+            "description": "Implement the guided prompt creator page with a multi-step wizard, live preview, and an assist endpoint that asks clarifying questions. Enable saving prompts as PromptTemplates and listing existing templates.",
             "dependencies": [],
-            "details": "Define type signatures, ensure each stage is injected via default parameters for testability, and propagate exceptions upwards without swallowing.",
-            "status": "pending"
+            "details": "- Page: Next.js App Router page at /promptbro using shadcn/ui Steps/Tabs for steps: Context, Constraints, Style, Evaluation Criteria. Maintain form state per step and a combined draft object.\n- Live preview: Debounced assembled prompt preview panel; highlight templating tokens like {{goal}} {{constraints}} {{style}} {{evaluation}}.\n- Assist API: POST /api/promptbro/assist with { draft: string|object }. Use provider abstraction (Task 2) if available; otherwise stub a provider adapter. Small model, capped tokens (<=128), temperature low. System prompt to ask one clarifying question at a time or provide a single improvement suggestion. Return { question: string }.\n- Save template: POST /api/prompts with { name, template, variables[] }. Add a list view (GET /api/prompts) to show saved templates with basic pagination. Provide Save button from the wizard with name input.\n- UI affordances: Ask Assistant button, display latest question and a free-text answer box that, on submit, merges into the draft.",
+            "status": "pending",
+            "testStrategy": "- Integration: Mock provider to ensure /api/promptbro/assist returns a string question; UI displays it.\n- Contract: Validate POST /api/prompts creates a PromptTemplate row and GET lists it.\n- UX smoke: Step navigation updates preview without errors."
           },
           {
             "id": 2,
-            "title": "Add asyncio runner & graceful shutdown",
-            "description": "Wrap `run_daily` in a `def run_now()` that calls `asyncio.run(run_daily())`; implement signal handlers (SIGINT, SIGTERM) that cancel pending tasks and ensure scheduler.shutdown(wait=False) if scheduler exists.",
+            "title": "Draft assembly, templating, versioning, and export",
+            "description": "Implement deterministic draft assembly with templating variables, lightweight versioning with timestamped snapshots, restore, and export/copy utilities.",
             "dependencies": [
-              "21.1"
+              "7.1"
             ],
-            "details": "Use `asyncio.current_task().cancel()` on signal; include finally block to log completion; expose `shutdown()` helper.",
-            "status": "pending"
+            "details": "- Assembly: Compose final template from step fields into a single prompt string with tokens {{goal}} {{context}} {{constraints}} {{style}} {{evaluation}}. Provide a helper buildPrompt(draft) that is pure and testable.\n- Variables: Extract tokens used in the template and surface them as variables[] for saving. Warn if required tokens are empty.\n- Versioning: Add Save Version action that stores up to N (e.g., 10) timestamped snapshots; enable one-click restore into the current draft.\n- Export: Copy-to-clipboard for the assembled prompt; export JSON with { name, template, variables }.\n- Minimal UI: Versions sidebar/list integrated into the wizard; restore confirmation.",
+            "status": "pending",
+            "testStrategy": "- Unit: buildPrompt merges steps correctly; variable extraction returns a stable set. Version save/restore round-trips.\n- Snapshot: Assembled prompt remains stable given the same draft."
           },
           {
             "id": 3,
-            "title": "Integrate daily scheduler",
-            "description": "Create `start_scheduler()` that configures an APScheduler AsyncIOScheduler to trigger `run_daily` at 09:00 UTC (or configurable time) and starts the event loop until cancelled.",
+            "title": "Cleanup: persistence, validation, and safeguards",
+            "description": "Persist last draft locally, remove experimental flags, and validate server inputs with zod. Add simple rate/token caps and user-facing error handling.",
             "dependencies": [
-              "21.2"
+              "7.1",
+              "7.2"
             ],
-            "details": "Add config for cron timing, pass coroutine reference, store scheduler instance globally for shutdown, and log job execution results.",
-            "status": "pending"
+            "details": "- Persistence: localStorage key promptbro:lastDraft; load on mount with schema guard; debounce saves (e.g., 500ms). Provide Reset Draft action.\n- Validation: zod schemas for /api/promptbro/assist and template save payloads (name length, variables format, template size limits). Return 400 on invalid input.\n- Safeguards: Enforce maxTokens <= 128 and basic in-memory rate limit (e.g., 10/min per IP) on assist route; trim overly long drafts.\n- Cleanup: Remove temporary feature flags, ensure no prompt contents are logged beyond minimal metadata.\n- UX: Error toasts and retry CTA; loading states for assist and save.",
+            "status": "pending",
+            "testStrategy": "- Unit: zod validators reject malformed payloads; persistence loads valid drafts and ignores corrupt ones.\n- Integration: Assist route enforces caps and returns 429 when rate-limited."
           },
           {
             "id": 4,
-            "title": "Create Typer CLI entry point",
-            "description": "Build cli.py with Typer==0.12.3 exposing `run-now` (calls run_now) and `start-scheduler` (calls start_scheduler). Provide --verbosity flag and auto-generated help.",
+            "title": "Quality Gate: tests, lint, and E2E flow",
+            "description": "Add unit, integration, and E2E tests; wire up lint/typecheck in CI. Validate the full user flow from creation to save and reload.",
             "dependencies": [
-              "21.3"
+              "7.1",
+              "7.2",
+              "7.3"
             ],
-            "details": "Register app = Typer(); use `@app.command()` decorators; parse environment variables for config overrides; guard main block with `if __name__ == '__main__': app()`.",
-            "status": "pending"
+            "details": "- Unit: Mocked LLM provider ensures assist returns a single question; buildPrompt and versioning helpers are covered.\n- Integration: API tests for /api/promptbro/assist and /api/prompts with input validation and happy paths.\n- E2E (Playwright): Navigate /promptbro, fill steps, preview updates, call Assist, save as template, reload page, and see the saved template listed.\n- CI: Add npm scripts for lint, typecheck, unit, and e2e (mocked); GitHub Actions workflow runs lint + unit on PRs.",
+            "status": "pending",
+            "testStrategy": "- Commands: npm run lint, npm run typecheck, npm run test, npm run e2e (with mocks).\n- Artifacts: Playwright screenshots for preview; assert template appears post-reload."
           },
           {
             "id": 5,
-            "title": "End-to-end orchestration & CLI integration test",
-            "description": "Develop comprehensive tests that spin up the CLI command in a subprocess with environment-defined mocks, verifying full pipeline execution and Slack notification call.",
-            "dependencies": [
-              "21.4"
-            ],
-            "details": "Use pytest’s `subprocess` fixture; inject fake HTTP server for collector, mock AI processor, capture stdout/stderr and exit code; ensure graceful exit on SIGTERM.",
-            "status": "pending"
-          },
-          {
-            "id": 6,
-            "title": "Cleanup and Code Organization",
-            "description": "Remove temporary files, organize imports, and ensure clean code structure",
-            "details": "",
-            "status": "pending",
-            "dependencies": [
-              "21.1",
-              "21.2",
-              "21.3",
-              "21.4",
-              "21.5"
-            ],
-            "parentTaskId": 21
-          },
-          {
-            "id": 8,
-            "title": "Context7 MCP Research: External Package Dependencies",
-            "description": "Use Context7 MCP to research and validate external Python packages and dependencies",
-            "details": "",
-            "status": "pending",
+            "title": "Context7 MCP research and implementation notes",
+            "description": "Research external packages/patterns for question-driven prompt refinement, wizard UX with shadcn/ui, and content security. Produce a concise repo doc with recommendations and hooks for future checks/fixes.",
             "dependencies": [],
-            "parentTaskId": 21
+            "details": "- Prompt engineering: Summarize best practices for iterative question-asking and constraint elicitation; recommend small models and caps for assist (e.g., compact models via OpenAI/OpenRouter, 128–256 tokens, low temperature).\n- UI patterns: Document shadcn/ui Tabs/Steps usage, accessibility and keyboard navigation, and minimal state management tips.\n- Security: Guidance on handling untrusted user text (escape on render, no HTML injection, size limits), PII minimization, and logging hygiene.\n- Packages: Confirm versions for shadcn/ui, zod, and any form helpers; list minimal dependencies to install.\n- Hooks: Define analyzeDraft(draft) and fixDraft(draft) placeholders for future quality/safety checks; stubbed with no-ops today.\n- Deliverable: docs/context7-promptbro.md with links and actionable checklists.",
+            "status": "pending",
+            "testStrategy": "- Doc lint: Ensure the markdown exists and passes link checks. Reviewer checklist to validate recommendations are reflected in implementation."
           }
         ]
       }
     ],
     "metadata": {
-      "created": "2025-07-29T15:57:21.028Z",
-      "updated": "2025-07-30T14:56:05.844Z",
-      "description": "Tasks for master context"
+      "created": "2025-08-11T14:34:00.374Z",
+      "updated": "2025-08-11T14:34:00.374Z",
+      "description": "Tasks for agent-wars context"
     }
   }
 }
