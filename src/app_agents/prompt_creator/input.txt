@@ -1,0 +1,3 @@
+create a solid system prompt for a LLM to be a prompt engineer from the following base material.
+
+############################

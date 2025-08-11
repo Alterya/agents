@@ -148,7 +148,7 @@
               "14.3"
             ],
             "details": "Expose --grafana-url, --schedule-time, --config-path, etc. Convert CLI args to dict and feed into merge chain.",
-            "status": "pending"
+            "status": "in-progress"
           },
           {
             "id": 6,
@@ -759,7 +759,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:57:21.028Z",
-      "updated": "2025-07-30T14:37:50.173Z",
+      "updated": "2025-07-30T14:56:05.844Z",
       "description": "Tasks for master context"
     }
   }

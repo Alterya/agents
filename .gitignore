@@ -113,6 +113,6 @@ config/secrets.yaml
 ehthumbs.db
 Thumbs.db
 
-# Task management (keeping existing structure)
-# tasks.json
-# tasks/
+**/mcp.json
+
+**/__pycache__

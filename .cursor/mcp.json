@@ -1,4 +1,23 @@
 {
 	"mcpServers": {
+		"grafana": {
+			"command": "docker",
+			"args": [
+				"run",
+				"--rm",
+				"-i",
+				"-e",
+				"GRAFANA_URL",
+				"-e",
+				"GRAFANA_API_KEY",
+				"mcp/grafana",
+				"-t",
+				"stdio"
+			],
+			"env": {
+				"GRAFANA_URL": "https://ronalterya.grafana.net",
+				"GRAFANA_API_KEY": "<fill in your grafana api key here>"
+			}
+		}
 	}
 }
