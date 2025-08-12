@@ -8,9 +8,8 @@ from openai.types.shared import Reasoning
 load_dotenv() 
 
 def get_input_content():
-    # return Path("src/app_agents/prompt_creator/input.txt").read_text()
-    from src.app_agents.prompt_creator.taskmaster_workflow_old import PROMPT as FRONTEND_PROMPT
-    return f"please evaluate the following prompt plus a refined, generic prompt for ChatGPT, Claude, Gemini e.g combined (one prompt to rule them all - starts with you are a <persona> ... etc...), and the primary task here is prompt review + ready-to-use prompt: {FRONTEND_PROMPT}"
+    return Path("src/app_agents/prompt_creator/input.txt").read_text()
+    # return f"please evaluate the following prompt plus a refined, generic prompt for ChatGPT, Claude, Gemini e.g combined (one prompt to rule them all - starts with you are a <persona> ... etc...), and the primary task here is prompt review + ready-to-use prompt: {FRONTEND_PROMPT}"
 
 async def main():
     reasoning_agent = Agent(

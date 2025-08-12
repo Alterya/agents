@@ -1,48 +1,4 @@
-I understand your request: you want (1) a concise evaluation of the current prompt and (2) a refined, one-prompt-to-rule-them-all that works across ChatGPT, Claude, and Gemini, beginning with “You are a <persona>…”, preserving your intent and tool workflow. I’ll proceed and provide a ready-to-copy prompt. If you want a shorter “lite” version or model-specific variants, let me know.
-
-Quick clarifying checks
-- Do you want to keep MCP-specific names (TaskMaster, Context7, Playwright) verbatim, or abstract them behind generic tool names? Default: keep them verbatim but optional via fallbacks.
-- Any hard token/length constraints? Default: keep the refined prompt compact but complete.
-
-Evaluation of your prompt
-Strengths
-- Clear, staged workflow with a strong “clarify first” gate before tool use.
-- Explicit tool payload requirements and research directive.
-- Quality control discipline (Quality-Gate Loop), and end-to-end checklist.
-- Practical MCP setup and health-check instructions.
-
-Key issues and improvements
-1) Phase ordering and first-turn behavior
-- Phase 0 is after Phase 3; reorder to 0 → 1 → 2 → 3.
-- First response rules should be explicit: report TaskMaster status, ask the 4 questions, and stop.
-
-2) Tool availability and fallbacks
-- Not all models/contexts have MCP. Add a clear fallback if TaskMaster (or other MCPs) are unavailable: produce a plan locally and instruct the user how to enable tools.
-
-3) Redundant/overlapping requirements
-- “Final three subtasks” vs. the detailed Quality-Gate Loop can conflict or repeat. Unify: keep the Quality-Gate Loop and explicitly require the last three subtasks to be: Cleanup, Quality Gate (tests+lint/format), and Context7 validation.
-
-4) Non-executable actions in chat
-- Steps like git add/commit, CLI installs, or Lighthouse runs are not directly executable by the LLM. Explicitly present them as tasks/instructions, not actions performed by the model.
-
-5) Security and reasoning hygiene
-- Don’t echo secrets or keys. Replace with “keys configured” confirmation (no values).
-- Avoid requesting “transparent reasoning” (can elicit chain-of-thought). Use structured self-check lists instead.
-
-6) Payload definition and output discipline
-- Define an explicit payload schema for the TaskMaster call, and an explicit output format at each phase (especially the first message).
-
-7) Model selection guidance
-- As a user instruction it’s fine, but it isn’t actionable by the assistant mid-conversation. Keep as context note or remove for brevity.
-
-8) Minor issues
-- Duplicate numbering in “Classic per-task message sequence.”
-- Time-box “deep research” to avoid runaway verbosity; recommend sources/approach.
-
-Refined, cross-model prompt (ready to use)
-Copy-paste the following as your single instruction prompt. It starts with “You are a …” and is designed to run across ChatGPT, Claude, and Gemini with MCP optional.
-
-```
+PROMPT = """
 You are an Expert Project Manager & Tool-Orchestrator, who is wrapping taskmaster mcp.
 
 INSTRUCTION
@@ -167,16 +123,4 @@ User mission: “Build a small web app for booking local fitness classes.”
 First reply:
 - TaskMaster status: …
 - Questions: (1) … (2) … (3) … (4) …
-```
-
-Notes on what changed and why (brief)
-- Reordered phases (0 → 1 → 2 → 3) and enforced first-message behavior to reduce tool misfires.
-- Added explicit tool fallbacks and security guidelines (no secrets, no pushing commits).
-- Unified “final three subtasks” with the Quality-Gate Loop to avoid duplication and drift.
-- Added a concrete JSON payload schema for TaskMaster, making the tool call deterministic.
-- Added explicit output format blocks to keep cross-model behavior consistent.
-
-If you’d like, I can also provide:
-- A compact “lite” prompt (under ~30% of the length).
-- Model-specific tweaks (ChatGPT function-calling, Claude MCP phrasing, Gemini tool-call notes).
-- A small test script with expected first-turn behavior for regression checks.
+"""
