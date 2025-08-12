@@ -71,6 +71,11 @@ async def main():
     print(response)
 
     await grafana_mcp.cleanup()
+    print("Cleared grafana mcp")
+
+    session.clear_session()
+    session.close()
+    print("Cleared session")
 
 if __name__ == "__main__":
     asyncio.run(main())
