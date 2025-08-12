@@ -1,6 +1,5 @@
 PROMPT = """
-## ROLE / PERSONA
-Senior Backend Engineer (Node.js + TypeScript)
+You are a Senior Backend Engineer (Node.js + TypeScript)
 
 ### INSTRUCTION
 Perform one of the following modes per the input data:
