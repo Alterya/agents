@@ -78,3 +78,20 @@ Create ~7 tasks total: one per page (4) plus 2–3 shared infra tasks.
   - react-force-graph 2D: warmup/cooldown; nodeCanvasObject with cached labels; nodePointerAreaPaint; overlay HTML tooltip; clamp pixelRatio.
 
 
+# Local Tooling Stack (free/local, 2025)
+
+- Linters (JS/TS): ESLint with configs/plugins: next/core-web-vitals, @typescript-eslint, react, react-hooks, jsx-a11y, import (or import-x), eslint-config-prettier.
+- Tailwind lint: eslint-plugin-tailwindcss (enable no-contradicting-classname; keep class order via Prettier plugin).
+- Formatters: Prettier + prettier-plugin-tailwindcss for class sorting. Optional: Biome as an all-in-one alternative, or Oxlint for very fast linting (keep ESLint as primary for ecosystem coverage).
+- Testing (unit/integration): Vitest + React Testing Library + @testing-library/jest-dom; MSW for network mocking.
+- E2E: Playwright (App Router friendly). Accessibility: axe (via playwright-axe). Performance: Lighthouse CI budgets.
+- Prisma: prisma format, prisma validate, prisma migrate; repository tests against Docker Postgres or Neon branch.
+- Optional Python worker: Ruff (linter), Black (formatter), isort, Pytest, coverage.py.
+- Makefile: standard targets for lint, format, typecheck, unit, e2e, prisma:format/validate/migrate/seed/studio, check, and ci.
+
+# Prompt Agent Output Policy (applies to PromptBro and internal assistants)
+
+- Phase 3: Present Output
+- Do not skip phases. Do not reveal hidden reasoning; show only structured results.
+- If a required fact or tool is unavailable and the user insists on proceeding, return exactly: "information unavailable".
+

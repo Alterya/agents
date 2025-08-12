@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[pre-commit] Running quality checks..."
+make quality
+
+echo "[pre-commit] Running tests..."
+make test
+
+echo "[pre-commit] OK"
+
+

@@ -1,3 +1,24 @@
+# macOS
+.DS_Store
+
+# Node/Next.js in web/
+web/node_modules/
+web/.next/
+web/coverage/
+web/playwright-report/
+web/test-results/
+
+# Env
+.env
+.env.*
+
+# Docker
+*.local.yml
+
+# Logs
+logs/
+*.log
+
 
 # Python bytecode
 __pycache__/

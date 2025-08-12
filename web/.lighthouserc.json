@@ -1,0 +1,14 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "next start",
+      "url": ["http://localhost:3000/"],
+      "numberOfRuns": 1
+    },
+    "assert": {
+      "preset": "lighthouse:recommended"
+    }
+  }
+}
+
+

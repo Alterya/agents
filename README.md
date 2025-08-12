@@ -1,5 +1,23 @@
 # Daily Alert Summary Agent
 
+## Make commands (repo root)
+
+```bash
+make install    # install web deps and configure git hooks
+make dev        # start Next.js dev server
+make lint       # ESLint
+make format     # Prettier write
+make format-check
+make typecheck  # tsc --noEmit
+make test       # Vitest
+make e2e        # Playwright
+make quality    # all code quality gates (lint, format-check, a11y, lighthouse, prisma checks)
+make start      # docker compose up + migrate/seed + dev
+make stop       # docker compose down -v
+```
+
+Pre-commit hook runs `make quality` and `make test` automatically.
+
 A Python application that collects, processes, and summarizes alerts from Grafana MCP, then delivers intelligent summaries via Slack notifications.
 
 ## Requirements
