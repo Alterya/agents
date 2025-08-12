@@ -130,3 +130,5 @@ node_modules/
 # tasks/ 
 
 **/mcp.json
+
+*.json
