@@ -1,5 +1,12 @@
 import asyncio
 from pathlib import Path
+import sys
+
+# Ensure project root is on sys.path so 'src' package is importable when running this file directly
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from agents import Runner, Agent, ModelSettings
 from dotenv import load_dotenv
 from src.resources.prompts.prompt_engineer import PROMPT as ENGINEER_PROMPT

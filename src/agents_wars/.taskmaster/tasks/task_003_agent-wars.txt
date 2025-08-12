@@ -1,0 +1,161 @@
+# Task ID: 3
+# Title: Shared: Background execution APIs for battles and batch runs with persistence and streaming updates
+# Status: pending
+# Dependencies: 1, 2
+# Priority: high
+# Description: Implement Next.js Route Handlers to start and monitor battles and scale tests. Provide an in-process runner by default with optional BullMQ+Redis when REDIS_URL is set. Persist conversations and messages; expose polling and basic SSE endpoints.
+# Details:
+Implementation subtasks (target 5):
+1) Implement runners and routes
+- Runners (server-only): runBattle(job), runScaleTest(job). Stop when goal reached or 25 messages.
+- Goal check strategy: after each assistant reply, ask a lightweight classifier prompt (system: 'Given the goal: <goal>, did the last assistant message achieve it? Answer yes/no.') using the same provider with tiny model (e.g., gpt-4o-mini or openrouter/anthropic/haiku via OpenRouter if allowed in whitelist). Parse yes => goalReached.
+- Persistence: createConversation(agentId, model, systemPrompt, goal), appendMessage(role, content, tokensIn/out, cost), completeConversation(endedReason).
+- Routes (examples under app/api):
+  POST /api/battles/start -> { jobId }
+  GET /api/battles/:jobId/status -> { progress, conversationId, endedReason }
+  GET /api/battles/:conversationId/messages -> paginated messages
+  POST /api/scale/start -> { runId }
+  GET /api/scale/:runId/status -> { progress, completed, total }
+  GET /api/scale/:runId/report -> RunReport
+- SSE (best-effort): GET /api/stream/:conversationId -> text/event-stream using an EventEmitter; for Vercel multi-instance, keep polling as primary.
+
+2) Queue strategy + caps
+- Default: In-memory queue with p-queue or simple FIFO and concurrency=3. On Vercel, keep N small and per-request processing under timeout; for longer runs, dispatch multiple sequential calls inside the runner.
+- Optional: If process.env.REDIS_URL, initialize BullMQ Queue/Worker (Upstash Redis compatible) for durability. Name queues 'battles' and 'scale-tests'.
+- Caps: runCount <= 10, messageLimit <= 25, per-IP concurrent jobs <= 3.
+- Retry on transient LLM failures with exponential backoff.
+
+3) Cleanup
+- Ensure jobs handle abort signals; clear listeners; guard against duplicate runs; sanitize inputs.
+
+4) Quality Gate (run tests/lint)
+- Integration tests: fake provider to simulate goal reached and errors. Test stop conditions and persistence.
+- Contract tests for each route. Lint and typecheck pass.
+
+5) Context7 MCP research for external packages/libraries used
+- BullMQ vs in-process trade-offs on Vercel; Upstash Redis guidance; Next.js Route Handlers streaming (SSE) limitations and recommended polling fallback.
+
+Pseudo-code (runner core):
+async function runBattle({ agentId, model, systemPrompt, goal }) {
+  const conv = await repo.createConversation(...);
+  let i=0; let goalReached=false;
+  const sys = systemPrompt || agent.systemPrompt;
+  const msgs = [ { role:'system', content: sys }, { role:'user', content: goal || 'Begin.' } ];
+  while(i < 25 && !goalReached){
+    const res = await llm.chat(msgs, { provider, model, maxTokens: 512 });
+    await repo.appendMessage(conv.id,'assistant',res.text,res.usage?.inputTokens,res.usage?.outputTokens);
+    i++;
+    const verdict = await llm.chat([
+      { role:'system', content:`Given the goal: ${goal}. Did the last assistant message achieve it? Reply yes/no.`},
+      { role:'user', content: res.text }
+    ],{ provider, model: tinyModel, maxTokens:10 });
+    if(/\byes\b/i.test(verdict.text)) goalReached=true;
+  }
+  const endedReason = goalReached ? 'goal' : (i>=25 ? 'limit' : 'error');
+  await repo.completeConversation(conv.id, endedReason);
+  return { conversationId: conv.id, endedReason };
+}
+
+<info added on 2025-08-11T15:40:08.248Z>
+Research-backed enhancements and clarifications
+
+- Architecture and runtime strategy
+  - Polling-first status updates on Vercel; reserve SSE for short-lived, interactive streams only. Default UX should poll /status and /messages incrementally; SSE is best-effort.
+  - Durable background execution: prefer BullMQ with Upstash Redis and a dedicated off-Vercel worker (e.g., Fly/Railway/Render). The Next.js app must never run a BullMQ Worker on Vercel instances; only enqueue and read job state.
+  - Fallback path: if REDIS_URL is missing or no active worker heartbeat is detected, run the in-process runner with low concurrency as a temporary fallback.
+
+- Endpoint refinements
+  - Status shape: return minimal JSON with state (queued|running|completed|failed|canceled|timeout), progress (0..1), turn/messageCount, conversationId, endedReason (if terminal), and optional counts (for scale runs: { goal, limit, error, canceled }).
+  - Incremental messages: add sinceSeq param to GET /api/battles/:conversationId/messages to stream deltas; each Message row includes a monotonically increasing seq per conversation. Response includes nextSeq for client continuation.
+  - Persist per-turn progress: after each assistant turn, persist progress fields (turn count, lastSeq, lastActivityAt, partial usage totals) so /status can respond from DB without relying on in-memory state.
+
+- Queue and worker details
+  - Singletons: initialize BullMQ Queue instances once per route module; guard with globalThis to avoid duplicate queues across hot reloads.
+  - Worker placement: only in the external worker service. Vercel routes must not instantiate Workers. Workers read from queues 'battles' and 'scale-tests'.
+  - Rate limiting: configure BullMQ limiter to avoid provider 429s (e.g., limiter { max, duration } tuned per provider/model). Keep queue concurrency aligned with provider limits.
+  - Job identity and idempotency: use conversationId as the canonical jobId; enforce idempotency by returning the existing job if the same idempotency key or conversationId is provided.
+  - Retention: set removeOnComplete and removeOnFail with age and count caps (e.g., complete: { age: 86400, count: 1000 }, fail: { age: 604800, count: 1000 }) to bound Redis memory.
+  - Health/heartbeat: maintain a Redis heartbeat key (e.g., worker:background:heartbeat:{region}) with a short TTL (30–60s). Routes check this to decide BullMQ vs in-process fallback.
+
+- Judge pipeline (per-turn)
+  - Two-stage stopping criteria: run a fast judge every turn (tiny model yes/no) and require a strong confirm before stopping on goal (e.g., larger model or stricter rubric). Deterministic validators (regex/schema/unit checks) run first; if they definitively pass/fail, skip LLM judge.
+  - Persistence: store JudgeDecision rows per turn with fields { conversationId, turn, verdict: yes|no|uncertain, confidence, criteriaApplied[], model, latencyMs, createdAt }. Expose repository helpers to append and query decisions.
+  - Stopping rule: only mark goalReached when fast judge=yes and strong confirm=yes (or deterministic pass). Conflicts default to continue-until-cap.
+
+- Cancellation and caps
+  - Cancellation flag: support a cancel key in Redis/DB (e.g., cancel:conversation:{id}). Worker/runner polls between model calls; on cancel, terminate gracefully, complete conversation with endedReason='manual'.
+  - Message cap enforcement: hard-stop at messageLimit=25 regardless of judge outcome; expose plateau detection as optional (e.g., no improvement over K turns) without changing the hard cap.
+  - Optional endpoint: POST /api/battles/:jobId/cancel sets the cancel flag and returns acknowledged=true.
+
+- References and ADR notes
+  - Document in the ADR: Vercel guidance on SSE vs polling for Route Handlers and serverless timeouts; BullMQ with Upstash Redis best practices (limiter, retention, heartbeat, external worker pattern); example configs for limiter and removeOnComplete/Fail.
+</info added on 2025-08-11T15:40:08.248Z>
+<info added on 2025-08-12T08:47:49.849Z>
+Developer tooling and CI baseline
+- Adopt ESLint + Prettier across this task’s codepaths. Add lint scripts and enforce no warnings (eslint --max-warnings 0) with Prettier check.
+- Use Vitest for unit/integration tests with the fake provider for runners, queues, repositories, and route handlers.
+- Add Playwright API/route smoke tests for /api/battles/*, /api/scale/*, and /api/stream/* (SSE best-effort) that validate minimal JSON contracts and status transitions.
+- Accessibility: if any status/debug UI surfaces are added for this task, include axe-core checks in Playwright to assert no serious/critical violations.
+- Performance: if any UI is shipped under this task, apply Lighthouse CI budgets per PRD “Local Tooling Stack”; otherwise skip as not applicable.
+- Makefile targets for CI gating:
+  - typecheck: pnpm typecheck
+  - lint: pnpm eslint . --max-warnings 0 && pnpm prettier --check .
+  - test: pnpm vitest run --coverage && pnpm playwright test
+- CI must gate merges by invoking make typecheck, make lint, and make test; failures block the PR.
+- Output Policy: ensure user-facing examples/docs for these APIs follow “no hidden reasoning”. If a required fact/tool is missing and a user insists, reply exactly: information unavailable.
+</info added on 2025-08-12T08:47:49.849Z>
+<info added on 2025-08-12T09:11:05.338Z>
+Quality-Gate Loop
+- a) Cleanup: remove redundant files/junk code, delete dead spikes, consolidate duplicate types; update .gitignore to exclude build artifacts and test outputs (.next, dist, coverage, playwright-report, test-results, .turbo, .vercel, .DS_Store, *.log, .env.local) and refresh README with setup/run instructions (queues, external worker, SSE vs polling, CI/Make targets).
+- b) Self-Review: inspect the diff and verify each subtask’s code exists and is sane (runners, routes, queue layer, cleanup/guards, ADR/docs). Confirm endpoint JSON contracts, caps, abort/cancel paths, and persistence fields match the spec; no secrets/PII or noisy logs; TypeScript strict, eslint/prettier clean; tests pass locally.
+- c) Git add & commit: stage changes and create descriptive commits grouped by subtask using conventional message prefixes (feat, fix, chore, docs, refactor). Summaries must explain scope and rationale. DO NOT PUSH.
+- Pre-commit enforcement: add a repo pre-commit hook that runs make quality and make test and blocks on failure. Define make quality to execute make typecheck and make lint. Ensure the hook exits non-zero on failures and prints actionable output.
+</info added on 2025-08-12T09:11:05.338Z>
+
+# Test Strategy:
+- Integration: Start battle and assert conversation reaches 'goal' given mocked LLM; another test reaches 'limit' at 25.
+- API: Postman/contract tests for each endpoint; pagination verified.
+- Queue: Unit tests for in-memory FIFO; if REDIS_URL present in CI, spin a BullMQ worker and run one job.
+- Performance: Verify caps prevent runaway costs; simulate 10-run scale test completes under timeouts.
+
+# Subtasks:
+## 1. Implement server runners: runBattle and runScaleTest with persistence and goal-check [pending]
+### Dependencies: None
+### Description: Build server-only runners that execute battles and scale tests, persist conversations/messages, and determine termination via goal or message limit.
+### Details:
+Implement runBattle(job) and runScaleTest(job) using the provider abstraction (Task 2) and repositories (Task 1). runBattle flow: createConversation(agentId, model, systemPrompt, goal) -> loop until goalReached or 25 messages -> after each assistant reply, appendMessage with tokens/cost -> run a tiny-model classifier chat to determine goalReached (yes/no) -> completeConversation(endedReason: 'goal'|'limit'|'error'). Emit progress events after each assistant turn (EventEmitter keyed by conversationId) for SSE consumers. Capture and propagate AbortSignal. runScaleTest: accept {runCount<=10, concurrency<=3, messageLimit<=25, ...}, orchestrate N battle runs, aggregate results (counts by endedReason, latency, usage totals), and persist a RunReport via repository. Ensure retries on transient LLM errors with exponential backoff and per-run token caps using provider options.
+
+Tag: backend
+
+## 2. Implement Next.js Route Handlers, SSE stream, and queue layer (in-memory default, BullMQ optional) [pending]
+### Dependencies: 3.1
+### Description: Expose API endpoints to start and monitor battles/scale tests, wire runners through an in-process queue by default, and enable BullMQ+Redis when REDIS_URL is set.
+### Details:
+Routes: POST /api/battles/start -> {jobId}; GET /api/battles/:jobId/status -> {progress, conversationId, endedReason}; GET /api/battles/:conversationId/messages?page&limit -> paginated; POST /api/scale/start -> {runId}; GET /api/scale/:runId/status -> {progress, completed, total}; GET /api/scale/:runId/report -> RunReport; GET /api/stream/:conversationId -> text/event-stream using Node runtime. Queue: default in-memory FIFO (e.g., p-queue) with concurrency=3; when process.env.REDIS_URL is present, initialize BullMQ Queue/Worker ('battles', 'scale-tests') compatible with Upstash Redis. Validate inputs and enforce caps: runCount<=10, messageLimit<=25, per-IP concurrent jobs<=3. Map jobId/runId to conversationId(s) and progress. For SSE: subscribe to EventEmitter per conversationId; send events on new assistant messages and on completion; document polling as the primary pattern on Vercel multi-instance. Ensure proper runtime config (runtime: 'nodejs') and guard single worker initialization in serverless environments.
+
+Tag: backend
+
+## 3. Cleanup and hardening: aborts, caps, dedupe, and input sanitization [pending]
+### Dependencies: 3.1, 3.2
+### Description: Ensure robust lifecycle management, guardrails, and safe handling across runners, queues, and routes.
+### Details:
+Implement AbortSignal wiring end-to-end; clear EventEmitter listeners on completion/error; add idempotency keys on start endpoints to avoid duplicate runs; enforce per-IP concurrency<=3 with in-memory (and Redis-backed when available) counters; sanitize and validate agentId/model/goal inputs; redact sensitive fields from logs; implement exponential backoff and jitter for provider retries; normalize error mapping to consistent status/errors; add TTL eviction for in-memory maps (jobs, emitters) to prevent leaks; ensure BullMQ workers close gracefully on process signals. Confirm messageLimit and runCount caps enforced in both route validation and runner execution.
+
+Tag: backend
+
+## 4. Quality Gate: tests, lint, and type safety [pending]
+### Dependencies: 3.1, 3.2
+### Description: Add comprehensive tests and static checks to ensure correctness and maintainability.
+### Details:
+Set up Vitest for unit/integration tests; add route contract tests and provider fakes; include coverage for stop conditions, persistence, pagination, queue behavior, and SSE. Add TypeScript strict mode, ESLint, and Prettier. Ensure CI runs: typecheck, lint, test. Provide minimal fixtures for Agents and Conversations for deterministic tests.
+
+Tag: backend
+
+## 5. Context7 MCP research: queue, Redis, and Next.js streaming trade-offs [pending]
+### Dependencies: None
+### Description: Research external packages/libraries and platform constraints to finalize defaults and document decisions.
+### Details:
+Produce an ADR summarizing: (1) In-memory queue vs BullMQ on Vercel (cold starts, multi-instance, durability, cost); (2) Upstash Redis specifics (connection limits, TLS, BullMQ compat, recommended settings, TTLs); (3) Next.js Route Handlers streaming constraints (Node runtime only for SSE, edge incompatibilities, buffering, headers); (4) Polling fallback cadence and backoff; (5) p-queue configuration guidance and operational caps; (6) Retry strategies for LLM providers and rate limiting considerations. Include recommended defaults and code snippets to align implementation.
+
+Tag: backend
+

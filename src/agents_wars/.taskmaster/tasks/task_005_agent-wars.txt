@@ -1,0 +1,153 @@
+# Task ID: 5
+# Title: Page: Agent Wars Hub for concurrent battles
+# Status: pending
+# Dependencies: 1, 2, 3
+# Priority: medium
+# Description: Create the Hub page to configure and run one or more concurrent battles between a chosen LLM model/system prompt and a prebuilt Agent from the DB. Enforce stop when goal reached or after 25 messages. Support multiple sessions with live progress.
+# Details:
+Implementation subtasks (target 5):
+1) Implement Hub UI + orchestration
+- Page /hub with shadcn/ui (Select, Textarea, Button, Card, Tabs). Load agents via GET /api/agents. Form: provider, model (whitelist), agent, system prompt, goal. Start battle -> POST /api/battles/start. Maintain sessions list with jobId and conversationId.
+- Progress: Poll /api/battles/:jobId/status every 1–2s; show spinner/progress bars; fetch messages via /api/battles/:conversationId/messages for display in chat UI.
+- Allow multiple concurrent sessions (array of session cards). Stop button triggers cancel route or marks manual end.
+- Respect 25-message cap and display endedReason.
+
+2) UX and safeguards
+- Disable Start when caps exceeded; show cost estimate per session (naive tokens x model price map optional). Save last-used system prompt to localStorage.
+- Empty states and error banners; skeleton loaders. Keyboard shortcuts for send/retry.
+
+3) Cleanup
+- Debounce polling; unsubscribe on unmount. Remove console logs.
+
+4) Quality Gate (run tests/lint)
+- React Testing Library: form validation, status polling, message rendering.
+- Playwright e2e: start two sessions, see them complete with correct stop conditions (using mocked backend provider).
+
+5) Context7 MCP research for external packages/libraries used
+- shadcn/ui component APIs; Next.js caching/fetch revalidation patterns; guidance on polling vs SSE on Vercel.
+
+Pseudo-code (client):
+const start = async () => { const r = await fetch('/api/battles/start',{method:'POST',body: JSON.stringify(form)}).then(r=>r.json()); setSessions(s=>[...s,{ jobId:r.jobId }]); };
+useEffect(()=>{ const t=setInterval(()=>sessions.forEach(syncSession)),1000); return ()=>clearInterval(t); },[sessions]);
+
+<info added on 2025-08-11T15:42:24.685Z>
+Arena (blind A/B) enhancements for Hub
+- Add an Arena tab with side-by-side, blind A/B sessions. Randomize side assignment per battle; label as “A” and “B” with identical, uniform styling and no identities shown until reveal.
+- Single input broadcast: one user input box sends the same prompt to both sides simultaneously. Disable per-side editing to preserve fairness.
+- Identical generation params: enforce the same temperature, top_p, max_tokens, and stop sequences for both sides (even if one side is a prebuilt Agent). Only system prompts differ per contender.
+- Reveal Participants: add a post-outcome “Reveal Participants” control that swaps anonymized labels for real identities. Add a sticky “Select Winner” control (hidden behind a feature flag) to support future manual vote mode.
+
+Outcome logic and judging
+- Primary outcome: goal-first wins (first side to reach goal). If both reach the goal, break ties by in order: fewer turns, then fewer tokens, then lower median latency. Allow explicit tie if all tie-breakers are equal.
+- Fallback judge: optional “LLM-as-judge” button that evaluates both final transcripts via a small model and returns structured JSON: { winner: 'A'|'B'|'tie', reasoning: string, scores: { helpfulness: number, correctness: number, conciseness: number } }. Do not reveal identities in the judge prompt; include the goal and both transcripts with side tags only. Parse JSON strictly with graceful failure and surface judge reasoning in UI.
+
+Fairness and budget controls
+- Identity masking: hide model/agent names, provider logos, and any distinguishing UI until reveal; ensure uniform bubble style, timestamps, and avatars across sides.
+- Length normalization: in outcome display, show normalized efficiency metrics (tokens/turn, latency/turn) and use them only as tie-breakers (do not bias the live display).
+- Per-session budget cap: allow setting a spend cap (USD) per arena battle; display live spend per side using the existing price map and token usage when available. Auto-stop a side that hits its cap and mark endedReason=“limit:budget”.
+
+Polling and incremental fetching
+- Poll cadence: 1–2s while running; if no changes detected for 3 consecutive polls, back off to 3–5s; stop polling when terminal. Resume fast polling on any change.
+- Incremental messages: prefer GET /api/battles/:conversationId/messages?sinceSeq=<n> to fetch only new messages. Track lastSeq per side; status endpoint should include lastSeq and current spend/tokens if available. Fallback to full fetch only if sinceSeq unsupported.
+- Avoid long-lived SSE; keep short-lived polling with staggered intervals across sessions to reduce contention.
+
+Ratings preparation (optional, future-ready)
+- On outcome (manual or judge), emit an arenaOutcome event payload { battleId, contenderA: {...}, contenderB: {...}, winner: 'A'|'B'|'tie', metrics: { turns, tokens, latency }, judge: { scores, reasoning }? } to a lightweight client-side queue and POST /api/arena/outcomes (mock or no-op for now).
+- Leave hooks to aggregate offline via Elo/BTL/TrueSkill. Plan a future Rating table (contenderId, mu, sigma, wins, losses, ties, lastUpdated) and store outcomes in RunReport for reproducibility.
+
+Research references
+- Expand docs/hub-research.md with a section summarizing LMSYS Chatbot Arena UI/UX and evaluation patterns: blind A/B, single-input broadcast, reveal-after-vote, tie allowance, and rating aggregation methods (Elo/BTL/TrueSkill). Include links and prompt/rubric examples for LLM-as-judge.
+</info added on 2025-08-11T15:42:24.685Z>
+<info added on 2025-08-12T08:49:49.380Z>
+Tooling baseline and CI integration (per PRD “Local Tooling Stack”)
+- ESLint + Prettier
+  - Add .eslintrc.cjs extending next/core-web-vitals, plugin:@typescript-eslint/recommended, and prettier; enable react-hooks rules; set env: browser, node, es2023.
+  - Add .prettierrc with project defaults (semi: true, singleQuote: false, printWidth: 100, trailingComma: all); include .prettierignore for build, .next, coverage, and generated files.
+  - Add npm scripts: lint, lint:fix, format, format:check.
+- Vitest + React Testing Library + MSW for Hub UI
+  - Add vitest.config.ts with jsdom environment, alias to src, coverage enabled, and setupFiles: tests/setupTests.ts.
+  - In tests/setupTests.ts: install @testing-library/jest-dom, polyfill fetch (whatwg-fetch), and configure MSW (server.listen()/resetHandlers()/close()).
+  - Co-locate Hub unit/integration tests under app/hub/__tests__ with .test.tsx files; use MSW handlers for /api/agents, /api/battles/*.
+- Playwright e2e (multi-session)
+  - Add playwright.config.ts with baseURL (dev server), headless in CI, trace on-first-retry, video on-failure, and workers=2–4.
+  - Create e2e specs covering starting two concurrent sessions, progress to goal/25 cap, Stop flow; mock network via route.fulfill or start app with test-only routes.
+- Accessibility checks with axe
+  - Unit-level: add jest-axe to Vitest; include an a11y.test.tsx for /hub and Arena tab ensuring no serious/critical violations on initial render and during active sessions.
+  - E2E-level: integrate @axe-core/playwright to scan /hub (standard and Arena) after hydration; fail on violations >= serious.
+- Lighthouse budgets (optional)
+  - Add lighthouserc.json with budgets for /hub (transfer size, script size) and basic performance thresholds; run in CI only when LHCI=1.
+- Makefile targets for local and CI
+  - make install: install deps
+  - make lint / make lint-fix
+  - make format / make format-check
+  - make typecheck: run tsc --noEmit
+  - make test:unit: run Vitest once with coverage
+  - make test:watch: run Vitest in watch mode
+  - make test:e2e: start dev server and run Playwright headless
+  - make a11y: run axe checks (Vitest jest-axe + Playwright axe scans)
+  - make lh-ci: run Lighthouse CI if LHCI=1
+  - make ci: lint, typecheck, test:unit, build, test:e2e, a11y, and optionally lh-ci
+- Output Policy compliance for embedded assistants
+  - Label AI-generated content (e.g., judge reasoning) clearly in UI; avoid revealing identities in judge prompts; suppress provider/model identities in Arena until reveal.
+  - Do not log raw prompts/responses in console; scrub PII in diagnostics; ensure any examples shown in tests/fixtures comply with policy.
+</info added on 2025-08-12T08:49:49.380Z>
+<info added on 2025-08-12T09:12:25.917Z>
+Quality-Gate Loop (pre-commit enforced)
+- Cleanup: remove redundant files, dead code, unused mocks/fixtures; update .gitignore (e.g., .env*, .vercel, .DS_Store, .next, dist, coverage, artifacts, playwright-report) and README with local setup, scripts, and how to run Hub/Arena and tests.
+- Self-Review: inspect the diff and verify each subtask’s implementation exists and is coherent (UI wiring, polling/backoff, caps, Arena masking/tie-breakers, budgets, tests, a11y). Remove console/debug logs and TODOs not addressed; ensure naming/types/error handling are consistent; check a11y labels and keyboard shortcuts.
+- Git add & commit: stage logical chunks and write descriptive commit messages summarizing work and referencing subtasks; DO NOT PUSH.
+
+Pre-commit hook
+- Add a repo pre-commit hook that blocks commits on failure by running: make quality && make test.
+- If absent, add Makefile targets:
+  - quality: runs lint, format-check, and typecheck.
+  - test: runs unit/integration tests (Vitest/MSW) only; exclude e2e (Playwright) from the hook.
+- The hook should print a concise failure summary and exit non-zero on any error.
+</info added on 2025-08-12T09:12:25.917Z>
+
+# Test Strategy:
+- Unit: Validate form, model whitelist, and disabling logic.
+- Integration: Mock API to simulate job progressing from 0->100 and verify UI updates.
+- E2E: Run with fake provider to assert multiple sessions can run concurrently and stop at goal or 25.
+
+# Subtasks:
+## 1. Implement Hub UI and session orchestration [pending]
+### Dependencies: None
+### Description: Build /hub page with shadcn/ui form to configure and start one or more battles, manage sessions list, and display live conversations.
+### Details:
+Create app/hub/page.tsx with shadcn/ui components (Select, Textarea, Input, Button, Card, Tabs). On mount, fetch agents via GET /api/agents and populate agent Select with loading skeletons and error banner on failure. Form fields: provider (openai|openrouter), model (filtered by whitelist for provider), agent (from DB list), system prompt (Textarea), goal (Textarea/Input). Start battle handler: POST /api/battles/start with {provider, model, agentId, systemPrompt, goal}; on success, append a new session card with {jobId, conversationId, provider, model, agentName, startedAt}. For each session card, show header with agent/model, goal, and status chip. Implement polling loop (setInterval 1–2s) per active session to GET /api/battles/:jobId/status; when status returns conversationId (if not given initially) or progress, update session state. Fetch messages for each session via /api/battles/:conversationId/messages to render a simple chat thread (assistant/user roles). Show endedReason when status indicates terminal state (goal|limit|manual|error|timeout) and disable controls for that session. Support multiple concurrent sessions by maintaining an array of sessions in state and rendering independent cards.
+
+Tag: frontend
+
+## 2. UX and safeguards (validation, costs, persistence, controls) [pending]
+### Dependencies: 5.1
+### Description: Harden the Hub experience with validation, disabled states, cost estimate, local persistence, and shortcuts.
+### Details:
+Implement client-side validation: require provider, model (must be in whitelist for selected provider), agent, goal, and optionally system prompt; show inline errors. Disable Start when invalid or if simple caps exceeded (e.g., estimated tokens > model cap). Add naive cost estimate per session near Start button using a static model price map and a simple token estimate (length-based heuristic). Persist last-used system prompt and selected provider/model in localStorage; hydrate on load. Add empty states for no agents and no sessions, error banners for failed actions, and skeleton loaders for initial agents fetch. Add keyboard shortcuts: Cmd/Ctrl+Enter to Start battle when valid; S to Stop selected session. Add Stop button per session: call /api/battles/:jobId/cancel if available; if not, mark manual end locally and stop polling for that session. Surface endedReason prominently and show message count badge, ensuring 25-message cap is communicated.
+
+Tag: frontend
+
+## 3. Cleanup and performance polish [pending]
+### Dependencies: 5.1, 5.2
+### Description: Stabilize polling and resource usage; remove debug output and ensure clean unmount.
+### Details:
+Refactor polling to avoid thundering herd: debounce or stagger per-session intervals; pause polling when a session reaches a terminal state; backoff on transient 429/5xx with capped retry. Ensure intervals/timeouts and any AbortControllers are cleared on unmount and when a session stops. Guard against duplicate polling by keying intervals by jobId. Batch state updates to minimize re-renders (e.g., use functional setState and React batching). Remove console logs and add minimal structured debug behind a DEBUG flag if needed.
+
+Tag: frontend
+
+## 4. Quality Gate: tests, lint, and e2e [pending]
+### Dependencies: 5.1, 5.2, 5.3
+### Description: Add automated tests and static checks to ensure reliability of the Hub page.
+### Details:
+React Testing Library: form validation (required fields, model whitelist), Start disabled logic, error banners, and cost estimate rendering. Polling and status: mock status progression from 0→100 and verify spinner/progress and endedReason. Message rendering: mock messages API and assert chat thread updates. Playwright e2e: start two sessions with a mocked backend provider, observe concurrent progress, and verify they stop at goal or 25 messages; test Stop button. Add lint (eslint) and type checks (tsc) to CI. Include mock service worker (MSW) or test-only route mocks to control API responses deterministically.
+
+Tag: frontend
+
+## 5. Context7 MCP research for external packages and patterns [pending]
+### Dependencies: None
+### Description: Research and document component APIs and platform patterns to guide implementation decisions.
+### Details:
+Produce docs/hub-research.md summarizing: shadcn/ui component APIs used (Select, Textarea, Button, Card, Tabs) with gotchas for controlled inputs and accessibility; Next.js fetch caching/revalidation patterns (no-store vs revalidate tags) appropriate for client-side polling and when to use server actions; guidance on polling vs SSE on Vercel (limits, connection longevity, edge vs node runtimes), with recommended default of polling every 1–2s and optional SSE behind a feature flag. Include links to official docs and example snippets. Record chosen model whitelist strategy and price map sources.
+
+Tag: frontend
+

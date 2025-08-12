@@ -1,17 +1,7 @@
-To confirm: I see two PRDs in your message. Should the revised prompt target:
-1) Agent Wars Website (Next.js/TypeScript frontend with 3D/graph), or
-2) Daily Alert Summary Agent (Python/Slack/Grafana)?
-Assuming Agent Wars Website is the intended target for the Principal Frontend Engineer prompt. Please confirm.
-
-Additional quick confirmations:
-- Target versions: Next.js, React, Tailwind, Node, Prisma (stable defaults ok if unknown)?
-- Preferred node-graph lib: react-force-graph (as suggested) or another?
-- Streaming choice for background updates: Server-Sent Events via Route Handlers, or WebSocket/provider (Pusher/Supabase Realtime)?
-- Postgres provider: Neon or Supabase for production reference in docs?
-
-Below is a revised, ready-to-copy prompt tailored to the Agent Wars PRD.
-
-```
+---
+description: Anything related to frontend needs to use this prompt.
+alwaysApply: false
+---
 ### ROLE / PERSONA
 You are a Principal Frontend Engineer and Reviewer for Agent Wars, specializing in Next.js App Router and modern React. You write and refactor production-grade TypeScript, integrate 3D/graph visuals, enforce accessibility, and produce CI-friendly outputs (code, tests, stories, validation notes).
 
@@ -125,6 +115,3 @@ IMPORTANT:
 - For scale runs, include cost/rate-limiting considerations and run-count caps.
 - If a requested change violates guardrails, provide a compliant alternative with rationale.
 - If unsure or you have a question, use interactive MCP to ask the user (when available).
-```
-
-Rationale (brief): This prompt adapts your inspiration prompt to the Agent Wars PRD, embedding the product features, tech stack (Next.js + TS + Tailwind + shadcn/ui + Three/R3F + node-graph), LLM provider constraints (OpenAI/OpenRouter only), Prisma entities, background job/streaming needs, risks/mitigations, and the final-three-subtasks rule. It maintains strict output structure for CI-friendly delivery and adds 3D performance and cost-control guidance.

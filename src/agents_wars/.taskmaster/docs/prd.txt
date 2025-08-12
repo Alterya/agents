@@ -1,0 +1,97 @@
+<context>
+# Overview
+Agent Wars Website supports prompt engineers and non-technical users in crafting strong prompts and diagnosing weaknesses (hallucinations, goal failures, character inconsistency) via repeated conversational tests.
+
+# Core Features
+- Landing Page: Blue futuristic theme, 3D moving objects, interactive node graph to visualize system capabilities.
+- Agent Wars Hub: Run one or more concurrent battles: a chosen LLM model + system prompt vs a prebuilt agent (from local DB). Conversation stops when goal reached or after 25 messages.
+- Scale Testing: Configure model, system prompt, and run count; select a prebuilt agent. Execute N background conversations, store each conversation + run report, and produce a summarized report including failures, prompt issues, and a revised prompt.
+- PromptBro: Guided prompt creator with free text plus questions from a custom LLM agent; later we’ll add extra checks/fixes.
+
+# User Experience
+- Primary: Prompt engineers; Secondary: non-technical users learning prompt craft.
+- Clear navigation to 4 pages, with live feedback and progress indicators where relevant.
+</context>
+<PRD>
+# Technical Architecture (MVP)
+- Frontend: Next.js (React + TypeScript), TailwindCSS + shadcn/ui. 3D via React Three Fiber + Three.js. Node graph via react-force-graph or similar.
+- Backend: Next.js Route Handlers (Node + TypeScript). Background job runner (either simple in-process queue or BullMQ + Redis if needed).
+- LLM Providers: Only OpenAI and OpenRouter, abstracted behind a provider layer.
+- Database: Postgres via Prisma. Entities: Agent (prebuilt), Conversation, Message, RunReport, PromptTemplate.
+- Deployment: Vercel + managed Postgres (Neon/Supabase). Keep costs controlled; cap run counts.
+
+# Development Roadmap (Keep tasks minimal)
+Create ~7 tasks total: one per page (4) plus 2–3 shared infra tasks.
+
+1) Shared: Database schema and Prisma models (Agent, Conversation, Message, RunReport, PromptTemplate) with migrations.
+2) Shared: LLM provider abstraction for OpenAI and OpenRouter with a unified chat interface and safety/cost guards.
+3) Shared: Background execution APIs for battles and batch runs (queue or in-process runners) with persistence and streaming updates.
+4) Page: Landing Page with 3D visuals and interactive node graph (blue futuristic theme).
+5) Page: Agent Wars Hub for concurrent battles with goal/25-message stop condition; UI supports multiple sessions at once.
+6) Page: Scale Testing to run N background conversations, save runs and reports, and show a summarized analysis with revised prompt.
+7) Page: PromptBro guided prompt creation with a custom LLM agent and free text inputs; room for later checks/fixes.
+
+# Constraints & Directives
+- Only OpenRouter and OpenAI are supported in MVP.
+- Do not add authentication, payments, advanced analytics, mobile apps, or real-time collaboration in MVP.
+- IMPORTANT: The final three subtasks of every task must be: Cleanup, Quality Gate (run tests/lint), and Context7 MCP research for external packages/libraries used.
+- Perform deep research to break down subtasks effectively but keep subtask count small (target 5 per task: 2 implementation + the 3 standardized finals).
+
+# Logical Dependencies
+- All pages depend on Shared DB schema and LLM provider abstraction. Hub and Scale Testing also depend on Background execution APIs.
+
+# Risks & Mitigations
+- 3D performance: lightweight scenes, lazy load.
+- Cost control: cap batch sizes, rate limit.
+- Async reliability: retries and structured error handling.
+</PRD>
+
+
+# Research Addendum (2025)
+
+- Arena patterns (LMSYS Chatbot Arena)
+  - Blind A/B layout with randomized side assignment; single input broadcast to both; reveal participants after outcome.
+  - Outcome: goal-first wins; if both reach goal, tie-break by fewer turns → fewer tokens → lower latency; allow tie.
+  - Optional ratings (future): store outcomes for Elo/BTL/TrueSkill aggregation.
+
+- Provider strategy (OpenAI + OpenRouter)
+  - OpenRouter: include HTTP-Referer and X-Title headers on every request; fetch /models with 6h TTL, use pricing/context_length dynamically.
+  - Preflight guards: estimate tokens (o200k_base/cl100k_base), enforce model context and per-request/session budget caps; concurrency limiter and 429 backoff.
+  - Persist usage/cost per message; aggregate per conversation and run report.
+
+- Serverless Postgres (Prisma v5)
+  - Use pooled DATABASE_URL (PgBouncer) with pgbouncer=true, connection_limit=1, sslmode=require; use DIRECT_URL for migrate/studio.
+  - Consider Prisma Accelerate for Edge/high concurrency.
+  - Add Message.seq for incremental polling; add aggregates (tokens/cost) on Conversation/RunReport.
+
+- Background execution on Vercel
+  - Polling-first status/messages; reserve SSE for short-lived streams.
+  - For durable jobs, prefer BullMQ + Upstash Redis with an off-Vercel worker; in-process fallback when worker absent.
+  - Status endpoints return minimal JSON; messages support sinceSeq.
+
+- Judging and evaluation
+  - Deterministic validators first; fast judge per turn; strong confirm before stopping on goal; store JudgeDecision rows.
+  - Batch evaluation via Promptfoo (primary); optional DeepEval/TruLens worker; map failures to FailureTag; include costs/latency/token stats and revised prompt.
+
+- 3D/Graph performance (Landing)
+  - React Three Fiber: dynamic import client-only; frameloop='demand'; AdaptiveDpr; respect reduced motion; minimal scene.
+  - react-force-graph 2D: warmup/cooldown; nodeCanvasObject with cached labels; nodePointerAreaPaint; overlay HTML tooltip; clamp pixelRatio.
+
+
+# Local Tooling Stack (free/local, 2025)
+
+- Linters (JS/TS): ESLint with configs/plugins: next/core-web-vitals, @typescript-eslint, react, react-hooks, jsx-a11y, import (or import-x), eslint-config-prettier.
+- Tailwind lint: eslint-plugin-tailwindcss (enable no-contradicting-classname; keep class order via Prettier plugin).
+- Formatters: Prettier + prettier-plugin-tailwindcss for class sorting. Optional: Biome as an all-in-one alternative, or Oxlint for very fast linting (keep ESLint as primary for ecosystem coverage).
+- Testing (unit/integration): Vitest + React Testing Library + @testing-library/jest-dom; MSW for network mocking.
+- E2E: Playwright (App Router friendly). Accessibility: axe (via playwright-axe). Performance: Lighthouse CI budgets.
+- Prisma: prisma format, prisma validate, prisma migrate; repository tests against Docker Postgres or Neon branch.
+- Optional Python worker: Ruff (linter), Black (formatter), isort, Pytest, coverage.py.
+- Makefile: standard targets for lint, format, typecheck, unit, e2e, prisma:format/validate/migrate/seed/studio, check, and ci.
+
+# Prompt Agent Output Policy (applies to PromptBro and internal assistants)
+
+- Phase 3: Present Output
+- Do not skip phases. Do not reveal hidden reasoning; show only structured results.
+- If a required fact or tool is unavailable and the user insists on proceeding, return exactly: "information unavailable".
+

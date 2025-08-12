@@ -1,0 +1,151 @@
+# Task ID: 6
+# Title: Page: Scale Testing for batch runs and summarized report
+# Status: pending
+# Dependencies: 1, 2, 3
+# Priority: medium
+# Description: Provide a Scale Testing page to configure model/system prompt/run count, select an Agent, execute N background conversations, persist results, and display a summarized RunReport including failures, prompt issues, and a revised prompt.
+# Details:
+Implementation subtasks (target 5):
+1) Implement Scale UI + run orchestration
+- Page /scale with form: provider, model, agent, system prompt, goal (optional), runCount (cap <= 10). POST /api/scale/start -> runId.
+- Show run progress via GET /api/scale/:runId/status; display per-run conversation links; when complete, fetch /api/scale/:runId/report and render summary + revised prompt with copy-to-clipboard.
+
+2) Summarization workflow
+- After all runs, compile failures and issues. Use LLM to summarize and propose revised prompt. Store in RunReport.
+- Summarizer prompt outline: "You are PromptBro Analyst. Given N conversations with outcomes and failure cases, produce: 1) failure modes, 2) hallucinations, 3) goal failures, 4) character inconsistency, 5) revised prompt with rationale." Limit tokens to stay under caps.
+
+3) Cleanup
+- Prevent duplicate submissions; guard against leaving page mid-run; clear intervals on unmount.
+
+4) Quality Gate (run tests/lint)
+- Integration: Mock scale run that completes and returns a deterministic summary. Validate revised prompt rendering.
+- E2E: User configures 5 runs, sees progress, and final report.
+
+5) Context7 MCP research for external packages/libraries used
+- Prompt engineering patterns for automated summarization; token budgeting strategies; UI patterns for progress displays.
+
+Pseudo-code (server summarizer):
+const summary = await llm.chat([{ role:'system', content: SUMMARY_SYSTEM_PROMPT }, { role:'user', content: JSON.stringify(runsLite) }], { provider, model: summarizerModel, maxTokens: 512 });
+await repo.saveRunReport({ runId, revisedPrompt: extractPrompt(summary.text), summary: summary.text, stats });
+
+<info added on 2025-08-11T15:43:50.571Z>
+Research-backed enhancements
+
+Evaluation
+- Integrate Promptfoo as the primary evaluator for completed conversations. For each transcript, run assertions for: goal adherence, toxicity, refusal, and formatting. Normalize Promptfoo results to EvaluationResult { assertion, pass, score?, details } and derive FailureTag[] per conversation.
+- FailureTag mapping: goal adherence -> GOAL_MISS; toxicity -> TOXICITY; refusal -> REFUSAL; formatting -> FORMAT_ERROR. Allow additional tags via config.
+- Optional Python evaluator behind feature flag (FEATURE_EVAL_PY=1) using DeepEval/TruLens. Expose a simple HTTP contract POST /eval with { conversationId, transcript, goal } -> { results: EvaluationResult[] }. Merge back into the same FailureTag schema. Fallback to Promptfoo when flag is off or worker is unavailable.
+
+Reporting extensions
+- Extend RunReport.stats to include:
+  - winRate (successes/total), averageTurns, p50/p95 turns
+  - tokenStats: prompt/completion/total (avg, p95), totals across batch
+  - latencyStats: avg, p95, max (per-turn and per-run if available)
+  - cost: estimatedUsd, actualUsd (if token usage returned), deltaUsd
+  - topFailureModes: [{ tag, count, sampleConversationIds }]
+  - judgeStats: per-assertion pass/fail counts and passRate
+- Revised prompt generation: require concise rationale ≤100 words; include rationale in report.revisedPromptRationale. Keep JSON-structured summarizer output to reliably parse prompt and rationale.
+- Include per-conversation evaluation summary in report payload: [{ conversationId, failureTags, assertionResults }].
+
+Cost and concurrency controls
+- Preflight budget: before starting runs, estimate total cost using dynamic pricing for the selected provider/model. Cache pricing with TTL and fall back to configured defaults if lookup fails. Show estimatedUsd and require confirmation if exceeding user-supplied maxBudgetUsd.
+- Caps: enforce per-run and total budget caps. Abort or pause additional launches when projected or actual cost would exceed caps; include a clear error state in UI.
+- Concurrency: throttle to 3 (default) up to 5 max; stagger launches with 200–400ms jitter to reduce 429. On 429/5xx, apply exponential backoff with jitter and bounded retries. Surface throttling state in status API.
+- API changes:
+  - POST /api/scale/start accepts { maxBudgetUsd?, maxConcurrency? (<=5), evaluator?: 'promptfoo'|'python' } and returns { runId, estimatedUsd }.
+  - GET /api/scale/:runId/status includes { spendingUsd?, throttling?: { active: boolean, concurrency, queueDepth } }.
+  - GET /api/scale/:runId/report includes extended stats, judgeStats, topFailureModes, revisedPromptRationale, and per-conversation evaluation summaries.
+
+UI enhancements
+- Progress polling and per-run conversation links as implemented; add:
+  - Budget and cost card: estimated vs actual with a progress bar and cap indicators.
+  - Summary badges for common failure modes (GOAL_MISS, TOXICITY, REFUSAL, FORMAT_ERROR) with counts; clicking filters the per-run list.
+  - Stats cards for win-rate, avg turns, p95 latency, and total tokens/cost.
+  - Copy-to-clipboard for revised prompt (existing), plus a separate copy for concise rationale.
+  - Non-blocking toast/inline alerts when throttling/backoffs occur or budget caps are hit.
+
+Implementation notes
+- Promptfoo config lives alongside code (e.g., /evaluators/promptfoo.config.ts) and is generated per-run with assertion thresholds and optional judge model. Run programmatically, not via CLI, to gather structured results.
+- Provider pricing: fetch dynamically (OpenAI/OpenRouter) via provider adapter; cache in-memory with periodic refresh and allow overrides via config.
+- Concurrency/backoff: use a queue (e.g., p-queue) with concurrency control and jittered scheduling; centralize 429 detection and retry policy.
+
+Additional tests
+- Unit: mapping from Promptfoo results to FailureTag; budget estimator with dynamic pricing and caps; revisedPrompt rationale length enforcement; pricing cache TTL behavior.
+- Integration: mocked Promptfoo run producing mixed pass/fail; verify FailureTag aggregation, judgeStats, and topFailureModes in RunReport; budget preflight abort; concurrency throttling with simulated 429/backoffs.
+- E2E: user sets maxBudgetUsd, starts 5 runs, sees throttling indicators if simulated 429s occur, final report shows badges/stats and copy works.
+
+References deliverable
+- Produce a short research doc comparing Promptfoo, DeepEval, and TruLens (criteria: ease of integration, assertion breadth, cost, determinism, maintenance). Include pricing best practices for OpenAI/OpenRouter (dynamic lookup, conservative estimation, caching, and fallbacks) and recommended defaults (concurrency=3, p95 metrics tracked, rationale ≤100 words).
+</info added on 2025-08-11T15:43:50.571Z>
+<info added on 2025-08-12T08:51:17.979Z>
+Tooling baseline and CI
+- Adopt ESLint + Prettier per PRD Local Tooling Stack. Add package.json scripts: lint, lint:fix, format, format:check. Use a unified .eslintrc with TypeScript plugin and eslint-config-prettier; add .prettierrc. Gate on lint and format:check in CI.
+- Testing: use Vitest + MSW for server utilities and API adapters (replace Nock in new tests). Centralize MSW handlers for provider pricing lookups, evaluator endpoints, and scale APIs.
+- E2E: use Playwright for the Scale flow. Integrate axe a11y checks (@axe-core/playwright) in the Scale page flow; fail on violations above minor severity. Optional Lighthouse budgets via lhci with a budgets.json file; run only when LIGHTHOUSE=1.
+- Makefile-based CI:
+  - make check: typecheck, lint, format:check, unit + integration tests (Vitest with MSW), lightweight a11y check on /scale using Playwright + axe in headless mode.
+  - make ci: make check, then full Playwright E2E for Scale, optional Lighthouse budgets if LIGHTHOUSE=1. Wire CI to call make ci.
+
+Summarizer output policy
+- Update the summarizer system prompt and schema to enforce:
+  - No hidden reasoning or chain-of-thought in user-visible output; only return the required JSON fields.
+  - Rationale must be concise (≤100 words).
+  - If any required fact or tool result is unavailable, do not fabricate; set the affected field(s) to the exact string "information unavailable".
+- Add unit tests asserting the prompt builder includes these rules, the parser rejects extra freeform reasoning, enforces rationale length, and correctly handles "information unavailable" values.
+</info added on 2025-08-12T08:51:17.979Z>
+<info added on 2025-08-12T09:13:05.976Z>
+Quality-Gate Loop
+- Cleanup: remove dead/unused files and commented code; update .gitignore (e.g., coverage/, .vite/, .turbo/, playwright-report/, test-results/, .lhci/, .DS_Store) and README (Scale page usage, evaluator flags, budget caps, pre-commit hook).
+- Self-Review: inspect the diff and verify each subtask is implemented and sane (UI /scale form + progress and links; start/status/report APIs; summarizer with structured JSON and rationale ≤100 words; cleanup/resilience guards; evaluation/reporting extensions; budget/concurrency controls; tooling/CI additions).
+- Git add & commit: group logical changes per subtask; write descriptive, scoped commit messages (e.g., scale, api, eval, ui, ci); DO NOT PUSH.
+- Pre-commit enforcement: add a repo pre-commit hook that runs make quality and make test; block commit on failure.
+- Makefile targets: quality runs lint, format:check, and typecheck; test runs Vitest unit+integration with MSW (no E2E) to keep the hook fast.
+</info added on 2025-08-12T09:13:05.976Z>
+
+# Test Strategy:
+- Unit: Summarizer prompt builder outputs deterministic structure.
+- Integration: End-to-end mocked scale run storing conversations and RunReport.
+- UI snapshot tests for summary and revised prompt blocks.
+- Limits: Verify runCount cap and error display when exceeded.
+
+# Subtasks:
+## 1. Implement Scale UI and run orchestration APIs [pending]
+### Dependencies: None
+### Description: Build the /scale page with configuration form and wire up start/status/report endpoints to orchestrate N background conversations and display progress and results.
+### Details:
+UI: /scale page (shadcn/ui) with fields provider, model, agentId, systemPrompt, goal (optional), runCount (1–10). Validate with zod, disable submit while running, and persist runId in state. APIs: POST /api/scale/start -> { runId }; GET /api/scale/:runId/status -> { status, completed, total, conversationIds }; GET /api/scale/:runId/report -> { summary, revisedPrompt, stats }. Orchestration: on start, launch up to N conversations concurrently using existing agent/conversation services; persist Conversation/Message rows; maintain an in-memory registry for run status and per-run conversationIds; mark complete when all settle. UI: poll status every 1–2s, show progress bar and per-run conversation links; on completion, fetch report and render summary and revised prompt with copy-to-clipboard.
+
+Tag: frontend
+
+## 2. Summarization workflow and RunReport persistence [pending]
+### Dependencies: 6.1
+### Description: Compile results from completed runs, invoke LLM summarizer, extract a revised prompt, and store a RunReport for retrieval.
+### Details:
+Build runsLite payload: for each conversation include agent/model, goal, goalReached, endedReason, error messages, and trimmed messages/meta (token-capped). Summarizer: call provider abstraction with a system prompt (PromptBro Analyst) producing sections: failure modes, hallucinations, goal failures, character inconsistency, and a revised prompt with rationale; cap maxTokens (e.g., 512), low temperature, retries/backoff. Enforce structured JSON output for reliable parsing; extract revisedPrompt and rationale. Persist RunReport { runId, summary, revisedPrompt, stats (success/fail counts, token/cost if available) }. Expose via GET /api/scale/:runId/report.
+
+Tag: backend
+
+## 3. Cleanup and resilience for Scale runs [pending]
+### Dependencies: 6.1
+### Description: Prevent duplicate submissions, guard navigation mid-run, clear polling, and harden API idempotency and caps.
+### Details:
+Client: disable Start while running; include idempotencyKey on POST; add beforeunload guard during active runs; clear polling intervals on unmount; abort in-flight fetches on route change. Server: enforce runCount cap (<=10) with 400 on violation; honor idempotencyKey to return existing runId; timeouts and safe error shaping; tolerate server restarts by recomputing status from DB when possible and falling back to registry.
+
+Tag: frontend
+
+## 4. Quality Gate: tests, lint, typecheck, and E2E [pending]
+### Dependencies: 6.1, 6.2, 6.3
+### Description: Add comprehensive tests and CI checks to ensure reliable behavior from configuration to final report.
+### Details:
+Unit: form validation (caps/errors), summarizer prompt builder/parser, revised prompt extractor, endpoint schema validators. Integration: mocked scale run that progresses deterministically and returns a fixed summary; validate UI renders progress, per-run links, and final report. UI snapshot: summary and revised prompt blocks. E2E (Playwright): configure 5 runs, observe progress to completion, assert revised prompt rendered and copy-to-clipboard works. CI: run lint (ESLint), format (Prettier), and tsc typecheck.
+
+Tag: frontend
+
+## 5. Context7 MCP research: libraries and patterns [pending]
+### Dependencies: None
+### Description: Research external packages and patterns for background orchestration, token budgeting, summarization prompting, and progress UI to inform implementation.
+### Details:
+Background jobs: compare p-queue/in-memory vs BullMQ/Bree for persistence; start with in-memory, plan BullMQ if needed. Token estimation: js-tiktoken or gpt-tokenizer to budget/truncate runsLite; design to sample/trim messages. Summarization prompts: structured JSON output, avoid chain-of-thought, include concise rationale; fallback strategies when over token budget. UI progress patterns: shadcn/ui Progress/Table, polling vs SSE (begin with polling). Validation and DX: zod for schemas, superjson if needed for rich data, navigator.clipboard with copy-to-clipboard fallback. Document decisions and snippets for adoption.
+
+Tag: frontend
+
