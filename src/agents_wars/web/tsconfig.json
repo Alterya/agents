@@ -3,10 +3,15 @@
     "strict": true,
     "noEmit": true,
     "baseUrl": ".",
+    "jsx": "preserve",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "skipLibCheck": true,
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["node", "vitest/globals"]
+    "types": ["node", "vitest/globals", "react", "react-dom"]
   },
   "include": [
     "next-env.d.ts",

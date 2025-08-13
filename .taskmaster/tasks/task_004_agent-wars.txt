@@ -76,6 +76,18 @@ Tooling baseline and Makefile (per PRD “Local Tooling Stack”):
 - Lighthouse CI runs with existing budget (TTI, main-thread blocking) via make lhci.
 - Respect Output Policy for Prompt agents in any helper tools or examples referenced by this page: avoid live model calls in tests, mock responses, and include a brief policy note/link in /docs/landing-3d-graph.md.
 </info added on 2025-08-12T08:48:29.357Z>
+<info added on 2025-08-12T09:11:33.284Z>
+Quality-Gate Loop
+- a) Cleanup: remove redundant files/junk code; update .gitignore to exclude build artifacts and reports (e.g., .next, out, coverage, playwright-report, .lighthouseci, .DS_Store, logs); refresh README with setup, run, and Quality-Gate steps.
+- b) Self-Review: inspect the full diff; ensure each subtask’s deliverables exist and are sensible (app/(marketing)/page.tsx, components/Scene.tsx, components/CapabilitiesGraph.tsx, theme tokens, docs/landing-3d-graph.md, Makefile/configs). Sanity-check reduced-motion behavior, DPR clamping, graph navigation, and that tests/docs reference the actual implementations.
+- c) Git add & commit: stage changes and create descriptive, atomic commits per area (UI, perf, tests, docs). Do not push.
+
+Pre-commit enforcement
+- Add Makefile aliases:
+  - make quality → same as make check (lint + format-check + unit).
+  - make test → same as make e2e (Playwright suite).
+- Add a pre-commit hook at .git/hooks/pre-commit to run: make quality && make test; ensure it is executable and blocks the commit on failure. Document this workflow in README and discourage --no-verify.
+</info added on 2025-08-12T09:11:33.284Z>
 
 # Test Strategy:
 - Visual: Playwright screenshot diff for hero + graph.
@@ -90,11 +102,15 @@ Tooling baseline and Makefile (per PRD “Local Tooling Stack”):
 ### Details:
 Deliverables: 1) app/(marketing)/page.tsx with hero + placeholders; 2) components/Scene.tsx (Canvas, minimal meshes, disable OrbitControls on mobile); 3) components/CapabilitiesGraph.tsx (nodes/links, custom tooltip, onNodeClick -> router.push); 4) Dynamic imports with ssr:false and suspense fallbacks; 5) Theme tokens and gradient styles. Add data-testid attributes for canvas and graph roots.
 
+Tag: frontend
+
 ## 2. Performance and UX polish (lazy load, DPR, throttling, budgets) [pending]
 ### Dependencies: 4.1
 ### Description: Optimize rendering and loading: lazy load heavy components with Suspense fallbacks; tune devicePixelRatio based on container size and hardware; throttle animations; set frameloop to 'demand' where possible; configure Lighthouse performance budget; ensure reduced motion disables intensive updates.
 ### Details:
 Implement: 1) next/dynamic with loading skeletons; 2) useResizeObserver to clamp DPR (e.g., 0.75–1.5) for Canvas; 3) conditionally pause/limit rotations and graph cooldownTicks; 4) rAF throttling for UI effects; 5) disable node drag and orbit on mobile; 6) prefetch=off for heavy routes; 7) lighthouse-budget.json with TTI < 2.5s (Fast 3G), main-thread < 250ms. Instrument simple FPS meter via requestAnimationFrame and Performance API for smoke checks.
+
+Tag: frontend
 
 ## 3. Cleanup: assets, compression, and client-only boundaries [pending]
 ### Dependencies: 4.1, 4.2
@@ -102,15 +118,21 @@ Implement: 1) next/dynamic with loading skeletons; 2) useResizeObserver to clamp
 ### Details:
 Actions: 1) Purge unused drei helpers and shaders; 2) Compress textures (WebP/AVIF for images; optional KTX2/Draco for glTF if used); 3) Verify all R3F/graph components have 'use client' and are excluded from SSR; 4) Use next-bundle-analyzer to confirm reductions; 5) Code-split optional UI blocks (modals/tooltips) and remove dead code.
 
+Tag: frontend
+
 ## 4. Quality Gate: tests, lint, accessibility, and performance checks [pending]
 ### Dependencies: 4.1, 4.2, 4.3
 ### Description: Add Playwright smoke tests, Lighthouse CI, axe-core accessibility checks, and ESLint/TypeScript cleanliness. Validate navigation via graph clicks and a minimum FPS threshold via Performance API.
 ### Details:
 Implement: 1) Playwright: load '/', assert [data-testid='scene-canvas'] and [data-testid='capabilities-graph'] visible; click a known node -> expect route change; 2) FPS probe script exposes window.__fpsSample for test assertions; 3) axe-core integration for key views; 4) Lighthouse CI with thresholds; 5) ESLint/TS scripts in CI.
 
+Tag: frontend
+
 ## 5. Context7 MCP research: R3F/drei, react-force-graph, Next.js dynamic import [pending]
 ### Dependencies: None
 ### Description: Research latest stable versions, performance tips, SSR caveats, and recommended props/APIs for @react-three/fiber v9, @react-three/drei, react-force-graph (2D), and Next.js dynamic imports. Produce concise notes and implementation decisions.
 ### Details:
 Deliverables: /docs/landing-3d-graph.md with: 1) Version pins and changelog notes impacting SSR or perf; 2) R3F best practices (frameloop, DPR, suspense, mobile controls); 3) react-force-graph perf tips (cooldownTicks, nodeCanvasObject, link pruning, hover/tooltip patterns); 4) Next.js dynamic import patterns for client-only libs; 5) Accessibility and reduced-motion considerations. Link primary sources.
+
+Tag: frontend
 

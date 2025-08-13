@@ -1,0 +1,37 @@
+# Task ID: 8
+# Title: Follow-ups: finalize agent-wars root merge (docs/hooks/ci)
+# Status: pending
+# Dependencies: None
+# Priority: low
+# Description: Add missing docs/examples/hooks to ensure the merged configuration fully works. Connected to: agent-wars merge/cleanup ticket.
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. Create .env.example and update README for local Postgres (docs) [pending]
+### Dependencies: None
+### Description: Add src/agents_wars/web/.env.example with DATABASE_URL/DIRECT_URL placeholders and update README with non-Docker setup steps. Connected to: agent-wars merge ticket. Type: docs
+### Details:
+
+
+## 2. Add pre-commit hook to run make quality (chore) [pending]
+### Dependencies: None
+### Description: Configure .git/hooks/pre-commit to run make -C src/agents_wars quality. Connected to: agent-wars merge ticket. Type: chore
+### Details:
+
+
+## 3. Add CI step to run agent_wars check (ci) [pending]
+### Dependencies: None
+### Description: Ensure CI runs make -C src/agents_wars check. Connected to: agent-wars merge ticket. Type: ci
+### Details:
+
+
+## 4. Integration test: cascade delete on Message->Conversation (test) [pending]
+### Dependencies: None
+### Description: Add a Vitest integration test to assert deleting a Conversation cascades to Messages. Connected to: agent-wars merge ticket. Type: test
+### Details:
+
+

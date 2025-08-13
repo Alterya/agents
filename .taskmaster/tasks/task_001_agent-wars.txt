@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: Shared: Database schema and Prisma models
-# Status: pending
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Design and implement Postgres schema and Prisma models for Agent, Conversation, Message, RunReport, and PromptTemplate, including migrations, seed data for prebuilt agents, and basic data-access utilities.
@@ -205,6 +205,29 @@ Project-wide tooling baseline (free/local) to add:
 
 Refer to PRD section “Local Tooling Stack” for thresholds, conventions, and any additional rules to mirror across repos.
 </info added on 2025-08-12T08:46:07.814Z>
+<info added on 2025-08-12T09:09:36.786Z>
+Quality-Gate Loop (pre-commit enforced)
+- a) Cleanup
+  - Remove redundant/unused files, dead code paths, and obsolete sample data.
+  - Update .gitignore to exclude: node_modules, .next, dist, coverage, prisma/generated, .env, .env.*, .DS_Store, tmp, .vercel, .turbo (if present).
+  - Update README: quickstart for Prisma (migrate/generate/seed), pooled vs DIRECT_URL env usage, test DB setup, and the Quality-Gate workflow below.
+- b) Self-Review
+  - Inspect the full diff. Verify each subtask deliverable exists, compiles, and is coherent:
+    - prisma/schema.prisma reflects all models/enums/indexes including seq, aggregates, and evaluation/battle entities.
+    - Migrations: initial + follow-up (eval_battles_seq_aggregates) present; backfill plan/script for seq noted.
+    - Seed inserts 3–5 agents with distinct personas.
+    - Repository helpers implemented with transactions and basic error handling; tests cover core paths and concurrency for seq.
+    - Scripts in package.json and Makefile targets exist and run (including prisma:generate/migrate/seed).
+    - .env.example includes DATABASE_URL (pooled) and DIRECT_URL (non-pooled).
+  - Run locally: make quality and make test; both must pass.
+- c) Git add & commit (DO NOT PUSH)
+  - Stage logically grouped changes and create descriptive commits (e.g., prisma: initial schema+migration; repo: helpers+tests; migrations: eval/battles/aggregates; seed: prebuilt agents; tooling: Makefile+pre-commit; docs: README+.env.example).
+  - Use conventional “scope: summary” style with concise bodies; note any breaking changes.
+- Pre-commit enforcement
+  - Add a pre-commit hook that runs: make quality && make test.
+  - If using Husky: dev-install husky and add .husky/pre-commit with the above command. If not, add .git/hooks/pre-commit shell script invoking the same command (ensure executable).
+  - Makefile: add a quality target (or alias quality to check) that runs prisma format, prisma validate, typecheck, eslint (no fix), and prettier --check to ensure consistency before commit.
+</info added on 2025-08-12T09:09:36.786Z>
 
 # Test Strategy:
 - Unit: Vitest tests for repository helpers using a test Postgres (Docker) or Neon branch DB.
@@ -214,7 +237,7 @@ Refer to PRD section “Local Tooling Stack” for thresholds, conventions, and 
 - Rollback: Test down migration and re-apply without data loss for non-critical fields.
 
 # Subtasks:
-## 1. Implement Prisma schema and initial migration [pending]
+## 1. Implement Prisma schema and initial migration [review]
 ### Dependencies: None
 ### Description: Define Prisma v5 schema for Agent, Conversation, Message, RunReport, and PromptTemplate with enums, relations, indexes, defaults, and cascade rules. Generate the initial migration and Prisma Client.
 ### Details:
@@ -230,7 +253,34 @@ Tasks:
 - Create indexes per spec: Conversation(agentId), Message(conversationId, createdAt), Agent(name unique), RunReport(runId unique).
 - Run: npx prisma migrate dev -n init; then npx prisma generate.
 
-## 2. Seed prebuilt agents and implement minimal repository helpers [pending]
+Tag: backend
+
+<plan added on 2025-08-13T08:15:07.765Z>
+Plan for 1.1 (Implement Prisma schema and initial migration):
+- Create prisma/schema.prisma with models: Agent, Conversation, Message, RunReport, PromptTemplate; enums Role, EndReason.
+- Add @prisma/client to dependencies and tsx to devDependencies in agents_wars/web/package.json.
+- Add prisma seed hook: { "prisma": { "seed": "tsx prisma/seed.ts" } }.
+- Create prisma/seed.ts to insert 3–5 prebuilt Agents.
+- Run: npm run prisma:format && npm run prisma:generate.
+- Prepare .env with DATABASE_URL (pooled) and DIRECT_URL for future migrations.
+
+<log added on 2025-08-13T08:29:05.834Z>
+Non-Docker setup for Prisma (macOS/local):
+1) Install a local Postgres (e.g., Postgres.app or Homebrew).
+2) Create DB/user (example):
+   createdb agentwars
+   psql -d postgres -c "CREATE USER agentwars WITH PASSWORD 'agentwars';"
+   psql -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE agentwars TO agentwars;"
+3) Update src/agents_wars/web/.env with your real credentials for DATABASE_URL and DIRECT_URL.
+4) From web/:
+   - npm run prisma:migrate  (first run will create initial migration)
+   - npm run prisma:seed     (optional)
+   - npm run prisma:studio   (optional)
+
+When DB is configured, I will run migrate + seed and complete 1.1.
+
+
+## 2. Seed prebuilt agents and implement minimal repository helpers [review]
 ### Dependencies: 1.1
 ### Description: Add seed script to insert 3–5 prebuilt Agents with distinct personas, and implement lightweight data-access utilities for common operations.
 ### Details:
@@ -245,7 +295,9 @@ Tasks:
   - upsertPromptTemplate({ name, description?, template, variables }): Promise<PromptTemplate> (upsert by unique name).
 - Ensure types are inferred from Prisma Client; add basic error handling for unique constraint violations.
 
-## 3. Cleanup and alignment with MVP [pending]
+Tag: backend
+
+## 3. Cleanup and alignment with MVP [review]
 ### Dependencies: 1.1, 1.2
 ### Description: Remove unused sample data, confirm nullable fields and defaults match usage, verify cascade behavior and indexes, and adjust schema if needed.
 ### Details:
@@ -255,7 +307,9 @@ Tasks:
 - Re-run prisma format and generate a follow-up migration if tweaks are required.
 - Validate indexes: Conversation(agentId), Message(conversationId, createdAt), Agent(name unique), RunReport(runId unique).
 
-## 4. Quality gate: scripts, generate client, typecheck, lint, and repository tests [pending]
+Tag: backend
+
+## 4. Quality gate: scripts, generate client, typecheck, lint, and repository tests [review]
 ### Dependencies: 1.1, 1.2, 1.3
 ### Description: Add package scripts, ensure Prisma Client generation, and run typecheck/lint plus Vitest repository tests against a test Postgres.
 ### Details:
@@ -266,7 +320,9 @@ Tasks:
 - Vitest: tests for getActiveAgents, createConversation + appendMessage (transaction + counter), completeConversation (ended flags/reason), upsertPromptTemplate (id stable on repeat), saveRunReport (unique runId).
 - Ensure prisma generate runs before tests and CI uses fresh DB with migrations and seed.
 
-## 5. Context7 MCP research: Prisma v5 + serverless Postgres pooling [pending]
+Tag: backend
+
+## 5. Context7 MCP research: Prisma v5 + serverless Postgres pooling [review]
 ### Dependencies: None
 ### Description: Research and document best practices for Prisma v5 with Postgres on Neon/Supabase/Vercel, focusing on connection pooling and environment configuration.
 ### Details:
@@ -283,9 +339,20 @@ Scope:
   - For Supabase: use pooled url (port 6543) as DATABASE_URL; non-pooled as DIRECT_URL for migrations.
 - Notes: keep relationMode=foreignKeys; ensure Decimal(10,5) is supported; avoid long-running transactions in serverless.
 
-## 6. Makefile: lint, format, typecheck, unit, e2e, prisma, check, ci [pending]
+Tag: backend
+
+<research added on 2025-08-13T09:14:02.798Z>
+Prisma v5 + serverless Postgres pooling notes saved to .taskmaster/docs/research/prisma-pooling-notes.md.
+- Use pooled DATABASE_URL at runtime; DIRECT_URL for migrations/studio.
+- Add pgbouncer and ssl params; avoid long transactions; set low connection_limit in serverless.
+- Consider Accelerate/Data Proxy for Edge.
+
+
+## 6. Makefile: lint, format, typecheck, unit, e2e, prisma, check, ci [review]
 ### Dependencies: None
 ### Description: Create a Makefile to orchestrate local and CI commands for lint/format/typecheck/tests/e2e and Prisma utilities.
 ### Details:
 Targets (pnpm examples):\n- install: pnpm install\n- dev: pnpm dev\n- build: pnpm build\n- typecheck: pnpm tsc --noEmit\n- lint: pnpm eslint .\n- lint-fix: pnpm eslint . --fix\n- format: pnpm prettier --write "**/*.{js,jsx,ts,tsx,md,css,scss,json}"\n- format-check: pnpm prettier --check "**/*.{js,jsx,ts,tsx,md,css,scss,json}"\n- test: pnpm vitest run\n- test-watch: pnpm vitest\n- e2e: pnpm playwright test\n- e2e-headed: pnpm playwright test --headed\n- prisma-format: pnpm prisma format\n- prisma-validate: pnpm prisma validate\n- prisma-migrate: pnpm prisma migrate dev -n $(name)\n- prisma-seed: pnpm prisma db seed\n- prisma-studio: pnpm prisma studio\n- check: make prisma-format prisma-validate typecheck lint test\n- ci: pnpm prisma format && pnpm prisma validate && pnpm typecheck && pnpm eslint . && pnpm vitest run && pnpm playwright test --reporter=line\nNotes: Only OpenAI and OpenRouter providers are supported. Optional Python worker targets (ruff/black/pytest) may be added later under a feature flag.
+
+Tag: backend
 

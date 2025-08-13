@@ -91,6 +91,19 @@ Tooling baseline and CI integration (per PRD “Local Tooling Stack”)
   - Label AI-generated content (e.g., judge reasoning) clearly in UI; avoid revealing identities in judge prompts; suppress provider/model identities in Arena until reveal.
   - Do not log raw prompts/responses in console; scrub PII in diagnostics; ensure any examples shown in tests/fixtures comply with policy.
 </info added on 2025-08-12T08:49:49.380Z>
+<info added on 2025-08-12T09:12:25.917Z>
+Quality-Gate Loop (pre-commit enforced)
+- Cleanup: remove redundant files, dead code, unused mocks/fixtures; update .gitignore (e.g., .env*, .vercel, .DS_Store, .next, dist, coverage, artifacts, playwright-report) and README with local setup, scripts, and how to run Hub/Arena and tests.
+- Self-Review: inspect the diff and verify each subtask’s implementation exists and is coherent (UI wiring, polling/backoff, caps, Arena masking/tie-breakers, budgets, tests, a11y). Remove console/debug logs and TODOs not addressed; ensure naming/types/error handling are consistent; check a11y labels and keyboard shortcuts.
+- Git add & commit: stage logical chunks and write descriptive commit messages summarizing work and referencing subtasks; DO NOT PUSH.
+
+Pre-commit hook
+- Add a repo pre-commit hook that blocks commits on failure by running: make quality && make test.
+- If absent, add Makefile targets:
+  - quality: runs lint, format-check, and typecheck.
+  - test: runs unit/integration tests (Vitest/MSW) only; exclude e2e (Playwright) from the hook.
+- The hook should print a concise failure summary and exit non-zero on any error.
+</info added on 2025-08-12T09:12:25.917Z>
 
 # Test Strategy:
 - Unit: Validate form, model whitelist, and disabling logic.
@@ -104,11 +117,15 @@ Tooling baseline and CI integration (per PRD “Local Tooling Stack”)
 ### Details:
 Create app/hub/page.tsx with shadcn/ui components (Select, Textarea, Input, Button, Card, Tabs). On mount, fetch agents via GET /api/agents and populate agent Select with loading skeletons and error banner on failure. Form fields: provider (openai|openrouter), model (filtered by whitelist for provider), agent (from DB list), system prompt (Textarea), goal (Textarea/Input). Start battle handler: POST /api/battles/start with {provider, model, agentId, systemPrompt, goal}; on success, append a new session card with {jobId, conversationId, provider, model, agentName, startedAt}. For each session card, show header with agent/model, goal, and status chip. Implement polling loop (setInterval 1–2s) per active session to GET /api/battles/:jobId/status; when status returns conversationId (if not given initially) or progress, update session state. Fetch messages for each session via /api/battles/:conversationId/messages to render a simple chat thread (assistant/user roles). Show endedReason when status indicates terminal state (goal|limit|manual|error|timeout) and disable controls for that session. Support multiple concurrent sessions by maintaining an array of sessions in state and rendering independent cards.
 
+Tag: frontend
+
 ## 2. UX and safeguards (validation, costs, persistence, controls) [pending]
 ### Dependencies: 5.1
 ### Description: Harden the Hub experience with validation, disabled states, cost estimate, local persistence, and shortcuts.
 ### Details:
 Implement client-side validation: require provider, model (must be in whitelist for selected provider), agent, goal, and optionally system prompt; show inline errors. Disable Start when invalid or if simple caps exceeded (e.g., estimated tokens > model cap). Add naive cost estimate per session near Start button using a static model price map and a simple token estimate (length-based heuristic). Persist last-used system prompt and selected provider/model in localStorage; hydrate on load. Add empty states for no agents and no sessions, error banners for failed actions, and skeleton loaders for initial agents fetch. Add keyboard shortcuts: Cmd/Ctrl+Enter to Start battle when valid; S to Stop selected session. Add Stop button per session: call /api/battles/:jobId/cancel if available; if not, mark manual end locally and stop polling for that session. Surface endedReason prominently and show message count badge, ensuring 25-message cap is communicated.
+
+Tag: frontend
 
 ## 3. Cleanup and performance polish [pending]
 ### Dependencies: 5.1, 5.2
@@ -116,15 +133,21 @@ Implement client-side validation: require provider, model (must be in whitelist 
 ### Details:
 Refactor polling to avoid thundering herd: debounce or stagger per-session intervals; pause polling when a session reaches a terminal state; backoff on transient 429/5xx with capped retry. Ensure intervals/timeouts and any AbortControllers are cleared on unmount and when a session stops. Guard against duplicate polling by keying intervals by jobId. Batch state updates to minimize re-renders (e.g., use functional setState and React batching). Remove console logs and add minimal structured debug behind a DEBUG flag if needed.
 
+Tag: frontend
+
 ## 4. Quality Gate: tests, lint, and e2e [pending]
 ### Dependencies: 5.1, 5.2, 5.3
 ### Description: Add automated tests and static checks to ensure reliability of the Hub page.
 ### Details:
 React Testing Library: form validation (required fields, model whitelist), Start disabled logic, error banners, and cost estimate rendering. Polling and status: mock status progression from 0→100 and verify spinner/progress and endedReason. Message rendering: mock messages API and assert chat thread updates. Playwright e2e: start two sessions with a mocked backend provider, observe concurrent progress, and verify they stop at goal or 25 messages; test Stop button. Add lint (eslint) and type checks (tsc) to CI. Include mock service worker (MSW) or test-only route mocks to control API responses deterministically.
 
+Tag: frontend
+
 ## 5. Context7 MCP research for external packages and patterns [pending]
 ### Dependencies: None
 ### Description: Research and document component APIs and platform patterns to guide implementation decisions.
 ### Details:
 Produce docs/hub-research.md summarizing: shadcn/ui component APIs used (Select, Textarea, Button, Card, Tabs) with gotchas for controlled inputs and accessibility; Next.js fetch caching/revalidation patterns (no-store vs revalidate tags) appropriate for client-side polling and when to use server actions; guidance on polling vs SSE on Vercel (limits, connection longevity, edge vs node runtimes), with recommended default of polling every 1–2s and optional SSE behind a feature flag. Include links to official docs and example snippets. Record chosen model whitelist strategy and price map sources.
+
+Tag: frontend
 
