@@ -1,0 +1,31 @@
+# Task ID: 11
+# Title: Tests: Integration/E2E for /api/llm/chat (SSE + JSON)
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Add integration tests for the chat Route Handler: validate zod errors (400), JSON path, and SSE streaming with assembled deltas. Connected to Task 2 (provider/API). Type: backend
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. Vitest integration test for JSON path [pending]
+### Dependencies: None
+### Description: Mock OpenAI client; assert {text,usage} shape and 200
+### Details:
+
+
+## 2. SSE streaming test [pending]
+### Dependencies: None
+### Description: Mock streaming iterator; assert deltas and done event
+### Details:
+
+
+## 3. 400 invalid body test [pending]
+### Dependencies: None
+### Description: Send invalid body; assert 400 + details
+### Details:
+
+

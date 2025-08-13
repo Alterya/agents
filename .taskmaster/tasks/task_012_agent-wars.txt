@@ -1,0 +1,25 @@
+# Task ID: 12
+# Title: UI: Provider key status banner + reusable selector
+# Status: pending
+# Dependencies: None
+# Priority: low
+# Description: Add a small banner to warn when provider keys are missing and a reusable provider/model selector component used by debug UI (and future pages). Connected to Task 2. Type: frontend
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. KeyStatusBanner [pending]
+### Dependencies: None
+### Description: Check env via a small /api/config or attempt; render non-sensitive status only
+### Details:
+
+
+## 2. ProviderModelSelector [pending]
+### Dependencies: None
+### Description: Controlled component for provider+model with basic validation
+### Details:
+
+

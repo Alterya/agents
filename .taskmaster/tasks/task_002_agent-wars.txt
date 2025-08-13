@@ -140,7 +140,7 @@ Implement guard layer wrapping chat(): caps: maxTokens per call <= 512 (configur
 
 Tag: backend
 
-## 3. Cleanup: Centralize environment and config validation [in-progress]
+## 3. Cleanup: Centralize environment and config validation [done]
 ### Dependencies: 2.1
 ### Description: Create a config module using zod to validate environment variables and runtime options with clear error messages.
 ### Details:
@@ -148,7 +148,7 @@ Add config.ts with zod schemas: At least one of OPENAI_API_KEY or OPENROUTER_API
 
 Tag: backend
 
-## 4. Quality Gate: tests and lint [pending]
+## 4. Quality Gate: tests and lint [done]
 ### Dependencies: 2.1, 2.2, 2.3
 ### Description: Add Vitest unit tests mocking OpenAI client, plus lint/format checks. Cover provider routing, caps, retries, whitelist, and streaming assembly.
 ### Details:
@@ -156,11 +156,13 @@ Set up Vitest with tsconfig paths; mock openai client module to control response
 
 Tag: backend
 
-## 5. Context7 MCP research for external packages/libraries [pending]
+## 5. Context7 MCP research for external packages/libraries [done]
 ### Dependencies: None
 ### Description: Research and document SDK and library usage to de-risk implementation choices.
 ### Details:
 Produce docs/research-llm-provider.md summarizing: OpenAI Node SDK v4 chat.completions vs responses; streaming API patterns and how to capture usage; OpenRouter API compatibility and required headers; model naming differences and availability; lru-cache patterns suitable for rate limiting in serverless (TTL, max size, pitfalls); best practices for exponential backoff with jitter. Include links to official docs and minimal code snippets. Add decisions/risks section and confirm our API choices align with findings.
 
 Tag: backend
+
+<research> OpenAI SDK v4 chat.completions vs responses; streaming iterator; OpenRouter required headers; lru-cache rate-limiter notes; backoff with jitter. Sources documented in repo research.
 

@@ -122,7 +122,7 @@
               "2.1"
             ],
             "details": "Add config.ts with zod schemas: At least one of OPENAI_API_KEY or OPENROUTER_API_KEY must be present; OPENROUTER_SITE optional; ALLOWED_MODELS optional CSV -> string[]; MAX_TOKENS_PER_CALL default 512; MAX_MESSAGES_PER_CONVO default 25; RATE_LIMIT_ENABLED default true; RATE_LIMIT_RPM default 60. Export getConfig() returning typed config and helpers. Validate at module load and throw descriptive errors with remediation hints. Replace scattered env reads in provider/guards with config getters.\n\nTag: backend",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": "Unit: when neither API key is set, expect a precise zod error; when only one is set, config loads; CSV parsing produces array; numeric envs parsed and clamped to sane bounds."
           },
           {
@@ -135,7 +135,7 @@
               "2.3"
             ],
             "details": "Set up Vitest with tsconfig paths; mock openai client module to control responses for both OpenAI and OpenRouter paths. Tests: (1) routes to correct baseURL and headers per provider; (2) enforces maxTokens cap (reject > 512); (3) retries on 429 then succeeds; (4) rejects disallowed model; (5) streaming: emit deltas across chunks and assert assembled text and usage mapping; (6) rate limiter blocks after N requests. Add ESLint + Prettier scripts and CI tasks (test, lint).\n\nTag: backend",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run vitest with coverage; ensure all critical branches covered. Lint passes with no warnings. Optional snapshot for normalized request payload (model, messages, max_tokens)."
           },
           {
@@ -143,8 +143,8 @@
             "title": "Context7 MCP research for external packages/libraries",
             "description": "Research and document SDK and library usage to de-risk implementation choices.",
             "dependencies": [],
-            "details": "Produce docs/research-llm-provider.md summarizing: OpenAI Node SDK v4 chat.completions vs responses; streaming API patterns and how to capture usage; OpenRouter API compatibility and required headers; model naming differences and availability; lru-cache patterns suitable for rate limiting in serverless (TTL, max size, pitfalls); best practices for exponential backoff with jitter. Include links to official docs and minimal code snippets. Add decisions/risks section and confirm our API choices align with findings.\n\nTag: backend",
-            "status": "pending",
+            "details": "Produce docs/research-llm-provider.md summarizing: OpenAI Node SDK v4 chat.completions vs responses; streaming API patterns and how to capture usage; OpenRouter API compatibility and required headers; model naming differences and availability; lru-cache patterns suitable for rate limiting in serverless (TTL, max size, pitfalls); best practices for exponential backoff with jitter. Include links to official docs and minimal code snippets. Add decisions/risks section and confirm our API choices align with findings.\n\nTag: backend\n\n<research> OpenAI SDK v4 chat.completions vs responses; streaming iterator; OpenRouter required headers; lru-cache rate-limiter notes; backoff with jitter. Sources documented in repo research.",
+            "status": "done",
             "testStrategy": "Acceptance: document exists with sources and answers to checklist; peer review confirms accuracy and that implementation aligns with recommendations."
           }
         ]
@@ -526,11 +526,101 @@
             "status": "pending"
           }
         ]
+      },
+      {
+        "id": 9,
+        "title": "API: LLM chat route handler (provider smoke test)",
+        "description": "Add Next.js Route Handler to call unified LLM provider (POST /api/llm/chat). Connected to agent-wars Task 2. Type: backend",
+        "priority": "medium",
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement POST /api/llm/chat",
+            "description": "Zod-validate input; call provider.chat; non-stream JSON, stream SSE",
+            "status": "done"
+          },
+          {
+            "id": 2,
+            "title": "Add minimal integration test or manual script",
+            "description": "Ensure both providers work with mock keys; document usage",
+            "status": "done"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "UI: Debug page to exercise LLM provider API",
+        "description": "Add a minimal Next.js page to POST to /api/llm/chat (non-stream and SSE) to validate provider/guards end-to-end. Connected to agent-wars Task 2 (provider). Type: frontend",
+        "priority": "low",
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create /debug/llm page",
+            "description": "Form for provider/model/messages; invoke API; render response or streamed text",
+            "status": "done"
+          },
+          {
+            "id": 2,
+            "title": "Error handling and validation",
+            "description": "Show validation errors and rate limit messages; no secrets in UI",
+            "status": "done"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Tests: Integration/E2E for /api/llm/chat (SSE + JSON)",
+        "description": "Add integration tests for the chat Route Handler: validate zod errors (400), JSON path, and SSE streaming with assembled deltas. Connected to Task 2 (provider/API). Type: backend",
+        "priority": "medium",
+        "status": "review",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Vitest integration test for JSON path",
+            "description": "Mock OpenAI client; assert {text,usage} shape and 200",
+            "status": "done"
+          },
+          {
+            "id": 2,
+            "title": "SSE streaming test",
+            "description": "Mock streaming iterator; assert deltas and done event",
+            "status": "done"
+          },
+          {
+            "id": 3,
+            "title": "400 invalid body test",
+            "description": "Send invalid body; assert 400 + details",
+            "status": "done"
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "UI: Provider key status banner + reusable selector",
+        "description": "Add a small banner to warn when provider keys are missing and a reusable provider/model selector component used by debug UI (and future pages). Connected to Task 2. Type: frontend",
+        "priority": "low",
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "KeyStatusBanner",
+            "description": "Check env via a small /api/config or attempt; render non-sensitive status only",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "ProviderModelSelector",
+            "description": "Controlled component for provider+model with basic validation",
+            "status": "pending"
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-08-11T14:34:00.374Z",
-      "updated": "2025-08-13T09:28:54.457Z",
+      "updated": "2025-08-13T12:45:24.512Z",
       "description": "Tasks for agent-wars context"
     }
   }
