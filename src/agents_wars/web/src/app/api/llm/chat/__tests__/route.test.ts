@@ -81,10 +81,10 @@ describe('API /api/llm/chat', () => {
     expect(res.headers.get('content-type')).toContain('text/event-stream');
 
     const text = await readStreamToString(res.body);
-    // Expect at least two delta events and a done event
+    // Expect at least two delta events and a [DONE] marker
     expect(text).toContain('data: {"delta":"Hel"}');
     expect(text).toContain('data: {"delta":"lo"}');
-    expect(text).toContain('event: done');
+    expect(text).toContain('data: [DONE]');
   });
 
   it('returns 400 with zod error details for invalid body', async () => {

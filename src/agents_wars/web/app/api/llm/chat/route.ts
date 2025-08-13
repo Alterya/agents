@@ -35,8 +35,7 @@ export async function POST(req: NextRequest) {
                 const delta = chunk?.choices?.[0]?.delta?.content;
                 if (delta) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`));
               }
-              controller.enqueue(encoder.encode(`event: done\n`));
-              controller.enqueue(encoder.encode(`data: {}\n\n`));
+              controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
             } else {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: res.text })}\n\n`));
             }
