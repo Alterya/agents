@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: Shared: LLM provider abstraction (OpenAI + OpenRouter) with unified chat and cost/safety guards
-# Status: in-progress
+# Status: review
 # Dependencies: None
 # Priority: high
 # Description: Create a provider layer that unifies chat completion across OpenAI and OpenRouter, exposing a single interface with model selection, token caps, and basic rate limiting. Include retries and optional streaming support.

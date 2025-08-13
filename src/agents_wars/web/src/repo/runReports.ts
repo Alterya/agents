@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from "@/lib/prisma";
 
 export async function saveRunReport(input: {
   runId: string;
@@ -36,5 +36,3 @@ export async function saveRunReport(input: {
     },
   });
 }
-
-

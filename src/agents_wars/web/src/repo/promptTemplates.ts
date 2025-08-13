@@ -1,6 +1,11 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from "@/lib/prisma";
 
-export async function upsertPromptTemplate(input: { name: string; description?: string; template: string; variables: string[] }) {
+export async function upsertPromptTemplate(input: {
+  name: string;
+  description?: string;
+  template: string;
+  variables: string[];
+}) {
   return prisma.promptTemplate.upsert({
     where: { name: input.name },
     update: {
@@ -17,4 +22,10 @@ export async function upsertPromptTemplate(input: { name: string; description?: 
   });
 }
 
+export async function listPromptTemplates() {
+  return prisma.promptTemplate.findMany({ orderBy: { createdAt: "desc" } });
+}
 
+export async function getPromptTemplateByName(name: string) {
+  return prisma.promptTemplate.findUnique({ where: { name } });
+}

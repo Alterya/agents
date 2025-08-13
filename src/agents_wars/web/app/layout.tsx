@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Agent Wars',
-  description: 'Agent Wars web app',
+  title: "Agent Wars",
+  description: "Agent Wars web app",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -10,5 +10,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
-

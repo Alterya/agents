@@ -17,7 +17,7 @@
         "testStrategy": "- Unit: Vitest tests for repository helpers using a test Postgres (Docker) or Neon branch DB.\n- Migration validation: Apply migrations on a fresh DB, run basic CRUD flows.\n- Seed sanity: Ensure at least one Agent present and selectable.\n- Performance: Verify indexes via EXPLAIN on Message read path.\n- Rollback: Test down migration and re-apply without data loss for non-critical fields.",
         "priority": "high",
         "dependencies": [],
-        "status": "done",
+        "status": "review",
         "subtasks": [
           {
             "id": 1,
@@ -92,7 +92,7 @@
         "testStrategy": "- Unit tests validate both providers and edge cases (caps, errors, retries).\n- Contract tests: Snapshot minimal request/response mapping.\n- Smoke test against real APIs gated by CI secret flags (avoid cost by running only on demand).\n- Security: Ensure no PII/logging of prompt content beyond hashes in tests.",
         "priority": "high",
         "dependencies": [],
-        "status": "in-progress",
+        "status": "review",
         "subtasks": [
           {
             "id": 1,
@@ -491,6 +491,24 @@
             "details": "- Prompt engineering: Summarize best practices for iterative question-asking and constraint elicitation; recommend small models and caps for assist (e.g., compact models via OpenAI/OpenRouter, 128–256 tokens, low temperature).\n- UI patterns: Document shadcn/ui Tabs/Steps usage, accessibility and keyboard navigation, and minimal state management tips.\n- Security: Guidance on handling untrusted user text (escape on render, no HTML injection, size limits), PII minimization, and logging hygiene.\n- Packages: Confirm versions for shadcn/ui, zod, and any form helpers; list minimal dependencies to install.\n- Hooks: Define analyzeDraft(draft) and fixDraft(draft) placeholders for future quality/safety checks; stubbed with no-ops today.\n- Deliverable: docs/context7-promptbro.md with links and actionable checklists.\n\nTag: frontend",
             "status": "pending",
             "testStrategy": "- Doc lint: Ensure the markdown exists and passes link checks. Reviewer checklist to validate recommendations are reflected in implementation."
+          },
+          {
+            "id": 6,
+            "title": "Reuse existing /api/llm/chat as Assist backend",
+            "description": "In the /promptbro wizard, call POST /api/llm/chat for clarifying Q&A instead of adding a new endpoint. Keep prompts client-side and avoid secrets.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 7
+          },
+          {
+            "id": 7,
+            "title": "Add repo readers for prompt templates",
+            "description": "Implement listPromptTemplates() and getPromptTemplateByName() in src/repo/promptTemplates.ts and surface them to the wizard for listing/restoring drafts.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 7
           }
         ]
       },
@@ -505,25 +523,25 @@
             "id": 1,
             "title": "Create .env.example and update README for local Postgres (docs)",
             "description": "Add src/agents_wars/web/.env.example with DATABASE_URL/DIRECT_URL placeholders and update README with non-Docker setup steps. Connected to: agent-wars merge ticket. Type: docs",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
             "title": "Add pre-commit hook to run make quality (chore)",
             "description": "Configure .git/hooks/pre-commit to run make -C src/agents_wars quality. Connected to: agent-wars merge ticket. Type: chore",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
             "title": "Add CI step to run agent_wars check (ci)",
             "description": "Ensure CI runs make -C src/agents_wars check. Connected to: agent-wars merge ticket. Type: ci",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
             "title": "Integration test: cascade delete on Message->Conversation (test)",
             "description": "Add a Vitest integration test to assert deleting a Conversation cascades to Messages. Connected to: agent-wars merge ticket. Type: test",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -574,7 +592,7 @@
         "title": "Tests: Integration/E2E for /api/llm/chat (SSE + JSON)",
         "description": "Add integration tests for the chat Route Handler: validate zod errors (400), JSON path, and SSE streaming with assembled deltas. Connected to Task 2 (provider/API). Type: backend",
         "priority": "medium",
-        "status": "review",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -614,13 +632,40 @@
             "title": "ProviderModelSelector",
             "description": "Controlled component for provider+model with basic validation",
             "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "GET /api/config/provider-status",
+            "description": "Return non-sensitive flags: { openaiConfigured, openrouterConfigured, allowedModels } for client banner/selector. Use getConfig() and never expose keys.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 12
+          },
+          {
+            "id": 4,
+            "title": "KeyStatusBanner component",
+            "description": "Client component that fetches /api/config/provider-status and renders warnings when keys are missing; no secrets displayed.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 12
+          },
+          {
+            "id": 5,
+            "title": "Extract ProviderModelSelector",
+            "description": "Refactor provider/model controls from /debug/llm page into a reusable controlled component with basic validation and allowedModels support.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 12
           }
         ]
       }
     ],
     "metadata": {
       "created": "2025-08-11T14:34:00.374Z",
-      "updated": "2025-08-13T12:45:24.512Z",
+      "updated": "2025-08-13T13:40:00.433Z",
       "description": "Tasks for agent-wars context"
     }
   }

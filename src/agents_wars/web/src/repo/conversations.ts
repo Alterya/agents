@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from "@/lib/prisma";
 
 type CreateConversationInput = {
   agentId: string;
@@ -22,20 +22,40 @@ export async function createConversation(input: CreateConversationInput) {
 
 export async function appendMessage(
   conversationId: string,
-  data: { role: 'system' | 'user' | 'assistant' | 'tool'; content: string; tokensIn?: number; tokensOut?: number; costUsd?: number }
+  data: {
+    role: "system" | "user" | "assistant" | "tool";
+    content: string;
+    tokensIn?: number;
+    tokensOut?: number;
+    costUsd?: number;
+  },
 ) {
   return prisma.$transaction(async (tx) => {
     const msg = await tx.message.create({
-      data: { conversationId, role: data.role, content: data.content, tokensIn: data.tokensIn, tokensOut: data.tokensOut, costUsd: data.costUsd },
+      data: {
+        conversationId,
+        role: data.role,
+        content: data.content,
+        tokensIn: data.tokensIn,
+        tokensOut: data.tokensOut,
+        costUsd: data.costUsd,
+      },
     });
-    await tx.conversation.update({ where: { id: conversationId }, data: { messageCount: { increment: 1 } } });
+    await tx.conversation.update({
+      where: { id: conversationId },
+      data: { messageCount: { increment: 1 } },
+    });
     return msg;
   });
 }
 
 export async function completeConversation(
   conversationId: string,
-  data: { endedReason?: 'goal' | 'limit' | 'error' | 'manual' | 'timeout'; goalReached?: boolean; endedAt?: Date }
+  data: {
+    endedReason?: "goal" | "limit" | "error" | "manual" | "timeout";
+    goalReached?: boolean;
+    endedAt?: Date;
+  },
 ) {
   return prisma.conversation.update({
     where: { id: conversationId },
@@ -46,5 +66,3 @@ export async function completeConversation(
     },
   });
 }
-
-

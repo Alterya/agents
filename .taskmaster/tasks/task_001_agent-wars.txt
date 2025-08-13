@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: Shared: Database schema and Prisma models
-# Status: done
+# Status: review
 # Dependencies: None
 # Priority: high
 # Description: Design and implement Postgres schema and Prisma models for Agent, Conversation, Message, RunReport, and PromptTemplate, including migrations, seed data for prebuilt agents, and basic data-access utilities.

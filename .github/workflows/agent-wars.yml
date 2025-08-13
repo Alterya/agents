@@ -1,0 +1,25 @@
+name: Agent Wars CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'src/agents_wars/web/package-lock.json'
+      - name: Install deps
+        run: |
+          cd src/agents_wars/web
+          npm ci
+      - name: Typecheck, lint and tests
+        run: |
+          make -C src/agents_wars check
+

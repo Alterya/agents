@@ -1,13 +1,25 @@
 /* eslint-disable no-console */
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
   const agents = [
-    { name: 'Generalist', description: 'Versatile helper', systemPrompt: 'You are a helpful generalist agent.' },
-    { name: 'Prompt Tuner', description: 'Improves prompts', systemPrompt: 'You refine prompts for clarity and effectiveness.' },
-    { name: 'Evaluator', description: 'Evaluates outputs', systemPrompt: 'You evaluate outputs for correctness and quality.' },
+    {
+      name: "Generalist",
+      description: "Versatile helper",
+      systemPrompt: "You are a helpful generalist agent.",
+    },
+    {
+      name: "Prompt Tuner",
+      description: "Improves prompts",
+      systemPrompt: "You refine prompts for clarity and effectiveness.",
+    },
+    {
+      name: "Evaluator",
+      description: "Evaluates outputs",
+      systemPrompt: "You evaluate outputs for correctness and quality.",
+    },
   ];
 
   for (const a of agents) {
@@ -18,7 +30,10 @@ async function main() {
     });
   }
 
-  console.log('Seed complete: agents upserted:', agents.map(a => a.name));
+  console.log(
+    "Seed complete: agents upserted:",
+    agents.map((a) => a.name),
+  );
 }
 
 main()
@@ -29,5 +44,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
-

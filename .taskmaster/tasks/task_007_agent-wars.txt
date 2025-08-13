@@ -182,3 +182,15 @@ Tag: frontend
 
 Tag: frontend
 
+## 6. Reuse existing /api/llm/chat as Assist backend [pending]
+### Dependencies: None
+### Description: In the /promptbro wizard, call POST /api/llm/chat for clarifying Q&A instead of adding a new endpoint. Keep prompts client-side and avoid secrets.
+### Details:
+
+
+## 7. Add repo readers for prompt templates [pending]
+### Dependencies: None
+### Description: Implement listPromptTemplates() and getPromptTemplateByName() in src/repo/promptTemplates.ts and surface them to the wizard for listing/restoring drafts.
+### Details:
+
+

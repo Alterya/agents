@@ -23,3 +23,21 @@
 ### Details:
 
 
+## 3. GET /api/config/provider-status [pending]
+### Dependencies: None
+### Description: Return non-sensitive flags: { openaiConfigured, openrouterConfigured, allowedModels } for client banner/selector. Use getConfig() and never expose keys.
+### Details:
+
+
+## 4. KeyStatusBanner component [pending]
+### Dependencies: None
+### Description: Client component that fetches /api/config/provider-status and renders warnings when keys are missing; no secrets displayed.
+### Details:
+
+
+## 5. Extract ProviderModelSelector [pending]
+### Dependencies: None
+### Description: Refactor provider/model controls from /debug/llm page into a reusable controlled component with basic validation and allowedModels support.
+### Details:
+
+

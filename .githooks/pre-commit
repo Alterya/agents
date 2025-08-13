@@ -1,3 +1,9 @@
+#!/bin/bash
+set -euo pipefail
+
+echo "Running Agent Wars quality gate..."
+make -C src/agents_wars quality
+make -C src/agents_wars test
 #!/usr/bin/env bash
 set -euo pipefail
 

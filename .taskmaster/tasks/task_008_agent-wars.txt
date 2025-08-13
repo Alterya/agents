@@ -17,19 +17,19 @@
 ### Details:
 
 
-## 2. Add pre-commit hook to run make quality (chore) [pending]
+## 2. Add pre-commit hook to run make quality (chore) [done]
 ### Dependencies: None
 ### Description: Configure .git/hooks/pre-commit to run make -C src/agents_wars quality. Connected to: agent-wars merge ticket. Type: chore
 ### Details:
 
 
-## 3. Add CI step to run agent_wars check (ci) [pending]
+## 3. Add CI step to run agent_wars check (ci) [done]
 ### Dependencies: None
 ### Description: Ensure CI runs make -C src/agents_wars check. Connected to: agent-wars merge ticket. Type: ci
 ### Details:
 
 
-## 4. Integration test: cascade delete on Message->Conversation (test) [pending]
+## 4. Integration test: cascade delete on Message->Conversation (test) [done]
 ### Dependencies: None
 ### Description: Add a Vitest integration test to assert deleting a Conversation cascades to Messages. Connected to: agent-wars merge ticket. Type: test
 ### Details:
