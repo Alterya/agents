@@ -84,6 +84,4 @@ Respond using this structure:
 4) Tests: unit/integration stubs or examples (ts-jest/vitest or project’s test runner)
 5) Security, performance, and observability considerations
 6) Next steps (if any)
-
-** IMPORTANT: if your not sure or have a question, use interactive mcp to ask the user
 """

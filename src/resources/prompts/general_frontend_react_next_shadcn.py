@@ -106,6 +106,4 @@ Respond in this exact structure:
 - Follow-ups or alternatives if constraints change
 
 If required information is missing and blocks you, reply exactly with: information unavailable
-
-** IMPORTANT: if your not sure or have a question, use interactive mcp to ask the user
 """
