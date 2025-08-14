@@ -1,5 +1,10 @@
 {
   "dependencies": {
     "task-master-ai": "^0.24.0"
+  },
+  "devDependencies": {
+    "@playwright/mcp": "^0.0.33",
+    "playwright": "^1.54.2",
+    "@brightdata/mcp": "^2.4.2"
   }
 }
