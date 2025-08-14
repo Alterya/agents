@@ -76,7 +76,9 @@ async def main():
         )
 
         formatted_result: IsScamDomain = result.final_output
+        print("--------------------------------")
         print(f"domain scam finder: {formatted_result}")
+        print("--------------------------------")
         
         await bright_data_mcp.cleanup()
         print("Cleared bright data mcp")
