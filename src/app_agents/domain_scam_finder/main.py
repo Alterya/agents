@@ -13,6 +13,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+IS_DOMAIN_INVESTMENT_PROMPT = "You're a professional domain type tagger that knows how to tag a domain based on the information you're getting. your input is a domain name, and you return 'true' if this domains is an investemnt type domain (offers you to invest money or crypto for yields) or 'false' if not. use the playwright-mcp to get the information about the domain, and the playwright_mcp to get the information about the domain. YOU must use the playwright mcp and you MUST answer only in the format 'true' or 'false' or 'error' if you couldst access the site.",
+IS_DOMAIN_SCAM_PROMPT = "You're a professional domain scam finder that knows how to find scams based just on the bright_data mcp capabilities. your input is a domain name, and you return 'true' if this domains is a scam, 'false' if not, unknown if you couldst access the site or couldst determent (no indications). use the bright_data mcp to get the information about the domain and to determen if its a scam or not, use all capabilites of the bright_data_mcp for this task (if needed), YOU must use the bright_data mcp and you MUST answer 'true' or 'false' or 'error', and also add all you reasoning for your decision into the relevant field.",
+
+
 class IsInvestmentTypeDomain(str, Enum):
     TRUE = "true"
     FALSE = "false"
@@ -38,7 +42,7 @@ async def main():
     domain_type_tagger = Agent(
         name="domain type tagger",
         model="gpt-5",
-        instructions="You're a professional domain type tagger that knows how to tag a domain based on the information you're getting. your input is a domain name, and you return 'true' if this domains is an investemnt type domain (offers you to invest money or crypto for yields) or 'false' if not. use the playwright-mcp to get the information about the domain, and the playwright_mcp to get the information about the domain. YOU must use the playwright mcp and you MUST answer only in the format 'true' or 'false' or 'error' if you couldst access the site.",
+        instructions=IS_DOMAIN_INVESTMENT_PROMPT,
         mcp_servers=[playwright_mcp],
         output_type=IsInvestmentTypeDomain,
     )
@@ -60,7 +64,7 @@ async def main():
         domain_scam_finder = Agent(
         name="domain scam finder",
         model="gpt-5",
-        instructions="You're a professional domain scam finder that knows how to find scams based just on the bright_data mcp capabilities. your input is a domain name, and you return 'true' if this domains is a scam, 'false' if not, unknown if you couldst access the site or couldst determent (no indications). use the bright_data mcp to get the information about the domain and to determen if its a scam or not, use all capabilites of the bright_data_mcp for this task (if needed), YOU must use the bright_data mcp and you MUST answer 'true' or 'false' or 'error', and also add all you reasoning for your decision into the relevant field.",
+        instructions=IS_DOMAIN_SCAM_PROMPT,
         mcp_servers=[bright_data_mcp],
         output_type=IsScamDomain,
     )
