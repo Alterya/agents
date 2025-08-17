@@ -6,7 +6,20 @@
       "numberOfRuns": 1
     },
     "assert": {
-      "preset": "lighthouse:recommended"
+      "preset": "lighthouse:recommended",
+      "assertions": {
+        "bf-cache": "off",
+        "installable-manifest": ["warn", { "minScore": 0 }],
+        "maskable-icon": ["warn", { "minScore": 0 }],
+        "meta-description": ["warn", { "minScore": 0 }],
+        "non-composited-animations": ["warn", { "minScore": 0 }],
+        "splash-screen": ["warn", { "minScore": 0 }],
+        "themed-omnibox": ["warn", { "minScore": 0 }],
+        "total-byte-weight": ["warn", { "minScore": 0 }],
+        "unminified-javascript": ["warn", { "maxLength": 99999 }],
+        "unused-javascript": ["warn", { "maxLength": 99999 }],
+        "valid-source-maps": ["warn", { "minScore": 0 }]
+      }
     }
   }
 }

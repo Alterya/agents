@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: Shared: LLM provider abstraction (OpenAI + OpenRouter) with unified chat and cost/safety guards
-# Status: review
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Create a provider layer that unifies chat completion across OpenAI and OpenRouter, exposing a single interface with model selection, token caps, and basic rate limiting. Include retries and optional streaming support.
@@ -116,7 +116,7 @@ Pre-commit enforcement
 - Security: Ensure no PII/logging of prompt content beyond hashes in tests.
 
 # Subtasks:
-## 1. Implement provider interface and adapters (OpenAI + OpenRouter) [review]
+## 1. Implement provider interface and adapters (OpenAI + OpenRouter) [done]
 ### Dependencies: None
 ### Description: Create a unified chat() using OpenAI Node SDK v4 for both OpenAI and OpenRouter, supporting non-streaming and optional streaming, with normalized response mapping.
 ### Details:
@@ -132,7 +132,7 @@ Plan for 2.1:
 - Typecheck and simple smoke test later.
 
 
-## 2. Add cost/safety guards, rate limiting, and retries [review]
+## 2. Add cost/safety guards, rate limiting, and retries [done]
 ### Dependencies: 2.1
 ### Description: Enforce token and message caps, model whitelist, basic in-memory rate limiting, exponential backoff retries on 429/5xx, and prompt redaction before logging.
 ### Details:

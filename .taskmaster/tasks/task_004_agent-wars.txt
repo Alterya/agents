@@ -96,7 +96,7 @@ Pre-commit enforcement
 - Navigation: clicking nodes routes to target pages.
 
 # Subtasks:
-## 1. Implement landing page UI with 3D scene and interactive graph [pending]
+## 1. Implement landing page UI with 3D scene and interactive graph [in-progress]
 ### Dependencies: None
 ### Description: Create the Next.js App Router page at '/' with TailwindCSS and shadcn/ui. Dynamically import client-only 3D Scene and ForceGraph components to avoid SSR. Build a minimal React Three Fiber v9 scene (drei helpers, ambient light, a few animated primitives or small glTF, no postprocessing) and a react-force-graph 2D graph (~20 nodes) with hover tooltips and onNodeClick routing to /hub, /scale, /promptbro. Apply blue futuristic theme (CSS variables, gradient text, backdrop-blur panels) and basic a11y (reduced motion support).
 ### Details:
@@ -104,7 +104,7 @@ Deliverables: 1) app/(marketing)/page.tsx with hero + placeholders; 2) component
 
 Tag: frontend
 
-## 2. Performance and UX polish (lazy load, DPR, throttling, budgets) [pending]
+## 2. Performance and UX polish (lazy load, DPR, throttling, budgets) [in-progress]
 ### Dependencies: 4.1
 ### Description: Optimize rendering and loading: lazy load heavy components with Suspense fallbacks; tune devicePixelRatio based on container size and hardware; throttle animations; set frameloop to 'demand' where possible; configure Lighthouse performance budget; ensure reduced motion disables intensive updates.
 ### Details:
@@ -135,4 +135,58 @@ Tag: frontend
 Deliverables: /docs/landing-3d-graph.md with: 1) Version pins and changelog notes impacting SSR or perf; 2) R3F best practices (frameloop, DPR, suspense, mobile controls); 3) react-force-graph perf tips (cooldownTicks, nodeCanvasObject, link pruning, hover/tooltip patterns); 4) Next.js dynamic import patterns for client-only libs; 5) Accessibility and reduced-motion considerations. Link primary sources.
 
 Tag: frontend
+
+## 6. NodeGraph interactivity: tooltips and onNodeClick routing [pending]
+### Dependencies: None
+### Description: Add hover tooltips and onNodeClick handlers in `src/components/NodeGraph.tsx` to route to `/hub`, `/scale`, `/promptbro` per node mapping. Ensure keyboard accessibility and focus styles. Connected to: Task 4 (Landing page). Type: feat
+### Details:
+
+
+## 7. Tailwind CSS setup and shadcn/ui baseline [in-progress]
+### Dependencies: None
+### Description: Install and configure Tailwind CSS (tailwindcss, postcss, autoprefixer), create `tailwind.config.ts`, `postcss.config.js`, and global stylesheet import in `app/layout.tsx`. Optionally initialize shadcn/ui tokens and primitives. Migrate landing page inline styles to Tailwind. Connected to: Task 4 (Landing page). Type: chore
+### Details:
+
+
+## 8. A11y and performance checks for landing [pending]
+### Dependencies: None
+### Description: Add Playwright a11y test for `/` and ensure Lighthouse CI budgets/thresholds are updated for the new 3D/graph content. Confirm reduced-motion path via test. Connected to: Task 4 (Landing page). Type: test/perf
+### Details:
+
+
+## 9. Type-safety wrapper for react-force-graph-2d [pending]
+### Dependencies: None
+### Description: Create a typed wrapper or module declaration to eliminate `any` in `NodeGraph` by adding a `react-force-graph-2d` module declaration or a minimal typed adapter component. Connected to: Task 4 (Landing page). Type: chore
+### Details:
+
+
+## 10. Dependency audit and bundle impact note [pending]
+### Dependencies: None
+### Description: Run `npm audit` and document any high/critical issues from newly added 3D/graph deps; add a short docs note on bundle impact and lazy-loading strategy. Connected to: Task 4 (Landing page). Type: chore/perf
+### Details:
+
+
+## 11. Install and configure 3D/graph dependencies [pending]
+### Dependencies: None
+### Description: Add @react-three/fiber, @react-three/drei, react-force-graph; ensure dynamic import with ssr:false for client-only components; set basic perf defaults.
+### Details:
+
+
+## 12. Harden CSP with Next headers and nonces [pending]
+### Dependencies: None
+### Description: Replace temporary meta CSP with a robust CSP via Next.js headers (or middleware) using nonces for inline scripts/styles. Ensure Lighthouse CSP-XSS passes. Connected to Task 4 (Landing page). Type: security
+### Details:
+
+
+## 13. E2E: Graph node navigation routes correctly [pending]
+### Dependencies: None
+### Description: Add Playwright test that clicks graph nodes and verifies navigation to /hub, /scale, and /promptbro. Include reduced-motion preference scenario. Connected to: Task 4 (Landing page). Type: test/e2e
+### Details:
+
+
+## 14. Docs: Landing visuals and performance rationale [pending]
+### Dependencies: None
+### Description: Add README section documenting 3D/graph lazy-loading strategy, reduced-motion handling, performance budgets, and instructions to configure Tailwind/shadcn. Connected to: Task 4 (Landing page). Type: docs
+### Details:
+
 

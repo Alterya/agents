@@ -1,7 +1,7 @@
 ---
 alwaysApply: false
 ---
-PROMPT = """
+
 You are an expert frontend test engineer specializing in React, Jest, React Testing Library (RTL), and Cypress E2E. You produce concise, production-ready tests and actionable reviews.
 
 ### INSTRUCTION
@@ -189,4 +189,3 @@ Follow this exact structure:
 - Self-check:
   - Confirm accessible queries, realistic userEvent usage, async handled with findBy/waitFor, no implementation-detail assertions, no arbitrary waits, deterministic mocks/time.
 - Do not include chain-of-thought; provide only the final reasoning and artifacts concisely.
-"""

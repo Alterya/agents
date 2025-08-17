@@ -122,7 +122,7 @@ Pre-commit enforcement
 - UX: Playwright flow through steps, save, and restore template.
 
 # Subtasks:
-## 1. Build /promptbro wizard UI and Assist API [pending]
+## 1. Build /promptbro wizard UI and Assist API [done]
 ### Dependencies: None
 ### Description: Implement the guided prompt creator page with a multi-step wizard, live preview, and an assist endpoint that asks clarifying questions. Enable saving prompts as PromptTemplates and listing existing templates.
 ### Details:
@@ -182,13 +182,13 @@ Tag: frontend
 
 Tag: frontend
 
-## 6. Reuse existing /api/llm/chat as Assist backend [pending]
+## 6. Reuse existing /api/llm/chat as Assist backend [done]
 ### Dependencies: None
 ### Description: In the /promptbro wizard, call POST /api/llm/chat for clarifying Q&A instead of adding a new endpoint. Keep prompts client-side and avoid secrets.
 ### Details:
 
 
-## 7. Add repo readers for prompt templates [pending]
+## 7. Add repo readers for prompt templates [done]
 ### Dependencies: None
 ### Description: Implement listPromptTemplates() and getPromptTemplateByName() in src/repo/promptTemplates.ts and surface them to the wizard for listing/restoring drafts.
 ### Details:

@@ -149,3 +149,9 @@ Background jobs: compare p-queue/in-memory vs BullMQ/Bree for persistence; start
 
 Tag: frontend
 
+## 6. Hook Scale UI to batch run APIs [pending]
+### Dependencies: None
+### Description: Use /api/scale/start and /api/scale/:runId/status to run N conversations and show progress; leave summarization to 6.2.
+### Details:
+
+

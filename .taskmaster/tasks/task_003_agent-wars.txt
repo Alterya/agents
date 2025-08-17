@@ -1,6 +1,6 @@
 # Task ID: 3
 # Title: Shared: Background execution APIs for battles and batch runs with persistence and streaming updates
-# Status: pending
+# Status: in-progress
 # Dependencies: 1, 2
 # Priority: high
 # Description: Implement Next.js Route Handlers to start and monitor battles and scale tests. Provide an in-process runner by default with optional BullMQ+Redis when REDIS_URL is set. Persist conversations and messages; expose polling and basic SSE endpoints.
@@ -119,7 +119,7 @@ Quality-Gate Loop
 - Performance: Verify caps prevent runaway costs; simulate 10-run scale test completes under timeouts.
 
 # Subtasks:
-## 1. Implement server runners: runBattle and runScaleTest with persistence and goal-check [pending]
+## 1. Implement server runners: runBattle and runScaleTest with persistence and goal-check [done]
 ### Dependencies: None
 ### Description: Build server-only runners that execute battles and scale tests, persist conversations/messages, and determine termination via goal or message limit.
 ### Details:
@@ -151,11 +151,71 @@ Set up Vitest for unit/integration tests; add route contract tests and provider 
 
 Tag: backend
 
-## 5. Context7 MCP research: queue, Redis, and Next.js streaming trade-offs [pending]
+## 5. Context7 MCP research: queue, Redis, and Next.js streaming trade-offs [in-progress]
 ### Dependencies: None
 ### Description: Research external packages/libraries and platform constraints to finalize defaults and document decisions.
 ### Details:
 Produce an ADR summarizing: (1) In-memory queue vs BullMQ on Vercel (cold starts, multi-instance, durability, cost); (2) Upstash Redis specifics (connection limits, TLS, BullMQ compat, recommended settings, TTLs); (3) Next.js Route Handlers streaming constraints (Node runtime only for SSE, edge incompatibilities, buffering, headers); (4) Polling fallback cadence and backoff; (5) p-queue configuration guidance and operational caps; (6) Retry strategies for LLM providers and rate limiting considerations. Include recommended defaults and code snippets to align implementation.
 
 Tag: backend
+
+## 6. API route design and in-memory job orchestration [pending]
+### Dependencies: None
+### Description: Define endpoints: POST /api/battles/start, GET /api/battles/:id/status (SSE); POST /api/scale/start, GET /api/scale/:runId/status. Use in-process job store by default; enable BullMQ when REDIS_URL is set. Wire to runBattle/runScaleTest.
+### Details:
+
+
+## 7. Input validation and idempotency [pending]
+### Dependencies: None
+### Description: Add zod schemas for request bodies; dedupe by client-provided runId/jobId; add abort/timeout handling and caps via existing guardrails.
+### Details:
+
+
+## 8. Persisted battle runner wired to LLM provider + Prisma [pending]
+### Dependencies: None
+### Description: Integrate runBattle with chat provider and persist Conversation/Message; stream interim deltas to clients. Connected to Task 3. Type: backend
+### Details:
+
+
+## 9. Optional BullMQ adapter (REDIS_URL) + concurrency limits [pending]
+### Dependencies: None
+### Description: Add BullMQ queue if REDIS_URL is set; fallback to in-memory. Enforce concurrency per provider:model. Connected to Task 3. Type: backend
+### Details:
+
+
+## 10. Runner timeouts/abort (REQUEST_TIMEOUT_MS) → 504 [pending]
+### Dependencies: None
+### Description: Abort long runs using AbortController with REQUEST_TIMEOUT_MS; surface 504 and clean up listeners. Connected to Task 3. Type: backend
+### Details:
+
+
+## 11. Budget caps + persist usage/cost on Message/Conversation [pending]
+### Dependencies: None
+### Description: Enforce per-request/session USD caps; persist tokens and cost fields on Message; aggregate on Conversation. Connected to Task 3. Type: backend
+### Details:
+
+
+## 12. Rate-limit POST /api/battles/start + tests [pending]
+### Dependencies: None
+### Description: Apply rate limit window to start endpoint and add unit tests for blocking/allowing windows. Connected to Task 3. Type: backend
+### Details:
+
+
+## 13. Zod validation + error mapping for battle endpoints [pending]
+### Dependencies: None
+### Description: Validate inputs for start/status/cancel/stream; map errors to 400/404/429/502 consistently. Connected to Task 3. Type: backend
+### Details:
+
+
+## 14. E2E Playwright SSE smoke for /api/battles/stream (mocked) [pending]
+### Dependencies: None
+### Description: Add Playwright test with route interception/MSW to validate streaming flow and a11y smoke. Connected to Task 3. Type: backend
+### Details:
+
+
+## 15. Observability: request IDs and basic metrics/logging [pending]
+### Dependencies: None
+### Description: Add request IDs to routes and log runner lifecycle; add minimal counters/timers. Connected to Task 3. Type: backend
+### Details:
+
 

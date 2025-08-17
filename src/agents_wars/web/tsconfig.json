@@ -7,6 +7,8 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "lib": ["dom", "dom.iterable", "esnext"],
+    "target": "es2017",
+    "downlevelIteration": true,
     "skipLibCheck": true,
     "paths": {
       "@/*": ["src/*"]

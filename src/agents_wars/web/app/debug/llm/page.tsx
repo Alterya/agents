@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { KeyStatusBanner } from "@/components/KeyStatusBanner";
+import { ProviderModelSelector } from "@/components/ProviderModelSelector";
 
 type Msg = { role: "system" | "user" | "assistant" | "tool"; content: string };
 
@@ -46,30 +48,16 @@ export default function LlmDebugPage() {
   return (
     <main className="space-y-4 p-6">
       <h1 className="text-xl font-semibold">LLM Debug</h1>
+      <KeyStatusBanner />
       <form onSubmit={onSubmit} className="space-y-2">
-        <div className="space-x-2">
-          <label>
-            Provider
-            <select
-              value={provider}
-              onChange={(e) => setProvider(e.target.value as any)}
-              className="ml-2 border p-1"
-            >
-              <option value="openai">openai</option>
-              <option value="openrouter">openrouter</option>
-            </select>
-          </label>
-        </div>
-        <div>
-          <label>
-            Model
-            <input
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="ml-2 border p-1"
-            />
-          </label>
-        </div>
+        <ProviderModelSelector
+          provider={provider}
+          model={model}
+          onChange={(next) => {
+            setProvider(next.provider);
+            setModel(next.model);
+          }}
+        />
         <div>
           <label>
             Prompt

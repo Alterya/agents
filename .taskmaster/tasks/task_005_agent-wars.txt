@@ -151,3 +151,9 @@ Produce docs/hub-research.md summarizing: shadcn/ui component APIs used (Select,
 
 Tag: frontend
 
+## 6. Hook Hub UI to background APIs [pending]
+### Dependencies: None
+### Description: Use new /api/battles/* endpoints to create and monitor sessions; render live conversations using polling or SSE.
+### Details:
+
+

@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: Shared: Database schema and Prisma models
-# Status: review
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Design and implement Postgres schema and Prisma models for Agent, Conversation, Message, RunReport, and PromptTemplate, including migrations, seed data for prebuilt agents, and basic data-access utilities.
@@ -237,7 +237,7 @@ Quality-Gate Loop (pre-commit enforced)
 - Rollback: Test down migration and re-apply without data loss for non-critical fields.
 
 # Subtasks:
-## 1. Implement Prisma schema and initial migration [review]
+## 1. Implement Prisma schema and initial migration [done]
 ### Dependencies: None
 ### Description: Define Prisma v5 schema for Agent, Conversation, Message, RunReport, and PromptTemplate with enums, relations, indexes, defaults, and cascade rules. Generate the initial migration and Prisma Client.
 ### Details:
@@ -280,7 +280,7 @@ Non-Docker setup for Prisma (macOS/local):
 When DB is configured, I will run migrate + seed and complete 1.1.
 
 
-## 2. Seed prebuilt agents and implement minimal repository helpers [review]
+## 2. Seed prebuilt agents and implement minimal repository helpers [done]
 ### Dependencies: 1.1
 ### Description: Add seed script to insert 3–5 prebuilt Agents with distinct personas, and implement lightweight data-access utilities for common operations.
 ### Details:
@@ -297,7 +297,7 @@ Tasks:
 
 Tag: backend
 
-## 3. Cleanup and alignment with MVP [review]
+## 3. Cleanup and alignment with MVP [done]
 ### Dependencies: 1.1, 1.2
 ### Description: Remove unused sample data, confirm nullable fields and defaults match usage, verify cascade behavior and indexes, and adjust schema if needed.
 ### Details:
@@ -309,7 +309,7 @@ Tasks:
 
 Tag: backend
 
-## 4. Quality gate: scripts, generate client, typecheck, lint, and repository tests [review]
+## 4. Quality gate: scripts, generate client, typecheck, lint, and repository tests [done]
 ### Dependencies: 1.1, 1.2, 1.3
 ### Description: Add package scripts, ensure Prisma Client generation, and run typecheck/lint plus Vitest repository tests against a test Postgres.
 ### Details:
@@ -322,7 +322,7 @@ Tasks:
 
 Tag: backend
 
-## 5. Context7 MCP research: Prisma v5 + serverless Postgres pooling [review]
+## 5. Context7 MCP research: Prisma v5 + serverless Postgres pooling [done]
 ### Dependencies: None
 ### Description: Research and document best practices for Prisma v5 with Postgres on Neon/Supabase/Vercel, focusing on connection pooling and environment configuration.
 ### Details:
@@ -348,7 +348,7 @@ Prisma v5 + serverless Postgres pooling notes saved to .taskmaster/docs/research
 - Consider Accelerate/Data Proxy for Edge.
 
 
-## 6. Makefile: lint, format, typecheck, unit, e2e, prisma, check, ci [review]
+## 6. Makefile: lint, format, typecheck, unit, e2e, prisma, check, ci [done]
 ### Dependencies: None
 ### Description: Create a Makefile to orchestrate local and CI commands for lint/format/typecheck/tests/e2e and Prisma utilities.
 ### Details:
