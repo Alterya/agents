@@ -45,3 +45,13 @@ async def main():
         # California
 ```
 ###########
+
+### tools:
+openai build in ones. 
+The WebSearchTool lets an agent search the web.
+The FileSearchTool allows retrieving information from your OpenAI Vector Stores.
+The ComputerTool allows automating computer use tasks.
+The CodeInterpreterTool lets the LLM execute code in a sandboxed environment.
+The HostedMCPTool exposes a remote MCP server's tools to the model.
+The ImageGenerationTool generates images from a prompt.
+The LocalShellTool runs shell commands on your machine.

@@ -150,3 +150,8 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/ 
+
+
+src/app_agents/domain_scam_finder/domain_scam_finder.csv
+src/app_agents/prompt_creator/input.txt
+src/app_agents/prompt_creator/output.md
