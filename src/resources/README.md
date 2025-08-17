@@ -8,6 +8,10 @@ ALSO USE
 * The agent loop - inner agent conversation loop
 * run_config - read more about global config per agent
 
+* see in the run result for different actions history while running like all the tools and etc...
+
+* you can stream the result, mainly for user to see the output - token by token or per event.
+
 ############
 * Model Setting - 
 ```
