@@ -5,7 +5,8 @@ MCP = MCPServerStdio(  # <-- our stdio subprocess
             "command": "playwright-mcp",
             "args": [
                 "--isolated",
-            ],
+                "--headless"
+            ]
         },
         client_session_timeout_seconds=300,
     )
