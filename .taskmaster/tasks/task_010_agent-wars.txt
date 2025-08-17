@@ -1,0 +1,25 @@
+# Task ID: 10
+# Title: UI: Debug page to exercise LLM provider API
+# Status: done
+# Dependencies: None
+# Priority: low
+# Description: Add a minimal Next.js page to POST to /api/llm/chat (non-stream and SSE) to validate provider/guards end-to-end. Connected to agent-wars Task 2 (provider). Type: frontend
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. Create /debug/llm page [done]
+### Dependencies: None
+### Description: Form for provider/model/messages; invoke API; render response or streamed text
+### Details:
+
+
+## 2. Error handling and validation [done]
+### Dependencies: None
+### Description: Show validation errors and rate limit messages; no secrets in UI
+### Details:
+
+

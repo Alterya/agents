@@ -1,7 +1,7 @@
 # Task ID: 6
 # Title: Page: Scale Testing for batch runs and summarized report
 # Status: pending
-# Dependencies: 1, 2, 3
+# Dependencies: None
 # Priority: medium
 # Description: Provide a Scale Testing page to configure model/system prompt/run count, select an Agent, execute N background conversations, persist results, and display a summarized RunReport including failures, prompt issues, and a revised prompt.
 # Details:
@@ -93,6 +93,14 @@ Summarizer output policy
   - If any required fact or tool result is unavailable, do not fabricate; set the affected field(s) to the exact string "information unavailable".
 - Add unit tests asserting the prompt builder includes these rules, the parser rejects extra freeform reasoning, enforces rationale length, and correctly handles "information unavailable" values.
 </info added on 2025-08-12T08:51:17.979Z>
+<info added on 2025-08-12T09:13:05.976Z>
+Quality-Gate Loop
+- Cleanup: remove dead/unused files and commented code; update .gitignore (e.g., coverage/, .vite/, .turbo/, playwright-report/, test-results/, .lhci/, .DS_Store) and README (Scale page usage, evaluator flags, budget caps, pre-commit hook).
+- Self-Review: inspect the diff and verify each subtask is implemented and sane (UI /scale form + progress and links; start/status/report APIs; summarizer with structured JSON and rationale ≤100 words; cleanup/resilience guards; evaluation/reporting extensions; budget/concurrency controls; tooling/CI additions).
+- Git add & commit: group logical changes per subtask; write descriptive, scoped commit messages (e.g., scale, api, eval, ui, ci); DO NOT PUSH.
+- Pre-commit enforcement: add a repo pre-commit hook that runs make quality and make test; block commit on failure.
+- Makefile targets: quality runs lint, format:check, and typecheck; test runs Vitest unit+integration with MSW (no E2E) to keep the hook fast.
+</info added on 2025-08-12T09:13:05.976Z>
 
 # Test Strategy:
 - Unit: Summarizer prompt builder outputs deterministic structure.
@@ -107,11 +115,15 @@ Summarizer output policy
 ### Details:
 UI: /scale page (shadcn/ui) with fields provider, model, agentId, systemPrompt, goal (optional), runCount (1–10). Validate with zod, disable submit while running, and persist runId in state. APIs: POST /api/scale/start -> { runId }; GET /api/scale/:runId/status -> { status, completed, total, conversationIds }; GET /api/scale/:runId/report -> { summary, revisedPrompt, stats }. Orchestration: on start, launch up to N conversations concurrently using existing agent/conversation services; persist Conversation/Message rows; maintain an in-memory registry for run status and per-run conversationIds; mark complete when all settle. UI: poll status every 1–2s, show progress bar and per-run conversation links; on completion, fetch report and render summary and revised prompt with copy-to-clipboard.
 
+Tag: frontend
+
 ## 2. Summarization workflow and RunReport persistence [pending]
 ### Dependencies: 6.1
 ### Description: Compile results from completed runs, invoke LLM summarizer, extract a revised prompt, and store a RunReport for retrieval.
 ### Details:
 Build runsLite payload: for each conversation include agent/model, goal, goalReached, endedReason, error messages, and trimmed messages/meta (token-capped). Summarizer: call provider abstraction with a system prompt (PromptBro Analyst) producing sections: failure modes, hallucinations, goal failures, character inconsistency, and a revised prompt with rationale; cap maxTokens (e.g., 512), low temperature, retries/backoff. Enforce structured JSON output for reliable parsing; extract revisedPrompt and rationale. Persist RunReport { runId, summary, revisedPrompt, stats (success/fail counts, token/cost if available) }. Expose via GET /api/scale/:runId/report.
+
+Tag: backend
 
 ## 3. Cleanup and resilience for Scale runs [pending]
 ### Dependencies: 6.1
@@ -119,15 +131,27 @@ Build runsLite payload: for each conversation include agent/model, goal, goalRea
 ### Details:
 Client: disable Start while running; include idempotencyKey on POST; add beforeunload guard during active runs; clear polling intervals on unmount; abort in-flight fetches on route change. Server: enforce runCount cap (<=10) with 400 on violation; honor idempotencyKey to return existing runId; timeouts and safe error shaping; tolerate server restarts by recomputing status from DB when possible and falling back to registry.
 
+Tag: frontend
+
 ## 4. Quality Gate: tests, lint, typecheck, and E2E [pending]
 ### Dependencies: 6.1, 6.2, 6.3
 ### Description: Add comprehensive tests and CI checks to ensure reliable behavior from configuration to final report.
 ### Details:
 Unit: form validation (caps/errors), summarizer prompt builder/parser, revised prompt extractor, endpoint schema validators. Integration: mocked scale run that progresses deterministically and returns a fixed summary; validate UI renders progress, per-run links, and final report. UI snapshot: summary and revised prompt blocks. E2E (Playwright): configure 5 runs, observe progress to completion, assert revised prompt rendered and copy-to-clipboard works. CI: run lint (ESLint), format (Prettier), and tsc typecheck.
 
+Tag: frontend
+
 ## 5. Context7 MCP research: libraries and patterns [pending]
 ### Dependencies: None
 ### Description: Research external packages and patterns for background orchestration, token budgeting, summarization prompting, and progress UI to inform implementation.
 ### Details:
 Background jobs: compare p-queue/in-memory vs BullMQ/Bree for persistence; start with in-memory, plan BullMQ if needed. Token estimation: js-tiktoken or gpt-tokenizer to budget/truncate runsLite; design to sample/trim messages. Summarization prompts: structured JSON output, avoid chain-of-thought, include concise rationale; fallback strategies when over token budget. UI progress patterns: shadcn/ui Progress/Table, polling vs SSE (begin with polling). Validation and DX: zod for schemas, superjson if needed for rich data, navigator.clipboard with copy-to-clipboard fallback. Document decisions and snippets for adoption.
+
+Tag: frontend
+
+## 6. Hook Scale UI to batch run APIs [pending]
+### Dependencies: None
+### Description: Use /api/scale/start and /api/scale/:runId/status to run N conversations and show progress; leave summarization to 6.2.
+### Details:
+
 

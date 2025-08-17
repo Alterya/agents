@@ -9,63 +9,63 @@ WEB_DIR := web
         a11y lhci check ci
 
 install:
-	cd $(WEB_DIR) && pnpm install
+	cd $(WEB_DIR) && npm install
 	git config core.hooksPath .githooks || true
 	chmod +x .githooks/pre-commit || true
 
 dev:
-	cd $(WEB_DIR) && pnpm dev
+	cd $(WEB_DIR) && npm run dev
 
 build:
-	cd $(WEB_DIR) && pnpm build
+	cd $(WEB_DIR) && npm run build
 
 typecheck:
-	cd $(WEB_DIR) && pnpm typecheck
+	cd $(WEB_DIR) && npm run typecheck
 
 lint:
-	cd $(WEB_DIR) && pnpm lint
+	cd $(WEB_DIR) && npm run lint
 
 lint-fix:
-	cd $(WEB_DIR) && pnpm lint:fix
+	cd $(WEB_DIR) && npm run lint:fix
 
 format:
-	cd $(WEB_DIR) && pnpm format
+	cd $(WEB_DIR) && npm run format
 
 format-check:
-	cd $(WEB_DIR) && pnpm format:check
+	cd $(WEB_DIR) && npm run format:check
 
 test:
-	cd $(WEB_DIR) && pnpm test
+	cd $(WEB_DIR) && npm run test
 
 test-watch:
-	cd $(WEB_DIR) && pnpm test:watch
+	cd $(WEB_DIR) && npm run test:watch
 
 e2e:
-	cd $(WEB_DIR) && pnpm e2e
+	cd $(WEB_DIR) && npm run e2e
 
 e2e-headed:
-	cd $(WEB_DIR) && pnpm e2e:headed
+	cd $(WEB_DIR) && npm run e2e:headed
 
 prisma-format:
-	cd $(WEB_DIR) && pnpm prisma:format || true
+	cd $(WEB_DIR) && npm run prisma:format || true
 
 prisma-validate:
-	cd $(WEB_DIR) && pnpm prisma:validate || true
+	cd $(WEB_DIR) && npm run prisma:validate || true
 
 prisma-migrate:
-	cd $(WEB_DIR) && pnpm prisma:migrate || true
+	cd $(WEB_DIR) && npm run prisma:migrate || true
 
 prisma-seed:
-	cd $(WEB_DIR) && pnpm prisma:seed || true
+	cd $(WEB_DIR) && npm run prisma:seed || true
 
 prisma-studio:
-	cd $(WEB_DIR) && pnpm prisma:studio || true
+	cd $(WEB_DIR) && npm run prisma:studio || true
 
 a11y:
-	cd $(WEB_DIR) && pnpm a11y || true
+	cd $(WEB_DIR) && npm run a11y || true
 
 lhci:
-	cd $(WEB_DIR) && pnpm lhci || true
+	cd $(WEB_DIR) && npm run lhci || true
 
 quality:
 	$(MAKE) prisma-format prisma-validate typecheck lint format-check a11y lhci
@@ -74,20 +74,19 @@ check:
 	$(MAKE) prisma-format prisma-validate typecheck lint test
 
 ci:
-	cd $(WEB_DIR) && pnpm prisma:format || true
-	cd $(WEB_DIR) && pnpm prisma:validate || true
-	cd $(WEB_DIR) && pnpm typecheck
-	cd $(WEB_DIR) && pnpm lint
-	cd $(WEB_DIR) && pnpm test
-	cd $(WEB_DIR) && pnpm e2e --reporter=line || true
-	cd $(WEB_DIR) && pnpm lhci || true
+	cd $(WEB_DIR) && npm run prisma:format || true
+	cd $(WEB_DIR) && npm run prisma:validate || true
+	cd $(WEB_DIR) && npm run typecheck
+	cd $(WEB_DIR) && npm run lint
+	cd $(WEB_DIR) && npm run test
+	cd $(WEB_DIR) && npm run e2e --reporter=line || true
+	cd $(WEB_DIR) && npm run lhci || true
 
 start:
-	docker compose up -d
 	$(MAKE) prisma-migrate prisma-seed || true
 	$(MAKE) dev
 
 stop:
-	docker compose down -v
+	@echo "No docker in this setup."
 
 

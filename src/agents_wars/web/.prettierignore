@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+coverage
+coverage/**
+coverage/.tmp
+*.png
+*.ico
+
+coverage/
+.lighthouseci/
+test-results/

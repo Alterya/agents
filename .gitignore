@@ -149,3 +149,13 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/ 
+
+docker-compose.yml
+
+# Backup files
+.cursor/*.bak
+.taskmaster/*.bak
+.taskmaster/tasks/*.bak
+
+# Agent Wars web coverage output
+src/agents_wars/web/coverage/
