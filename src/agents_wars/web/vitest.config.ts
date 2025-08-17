@@ -7,11 +7,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      app: path.resolve(__dirname, "./app"),
     },
   },
   test: {
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
+    exclude: ["node_modules/**", "e2e/**", ".next/**"],
     coverage: {
       provider: "v8",
       reportsDirectory: "./coverage",

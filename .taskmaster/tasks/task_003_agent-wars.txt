@@ -1,7 +1,7 @@
 # Task ID: 3
 # Title: Shared: Background execution APIs for battles and batch runs with persistence and streaming updates
 # Status: in-progress
-# Dependencies: 1, 2
+# Dependencies: None
 # Priority: high
 # Description: Implement Next.js Route Handlers to start and monitor battles and scale tests. Provide an in-process runner by default with optional BullMQ+Redis when REDIS_URL is set. Persist conversations and messages; expose polling and basic SSE endpoints.
 # Details:
@@ -127,7 +127,7 @@ Implement runBattle(job) and runScaleTest(job) using the provider abstraction (T
 
 Tag: backend
 
-## 2. Implement Next.js Route Handlers, SSE stream, and queue layer (in-memory default, BullMQ optional) [pending]
+## 2. Implement Next.js Route Handlers, SSE stream, and queue layer (in-memory default, BullMQ optional) [done]
 ### Dependencies: 3.1
 ### Description: Expose API endpoints to start and monitor battles/scale tests, wire runners through an in-process queue by default, and enable BullMQ+Redis when REDIS_URL is set.
 ### Details:
@@ -171,7 +171,7 @@ Tag: backend
 ### Details:
 
 
-## 8. Persisted battle runner wired to LLM provider + Prisma [pending]
+## 8. Persisted battle runner wired to LLM provider + Prisma [in-progress]
 ### Dependencies: None
 ### Description: Integrate runBattle with chat provider and persist Conversation/Message; stream interim deltas to clients. Connected to Task 3. Type: backend
 ### Details:
@@ -195,7 +195,7 @@ Tag: backend
 ### Details:
 
 
-## 12. Rate-limit POST /api/battles/start + tests [pending]
+## 12. Rate-limit POST /api/battles/start + tests [in-progress]
 ### Dependencies: None
 ### Description: Apply rate limit window to start endpoint and add unit tests for blocking/allowing windows. Connected to Task 3. Type: backend
 ### Details:

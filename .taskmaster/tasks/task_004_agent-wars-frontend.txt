@@ -1,6 +1,6 @@
 # Task ID: 4
 # Title: Page: Landing Page with 3D visuals and interactive node graph
-# Status: pending
+# Status: in-progress
 # Dependencies: None
 # Priority: medium
 # Description: Build the marketing/overview page with a blue futuristic theme, lightweight 3D scene (React Three Fiber + Three.js), and an interactive node graph (react-force-graph) illustrating system capabilities. Emphasize performance and lazy loading.
@@ -104,7 +104,7 @@ Deliverables: 1) app/(marketing)/page.tsx with hero + placeholders; 2) component
 
 Tag: frontend
 
-## 2. Performance and UX polish (lazy load, DPR, throttling, budgets) [in-progress]
+## 2. Performance and UX polish (lazy load, DPR, throttling, budgets) [done]
 ### Dependencies: 4.1
 ### Description: Optimize rendering and loading: lazy load heavy components with Suspense fallbacks; tune devicePixelRatio based on container size and hardware; throttle animations; set frameloop to 'demand' where possible; configure Lighthouse performance budget; ensure reduced motion disables intensive updates.
 ### Details:
@@ -136,19 +136,19 @@ Deliverables: /docs/landing-3d-graph.md with: 1) Version pins and changelog note
 
 Tag: frontend
 
-## 6. NodeGraph interactivity: tooltips and onNodeClick routing [pending]
+## 6. NodeGraph interactivity: tooltips and onNodeClick routing [in-progress]
 ### Dependencies: None
 ### Description: Add hover tooltips and onNodeClick handlers in `src/components/NodeGraph.tsx` to route to `/hub`, `/scale`, `/promptbro` per node mapping. Ensure keyboard accessibility and focus styles. Connected to: Task 4 (Landing page). Type: feat
 ### Details:
 
 
-## 7. Tailwind CSS setup and shadcn/ui baseline [in-progress]
+## 7. Tailwind CSS setup and shadcn/ui baseline [done]
 ### Dependencies: None
 ### Description: Install and configure Tailwind CSS (tailwindcss, postcss, autoprefixer), create `tailwind.config.ts`, `postcss.config.js`, and global stylesheet import in `app/layout.tsx`. Optionally initialize shadcn/ui tokens and primitives. Migrate landing page inline styles to Tailwind. Connected to: Task 4 (Landing page). Type: chore
 ### Details:
 
 
-## 8. A11y and performance checks for landing [review]
+## 8. A11y and performance checks for landing [pending]
 ### Dependencies: None
 ### Description: Add Playwright a11y test for `/` and ensure Lighthouse CI budgets/thresholds are updated for the new 3D/graph content. Confirm reduced-motion path via test. Connected to: Task 4 (Landing page). Type: test/perf
 ### Details:
@@ -190,27 +190,21 @@ Tag: frontend
 ### Details:
 
 
-## 15. Keyboard accessibility for NodeGraph interactions [pending]
+## 15. Static hero fallback for reduced-motion/mobile [pending]
 ### Dependencies: None
-### Description: Ensure NodeGraph supports keyboard navigation: focusable overlay for nodes with routes, Enter/Space triggers navigation; visible focus ring. Connected to: Task 4 (Landing page). Type: frontend/a11y
+### Description: When prefers-reduced-motion is true or on narrow screens, do not mount the 3D canvas; render a lightweight static hero (optimized image) instead. Connected to: Task 4 (Landing page). Type: frontend/UX
 ### Details:
 
 
-## 16. Landing page skeletons and loading states [pending]
+## 16. Graceful routing placeholders for /hub and /scale [pending]
 ### Dependencies: None
-### Description: Add skeleton states for 3D and graph sections using Tailwind utilities; ensure consistent heights and accessible aria-busy while loading. Connected to: Task 4 (Landing page). Type: frontend/UX
+### Description: Add simple placeholder pages or toasts when routing from NodeGraph to /hub and /scale until those pages are implemented, avoiding dead ends. Connected to: Task 4 (Landing page). Type: frontend/UX
 ### Details:
 
 
-## 17. Bundle analysis and perf budget doc [pending]
+## 17. Unit tests for reduced-motion/DPR hooks [pending]
 ### Dependencies: None
-### Description: Integrate next-bundle-analyzer for local inspection and add a short doc with budget targets and findings post-landing visuals. Connected to: Task 4 (Landing page). Type: frontend/perf/docs
-### Details:
-
-
-## 18. Storybook stories for ThreeScene and NodeGraph [pending]
-### Dependencies: None
-### Description: Add Storybook stories covering default, reduced-motion, and loading states for `ThreeScene` and `NodeGraph`; include basic a11y checks. Connected to: Task 4 (Landing page). Type: frontend/docs/a11y
+### Description: Add unit tests for `usePrefersReducedMotion` and any DPR clamp helper to ensure deterministic behavior across environments. Connected to: Task 4 (Landing page). Type: frontend/test
 ### Details:
 
 
