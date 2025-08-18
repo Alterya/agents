@@ -42,8 +42,22 @@ declare module "react-force-graph-2d" {
     onNodeClick?: (node: ForceGraphNode, event?: MouseEvent) => void;
   }
 
+  // Public instance API (subset used by our app)
+  export interface ForceGraph2DInstance {
+    // Getter/setter: when provided a value, sets and returns new value; when omitted, returns current
+    d3VelocityDecay: (val?: number) => number;
+    d3ReheatSimulation: () => void;
+    pauseAnimation: () => void;
+    resumeAnimation: () => void;
+    zoomToFit: (
+      ms?: number,
+      padding?: number,
+      nodeFilter?: (node: ForceGraphNode) => boolean
+    ) => void;
+  }
+
   // The library's default export is a React component
-  const ForceGraph2D: ComponentType<ForceGraph2DProps & { ref?: Ref<unknown> }>;
+  const ForceGraph2D: ComponentType<ForceGraph2DProps & { ref?: Ref<ForceGraph2DInstance | null> }>;
   export default ForceGraph2D;
 }
 

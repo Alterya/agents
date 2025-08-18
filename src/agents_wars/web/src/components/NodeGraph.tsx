@@ -2,12 +2,18 @@
 import dynamic from "next/dynamic";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import type {
+  ForceGraph2DInstance,
+  ForceGraphNode,
+} from "react-force-graph-2d";
+import { graphRouteMap } from "@/lib/graphRoutes";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
   ssr: false,
 });
 
-type Node = { id: string; group?: number; route?: string };
+type Node = ForceGraphNode & { id: string; group?: number; route?: string };
 type Link = { source: string; target: string };
 
 export default function NodeGraph() {
@@ -17,8 +23,7 @@ export default function NodeGraph() {
       id: `n${i + 1}`,
       group: (i % 4) + 1,
     }));
-    const routeMap: Record<string, string> = { n1: "/hub", n2: "/scale", n3: "/promptbro" };
-    for (const n of nodes) if (routeMap[n.id]) n.route = routeMap[n.id];
+    for (const n of nodes) if (graphRouteMap[n.id]) n.route = graphRouteMap[n.id];
     const links: Link[] = [];
     for (let i = 0; i < nodes.length - 1; i++)
       links.push({ source: nodes[i].id, target: nodes[i + 1].id });
@@ -27,14 +32,14 @@ export default function NodeGraph() {
 
   const prefersReducedMotion = usePrefersReducedMotion();
   const cooldownTime = prefersReducedMotion ? 0 : 2000;
-  const ref = useRef<any>(null);
+  const ref = useRef<ForceGraph2DInstance | null>(null);
   const [hovered, setHovered] = useState<Node | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   useEffect(() => {
     if (!ref.current) return;
     // Reduce work on low motion preference
-    ref.current?.d3VelocityDecay?.(prefersReducedMotion ? 0.9 : 0.4);
+    ref.current.d3VelocityDecay(prefersReducedMotion ? 0.9 : 0.4);
   }, [prefersReducedMotion]);
 
   return (
@@ -45,37 +50,44 @@ export default function NodeGraph() {
       aria-label="Node graph"
       role="img"
       data-testid="capabilities-graph"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (!hovered?.route) return;
+        if (e.key === "Enter" || e.key === " ") router.push(hovered.route);
+      }}
     >
       <ForceGraph2D
-        ref={ref as any}
-        graphData={data as any}
+        ref={ref}
+        graphData={data}
         nodeAutoColorBy="group"
         cooldownTime={cooldownTime}
-        onNodeHover={(n: any) => {
+        // improve basic keyboard accessibility: focusable container handles Enter/Space to activate hovered node
+        onNodeHover={(n) => {
           const node = (n as Node) || null;
           setHovered(node);
           if (typeof document !== "undefined") document.body.style.cursor = node?.route ? "pointer" : "default";
         }}
-        onNodeClick={(n: any) => {
+        onNodeClick={(n) => {
           const node = n as Node;
           if (node?.route) router.push(node.route);
         }}
         nodePointerAreaPaint={(node, color, ctx) => {
           ctx.fillStyle = color;
           ctx.beginPath();
-          ctx.arc((node as any).x, (node as any).y, 8, 0, 2 * Math.PI, false);
+          ctx.arc((node as ForceGraphNode).x!, (node as ForceGraphNode).y!, 8, 0, 2 * Math.PI, false);
           ctx.fill();
         }}
         nodeCanvasObject={(node, ctx, globalScale) => {
-          const label = String((node as any).id);
+          const label = String((node as ForceGraphNode).id);
           const fontSize = 8 / globalScale;
           ctx.font = `${fontSize}px sans-serif`;
+          // color is added by library; keep fallback
           ctx.fillStyle = (node as any).color || "#60a5fa";
           ctx.beginPath();
-          ctx.arc((node as any).x!, (node as any).y!, 3, 0, 2 * Math.PI, false);
+          ctx.arc((node as ForceGraphNode).x!, (node as ForceGraphNode).y!, 3, 0, 2 * Math.PI, false);
           ctx.fill();
           ctx.fillStyle = "#e5e7eb";
-          ctx.fillText(label, (node as any).x! + 4, (node as any).y! + 2);
+          ctx.fillText(label, (node as ForceGraphNode).x! + 4, (node as ForceGraphNode).y! + 2);
         }}
       />
       {hovered && (
@@ -90,17 +102,4 @@ export default function NodeGraph() {
       )}
     </div>
   );
-}
-
-function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const onChange = () => setReduced(mq.matches);
-    onChange();
-    mq.addEventListener?.("change", onChange);
-    return () => mq.removeEventListener?.("change", onChange);
-  }, []);
-  return reduced;
 }

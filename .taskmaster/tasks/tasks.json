@@ -379,7 +379,7 @@
             "title": "Context7 MCP research: R3F/drei, react-force-graph, Next.js dynamic import",
             "description": "Research latest stable versions, performance tips, SSR caveats, and recommended props/APIs for @react-three/fiber v9, @react-three/drei, react-force-graph (2D), and Next.js dynamic imports. Produce concise notes and implementation decisions.",
             "dependencies": [],
-            "details": "Deliverables: /docs/landing-3d-graph.md with: 1) Version pins and changelog notes impacting SSR or perf; 2) R3F best practices (frameloop, DPR, suspense, mobile controls); 3) react-force-graph perf tips (cooldownTicks, nodeCanvasObject, link pruning, hover/tooltip patterns); 4) Next.js dynamic import patterns for client-only libs; 5) Accessibility and reduced-motion considerations. Link primary sources.\n\nTag: frontend",
+            "details": "Deliverables: /docs/landing-3d-graph.md with: 1) Version pins and changelog notes impacting SSR or perf; 2) R3F best practices (frameloop, DPR, suspense, mobile controls); 3) react-force-graph perf tips (cooldownTicks, nodeCanvasObject, link pruning, hover/tooltip patterns); 4) Next.js dynamic import patterns for client-only libs; 5) Accessibility and reduced-motion considerations. Link primary sources.\n\nTag: frontend\n\n<info added on 2025-08-17T11:05:00.000Z>\nResearch summary recorded at docs/landing-3d-graph.md. Key decisions: Canvas frameloop='demand'; mutate via refs (no per-frame allocations); Suspense/useLoader for assets; drei PerformanceMonitor + AdaptiveDpr (clamp DPR ~1–1.5); ForceGraph2D cooldownTicks≈100 then zoomToFit; nodeCanvasObject + nodePointerAreaPaint with cached text widths; Next.js next/dynamic({ ssr:false }) for client-only; prefers-reduced-motion → static hero or frameloop='never'. Sources: pmndrs/react-three-fiber (perf/pitfalls/scaling), pmndrs/drei (PerformanceMonitor/AdaptiveDpr), vasturiano/react-force-graph (README/examples), vercel/next.js (dynamic import).\n</info added on 2025-08-17T11:05:00.000Z>",
             "status": "pending",
             "testStrategy": "Acceptance: reviewed doc with links and actionable decisions referenced by code comments; verify installed versions match pins."
           },
@@ -923,8 +923,8 @@
               "4.1",
               "4.2"
             ],
-            "details": "Actions: 1) Purge unused drei helpers and shaders; 2) Compress textures (WebP/AVIF for images; optional KTX2/Draco for glTF if used); 3) Verify all R3F/graph components have 'use client' and are excluded from SSR; 4) Use next-bundle-analyzer to confirm reductions; 5) Code-split optional UI blocks (modals/tooltips) and remove dead code.\n\nTag: frontend",
-            "status": "pending",
+            "details": "Actions: 1) Purge unused drei helpers and shaders; 2) Compress textures (WebP/AVIF for images; optional KTX2/Draco for glTF if used); 3) Verify all R3F/graph components have 'use client' and are excluded from SSR; 4) Use next-bundle-analyzer to confirm reductions; 5) Code-split optional UI blocks (modals/tooltips) and remove dead code.\n\nTag: frontend\n<info added on 2025-08-18T07:52:46.271Z>\n**Subtask 4.3: Cleanup: assets, compression, and client-only boundaries**  \nScope  \n- Remove unused drei helpers/shaders from Scene; verify no postprocessing/shadows.  \n- Ensure all R3F/graph components are client-only (\"use client\" + next/dynamic ssr:false) and no SSR-only APIs used.  \n- Compress media assets (convert hero images to WebP/AVIF if applicable); document glTF compression plan (KTX2/Draco) for later if models exist.  \n- Audit bundle: remove dead imports, code-split optional UI blocks (e.g., heavy tooltips/modals) and ensure graph chunking.  \n\nTargets  \n- components: `src/agents_wars/web/src/components/ThreeScene.tsx` (or equivalent), `src/agents_wars/web/src/components/NodeGraph.tsx`.  \n- page: `src/agents_wars/web/app/page.tsx` dynamic wrappers already present; confirm Suspense fallbacks and prefetch disabled if heavy.  \n\nChecks  \n- Typecheck and lint: zero warnings.  \n- Visual parity maintained; no SSR warnings at runtime.  \n- Reduced-motion behavior preserved.  \n\nNext steps  \n- Implement file-level edits, run make check + e2e; prepare brief diff summary.\n</info added on 2025-08-18T07:52:46.271Z>",
+            "status": "in-progress",
             "testStrategy": "Compare bundle/analyze reports before/after; ensure no runtime warnings about SSR. Spot-check visual parity post-compression."
           },
           {
@@ -946,7 +946,7 @@
             "description": "Research latest stable versions, performance tips, SSR caveats, and recommended props/APIs for @react-three/fiber v9, @react-three/drei, react-force-graph (2D), and Next.js dynamic imports. Produce concise notes and implementation decisions.",
             "dependencies": [],
             "details": "Deliverables: /docs/landing-3d-graph.md with: 1) Version pins and changelog notes impacting SSR or perf; 2) R3F best practices (frameloop, DPR, suspense, mobile controls); 3) react-force-graph perf tips (cooldownTicks, nodeCanvasObject, link pruning, hover/tooltip patterns); 4) Next.js dynamic import patterns for client-only libs; 5) Accessibility and reduced-motion considerations. Link primary sources.\n\nTag: frontend",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": "Acceptance: reviewed doc with links and actionable decisions referenced by code comments; verify installed versions match pins."
           },
           {
@@ -954,7 +954,7 @@
             "title": "NodeGraph interactivity: tooltips and onNodeClick routing",
             "description": "Add hover tooltips and onNodeClick handlers in `src/components/NodeGraph.tsx` to route to `/hub`, `/scale`, `/promptbro` per node mapping. Ensure keyboard accessibility and focus styles. Connected to: Task 4 (Landing page). Type: feat",
             "details": "",
-            "status": "in-progress",
+            "status": "review",
             "dependencies": [],
             "parentTaskId": 4
           },
@@ -981,7 +981,7 @@
             "title": "Type-safety wrapper for react-force-graph-2d",
             "description": "Create a typed wrapper or module declaration to eliminate `any` in `NodeGraph` by adding a `react-force-graph-2d` module declaration or a minimal typed adapter component. Connected to: Task 4 (Landing page). Type: chore",
             "details": "",
-            "status": "in-progress",
+            "status": "review",
             "dependencies": [],
             "parentTaskId": 4
           },
@@ -1053,6 +1053,78 @@
             "title": "Unit tests for reduced-motion/DPR hooks",
             "description": "Add unit tests for `usePrefersReducedMotion` and any DPR clamp helper to ensure deterministic behavior across environments. Connected to: Task 4 (Landing page). Type: frontend/test",
             "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 18,
+            "title": "Implement hooks: usePrefersReducedMotion and DPR clamp util",
+            "description": "Create `usePrefersReducedMotion` hook and a small DPR clamp utility used by Canvas/Scene to bound devicePixelRatio for performance.",
+            "details": "Connected to: Task 4 (Landing page). Type: frontend/utilities\n- Files: src/agents_wars/web/src/hooks/usePrefersReducedMotion.ts, src/agents_wars/web/src/lib/dpr.ts\n- Hook: returns boolean based on `(prefers-reduced-motion: reduce)` and updates on media query changes.\n- Util: `clampDpr(input: number, min=1, max=1.5)`; documented and unit-tested.\n- Tests: Vitest for hook (with matchMedia mock) and clamp util.\n- Consumers: Scene Canvas and any graph DPR logic.\n",
+            "status": "review",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 19,
+            "title": "Pre-commit quality gate with Husky",
+            "description": "Setup Husky pre-commit to run `make quality` and `make test` to enforce lint/format/unit + e2e before committing.",
+            "details": "Connected to: Task 4 (Landing page). Type: chore/devops\n- Add husky as devDependency (web or repo root as appropriate) and initialize hooks.\n- Hook: `.husky/pre-commit` → `make quality && make test`.\n- Document workflow in README; discourage `--no-verify`.\n- Ensure CI unaffected.\n",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 20,
+            "title": "Canvas ErrorBoundary for WebGL context loss",
+            "description": "Wrap 3D Canvas with an error boundary to degrade gracefully on WebGL context crashes/unsupported environments.",
+            "details": "Connected to: Task 4 (Landing page). Type: frontend/UX/resilience\n- Implement a lightweight ErrorBoundary Client Component around dynamic Canvas import.\n- Friendly fallback UI with retry.\n- Optional: integrate `use-error-boundary` or simple class-based boundary.\n",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 21,
+            "title": "Lighthouse budget and CI config files",
+            "description": "Add Lighthouse CI config and performance budgets for landing page with 3D/graph.",
+            "details": "Connected to: Task 4 (Landing page). Type: chore/ci\n- Files: `.lighthouserc.json` and `lighthouse-budget.json` with thresholds (e.g., TTI < 2.5s, main-thread blocking < 250ms) per prior notes.\n- Ensure `npm run lhci` works locally and in CI.\n",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 22,
+            "title": "FPS probe script and Playwright helper",
+            "description": "Expose a simple FPS probe on window and add a Playwright helper to assert idle FPS threshold.",
+            "details": "Connected to: Task 4 (Landing page). Type: test/perf\n- Add a tiny client script (loaded only on `/`) that samples `requestAnimationFrame` over N frames and sets `window.__fpsSample`.\n- Playwright util to read value and assert >= ~45 when idle.\n- Respect reduced-motion: probe should not force animations.\n",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 23,
+            "title": "Client-only dynamic wrappers for Scene and Graph with Suspense fallbacks",
+            "description": "Create dynamic client-only wrappers for heavy components (R3F Canvas Scene and ForceGraph2D) using next/dynamic with ssr:false and sensible loading fallbacks.",
+            "details": "Connected to: Task 4 (Landing page). Type: frontend\n- Files: src/agents_wars/web/src/components/Scene.client.tsx, src/agents_wars/web/src/components/CapabilitiesGraph.client.tsx\n- Use next/dynamic({ ssr:false }) and Suspense fallback skeletons.\n- Ensure wrappers export a single default component consumed by the Server Page.\n",
+            "status": "review",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 24,
+            "title": "Routing map and keyboard accessibility for NodeGraph",
+            "description": "Define a typed node→route mapping and implement keyboard navigation/aria for graph interactions.",
+            "details": "Connected to: Task 4 (Landing page). Type: frontend/a11y\n- Files: src/agents_wars/web/src/lib/graphRoutes.ts, update CapabilitiesGraph to support Enter/Space activation, focus ring, aria-labels, and tooltip role.\n- Tests: Playwright a11y assertions for keyboard activation and labels.\n",
+            "status": "review",
+            "dependencies": [],
+            "parentTaskId": 4
+          },
+          {
+            "id": 25,
+            "title": "Integrate next-bundle-analyzer and baseline report",
+            "description": "Add bundle analyzer to measure initial JS size and landing page chunks; produce a baseline report for future comparisons.",
+            "details": "Connected to: Task 4 (Landing page). Type: chore/tooling\n- Install `@next/bundle-analyzer` and wire it in `next.config.js` (conditionally via ANALYZE=1).\n- Document usage in README: `ANALYZE=1 npm run build` to open report.\n- Capture a baseline report (commit as artifact path or note sizes in docs).\n",
             "status": "pending",
             "dependencies": [],
             "parentTaskId": 4
@@ -1346,7 +1418,7 @@
     ],
     "metadata": {
       "created": "2025-08-13T15:04:58.285Z",
-      "updated": "2025-08-17T11:18:12.486Z",
+      "updated": "2025-08-18T10:15:48.971Z",
       "description": "Tag created on 8/13/2025"
     }
   },
@@ -1500,7 +1572,7 @@
         "testStrategy": "- Integration: Start battle and assert conversation reaches 'goal' given mocked LLM; another test reaches 'limit' at 25.\n- API: Postman/contract tests for each endpoint; pagination verified.\n- Queue: Unit tests for in-memory FIFO; if REDIS_URL present in CI, spin a BullMQ worker and run one job.\n- Performance: Verify caps prevent runaway costs; simulate 10-run scale test completes under timeouts.",
         "priority": "high",
         "dependencies": [],
-        "status": "review",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -1518,8 +1590,8 @@
             "dependencies": [
               "3.1"
             ],
-            "details": "Routes: POST /api/battles/start -> {jobId}; GET /api/battles/:jobId/status -> {progress, conversationId, endedReason}; GET /api/battles/:conversationId/messages?page&limit -> paginated; POST /api/scale/start -> {runId}; GET /api/scale/:runId/status -> {progress, completed, total}; GET /api/scale/:runId/report -> RunReport; GET /api/stream/:conversationId -> text/event-stream using Node runtime. Queue: default in-memory FIFO (e.g., p-queue) with concurrency=3; when process.env.REDIS_URL is present, initialize BullMQ Queue/Worker ('battles', 'scale-tests') compatible with Upstash Redis. Validate inputs and enforce caps: runCount<=10, messageLimit<=25, per-IP concurrent jobs<=3. Map jobId/runId to conversationId(s) and progress. For SSE: subscribe to EventEmitter per conversationId; send events on new assistant messages and on completion; document polling as the primary pattern on Vercel multi-instance. Ensure proper runtime config (runtime: 'nodejs') and guard single worker initialization in serverless environments.\n\nTag: backend",
-            "status": "review",
+            "details": "Routes: POST /api/battles/start -> {jobId}; GET /api/battles/:jobId/status -> {progress, conversationId, endedReason}; GET /api/battles/:conversationId/messages?page&limit -> paginated; POST /api/scale/start -> {runId}; GET /api/scale/:runId/status -> {progress, completed, total}; GET /api/scale/:runId/report -> RunReport; GET /api/stream/:conversationId -> text/event-stream using Node runtime. Queue: default in-memory FIFO (e.g., p-queue) with concurrency=3; when process.env.REDIS_URL is present, initialize BullMQ Queue/Worker ('battles', 'scale-tests') compatible with Upstash Redis. Validate inputs and enforce caps: runCount<=10, messageLimit<=25, per-IP concurrent jobs<=3. Map jobId/runId to conversationId(s) and progress. For SSE: subscribe to EventEmitter per conversationId; send events on new assistant messages and on completion; document polling as the primary pattern on Vercel multi-instance. Ensure proper runtime config (runtime: 'nodejs') and guard single worker initialization in serverless environments.\n\nTag: backend\n<info added on 2025-08-18T10:01:14.514Z>\n- Improvement: Derive client IP robustly (prefer req.ip; if using x-forwarded-for, parse first IP entry).\n- Consistency: Consider centralizing rate limiting using existing guards.rateLimit for uniform behavior.\n- Streaming clarity: Optionally add `export const runtime = 'nodejs'` in streaming handlers for explicitness.\n- Status: Keep as pending until these are addressed.\n</info added on 2025-08-18T10:01:14.514Z>",
+            "status": "pending",
             "testStrategy": "Contract tests for each route: start returns IDs, status transitions as runs progress, pagination returns stable slices, report aggregates correctly. SSE: connect, receive incremental events in order, and auto-complete event on finish (fallback to polling validated by periodic status checks). Queue tests: enqueue/dequeue order honored with concurrency=3, BullMQ path executes when REDIS_URL is set (behind CI flag)."
           },
           {
@@ -1530,8 +1602,8 @@
               "3.1",
               "3.2"
             ],
-            "details": "Implement AbortSignal wiring end-to-end; clear EventEmitter listeners on completion/error; add idempotency keys on start endpoints to avoid duplicate runs; enforce per-IP concurrency<=3 with in-memory (and Redis-backed when available) counters; sanitize and validate agentId/model/goal inputs; redact sensitive fields from logs; implement exponential backoff and jitter for provider retries; normalize error mapping to consistent status/errors; add TTL eviction for in-memory maps (jobs, emitters) to prevent leaks; ensure BullMQ workers close gracefully on process signals. Confirm messageLimit and runCount caps enforced in both route validation and runner execution.\n\nTag: backend",
-            "status": "review",
+            "details": "Implement AbortSignal wiring end-to-end; clear EventEmitter listeners on completion/error; add idempotency keys on start endpoints to avoid duplicate runs; enforce per-IP concurrency<=3 with in-memory (and Redis-backed when available) counters; sanitize and validate agentId/model/goal inputs; redact sensitive fields from logs; implement exponential backoff and jitter for provider retries; normalize error mapping to consistent status/errors; add TTL eviction for in-memory maps (jobs, emitters) to prevent leaks; ensure BullMQ workers close gracefully on process signals. Confirm messageLimit and runCount caps enforced in both route validation and runner execution.\n\nTag: backend\n<info added on 2025-08-17T12:46:03.847Z>\nCleanup and hardening gaps include: ensuring AbortSignal wiring is complete; adding idempotencyKey on POST /battles/start; enforcing a per-owner concurrency cap; utilizing zod for input sanitization and refinement; implementing retry jitter that honors Retry-After headers; and establishing TTL eviction metrics for in-memory maps.\n</info added on 2025-08-17T12:46:03.847Z>",
+            "status": "in-progress",
             "testStrategy": "Simulate duplicate POST /start with same idempotency key -> single job created; exceed per-IP cap -> 429; abort mid-run -> listeners removed and resources freed; invalid inputs -> 400 with sanitized details; retry logic -> transient failures eventually succeed with capped attempts; memory leak guard -> emitters count returns to baseline after completion."
           },
           {
@@ -1542,8 +1614,8 @@
               "3.1",
               "3.2"
             ],
-            "details": "Set up Vitest for unit/integration tests; add route contract tests and provider fakes; include coverage for stop conditions, persistence, pagination, queue behavior, and SSE. Add TypeScript strict mode, ESLint, and Prettier. Ensure CI runs: typecheck, lint, test. Provide minimal fixtures for Agents and Conversations for deterministic tests.\n\nTag: backend",
-            "status": "review",
+            "details": "Set up Vitest for unit/integration tests; add route contract tests and provider fakes; include coverage for stop conditions, persistence, pagination, queue behavior, and SSE. Add TypeScript strict mode, ESLint, and Prettier. Ensure CI runs: typecheck, lint, test. Provide minimal fixtures for Agents and Conversations for deterministic tests.\n\nTag: backend\n<info added on 2025-08-18T10:01:22.231Z>\nAdd coverage for budget cap cutoff (MAX_USD_PER_CONVO) and runner timeout behavior (REQUEST_TIMEOUT_MS). Ensure both success and failure branches are exercised (cap reached vs not; timeout vs normal completion). Keep as pending until tests are added and run green in CI.\n</info added on 2025-08-18T10:01:22.231Z>",
+            "status": "pending",
             "testStrategy": "CI pipeline: pnpm typecheck, pnpm lint, pnpm test with coverage thresholds (lines>=80%). Playwright or supertest-based API tests verify endpoints; snapshot minimal JSON contracts; mocked Redis path exercised via CI flag to avoid external dependencies by default."
           },
           {
@@ -1551,8 +1623,8 @@
             "title": "Context7 MCP research: queue, Redis, and Next.js streaming trade-offs",
             "description": "Research external packages/libraries and platform constraints to finalize defaults and document decisions.",
             "dependencies": [],
-            "details": "Produce an ADR summarizing: (1) In-memory queue vs BullMQ on Vercel (cold starts, multi-instance, durability, cost); (2) Upstash Redis specifics (connection limits, TLS, BullMQ compat, recommended settings, TTLs); (3) Next.js Route Handlers streaming constraints (Node runtime only for SSE, edge incompatibilities, buffering, headers); (4) Polling fallback cadence and backoff; (5) p-queue configuration guidance and operational caps; (6) Retry strategies for LLM providers and rate limiting considerations. Include recommended defaults and code snippets to align implementation.\n\nTag: backend",
-            "status": "review",
+            "details": "Produce an ADR summarizing: (1) In-memory queue vs BullMQ on Vercel (cold starts, multi-instance, durability, cost); (2) Upstash Redis specifics (connection limits, TLS, BullMQ compat, recommended settings, TTLs); (3) Next.js Route Handlers streaming constraints (Node runtime only for SSE, edge incompatibilities, buffering, headers); (4) Polling fallback cadence and backoff; (5) p-queue configuration guidance and operational caps; (6) Retry strategies for LLM providers and rate limiting considerations. Include recommended defaults and code snippets to align implementation.\n\nTag: backend\n<info added on 2025-08-17T12:46:26.779Z>\nResearch deliverables: ADR for in-memory vs BullMQ on Vercel; SSE vs polling guidance; worker heartbeat/TTL; limiter defaults; retention/metrics/log redaction; request IDs.\n</info added on 2025-08-17T12:46:26.779Z>",
+            "status": "in-progress",
             "testStrategy": "Peer review of ADR; acceptance criteria: decisions are referenced in code comments, environment/runtime guidance documented, and defaults implemented match the ADR."
           },
           {
@@ -1560,7 +1632,7 @@
             "title": "API route design and in-memory job orchestration",
             "description": "Define endpoints: POST /api/battles/start, GET /api/battles/:id/status (SSE); POST /api/scale/start, GET /api/scale/:runId/status. Use in-process job store by default; enable BullMQ when REDIS_URL is set. Wire to runBattle/runScaleTest.",
             "details": "",
-            "status": "review",
+            "status": "done",
             "dependencies": [],
             "parentTaskId": 3
           },
@@ -1569,7 +1641,7 @@
             "title": "Input validation and idempotency",
             "description": "Add zod schemas for request bodies; dedupe by client-provided runId/jobId; add abort/timeout handling and caps via existing guardrails.",
             "details": "",
-            "status": "review",
+            "status": "done",
             "dependencies": [],
             "parentTaskId": 3
           },
@@ -1577,8 +1649,8 @@
             "id": 8,
             "title": "Persisted battle runner wired to LLM provider + Prisma",
             "description": "Integrate runBattle with chat provider and persist Conversation/Message; stream interim deltas to clients. Connected to Task 3. Type: backend",
-            "details": "",
-            "status": "review",
+            "details": "<info added on 2025-08-17T12:45:55.585Z>\nPersisted runner wiring includes provider.chat integrated with Prisma, streaming deltas, implementing a judge short-circuit to the goal, and persisting usage on Message and aggregates on Conversation.\n</info added on 2025-08-17T12:45:55.585Z>",
+            "status": "in-progress",
             "dependencies": [],
             "parentTaskId": 3
           },
@@ -1586,8 +1658,8 @@
             "id": 9,
             "title": "Optional BullMQ adapter (REDIS_URL) + concurrency limits",
             "description": "Add BullMQ queue if REDIS_URL is set; fallback to in-memory. Enforce concurrency per provider:model. Connected to Task 3. Type: backend",
-            "details": "",
-            "status": "review",
+            "details": "<info added on 2025-08-17T12:46:15.283Z>\nAdd conditional BullMQ behavior: if REDIS_URL and heartbeat are present, enqueue to BullMQ; otherwise, fallback to in-memory. Configure a concurrency limiter per provider:model, ensuring the Next.js side remains producer-only.\n</info added on 2025-08-17T12:46:15.283Z>",
+            "status": "in-progress",
             "dependencies": [],
             "parentTaskId": 3
           },
@@ -1595,7 +1667,7 @@
             "id": 10,
             "title": "Runner timeouts/abort (REQUEST_TIMEOUT_MS) → 504",
             "description": "Abort long runs using AbortController with REQUEST_TIMEOUT_MS; surface 504 and clean up listeners. Connected to Task 3. Type: backend",
-            "details": "",
+            "details": "<info added on 2025-08-17T12:46:22.288Z>\nTimeout handling: wire REQUEST_TIMEOUT_MS and AbortController around provider calls; map timeout to 504; ensure listener cleanup and job state updates.\n</info added on 2025-08-17T12:46:22.288Z>\n<info added on 2025-08-18T10:01:31.909Z>\nGap identified in timeout enforcement path: the current start route uses an in-memory jobs path that does not pass an AbortSignal to runBattle. Options to address this include: A) Switching the start route to enqueue via jobs/queue.ts, which wraps runBattle with AbortController honoring REQUEST_TIMEOUT_MS, or B) Adding AbortController around the current jobs.ts execution and passing the signal into runBattle. Ensure 504 mapping and listener cleanup, and add tests for the timeout path. The subtask will remain pending until one of the options is implemented and verified.\n</info added on 2025-08-18T10:01:31.909Z>",
             "status": "review",
             "dependencies": [],
             "parentTaskId": 3
@@ -1604,8 +1676,8 @@
             "id": 11,
             "title": "Budget caps + persist usage/cost on Message/Conversation",
             "description": "Enforce per-request/session USD caps; persist tokens and cost fields on Message; aggregate on Conversation. Connected to Task 3. Type: backend",
-            "details": "",
-            "status": "review",
+            "details": "<info added on 2025-08-18T10:01:44.313Z>\nReview notes (backend): Current: Per-turn cost persisted on Message; optional MAX_USD_PER_CONVO cap enforced after each turn. Gaps: Conversation-level aggregation (totals) not persisted; add if schema supports (totalTokensIn/Out, totalCostUsd), or clarify scope. Add tests: cap cutoff behavior and message usage/cost persistence across turns. Keep as pending until aggregation decision + tests are completed.\n</info added on 2025-08-18T10:01:44.313Z>",
+            "status": "pending",
             "dependencies": [],
             "parentTaskId": 3
           },
@@ -1614,7 +1686,7 @@
             "title": "Rate-limit POST /api/battles/start + tests",
             "description": "Apply rate limit window to start endpoint and add unit tests for blocking/allowing windows. Connected to Task 3. Type: backend",
             "details": "",
-            "status": "review",
+            "status": "in-progress",
             "dependencies": [],
             "parentTaskId": 3
           },
@@ -1623,7 +1695,7 @@
             "title": "Zod validation + error mapping for battle endpoints",
             "description": "Validate inputs for start/status/cancel/stream; map errors to 400/404/429/502 consistently. Connected to Task 3. Type: backend",
             "details": "",
-            "status": "review",
+            "status": "in-progress",
             "dependencies": [],
             "parentTaskId": 3
           },
@@ -1631,8 +1703,8 @@
             "id": 14,
             "title": "E2E Playwright SSE smoke for /api/battles/stream (mocked)",
             "description": "Add Playwright test with route interception/MSW to validate streaming flow and a11y smoke. Connected to Task 3. Type: backend",
-            "details": "",
-            "status": "review",
+            "details": "<info added on 2025-08-18T10:01:54.380Z>\n- Add Playwright SSE smoke test for /api/battles/[id]/status: connect, receive events, assert DONE marker.\n- Ensure Playwright suite runs in `make test` or provide separate CI job; avoid flakiness (fake timers, deterministic source).\n- Keep as pending until test is added and passes in CI.\n</info added on 2025-08-18T10:01:54.380Z>",
+            "status": "pending",
             "dependencies": [],
             "parentTaskId": 3
           },
@@ -1640,8 +1712,8 @@
             "id": 15,
             "title": "Observability: request IDs and basic metrics/logging",
             "description": "Add request IDs to routes and log runner lifecycle; add minimal counters/timers. Connected to Task 3. Type: backend",
-            "details": "",
-            "status": "review",
+            "details": "<info added on 2025-08-18T10:02:01.530Z>\n- Add request IDs: generate or propagate x-request-id on all battle endpoints; include in logs and responses.\n- Metrics/logging: minimal counters/timers around start/status and runner lifecycle; redact sensitive data.\n- Avoid noisy logs; add structured fields for jobId/conversationId.\n- Keep as pending until implemented and verified.\n</info added on 2025-08-18T10:02:01.530Z>",
+            "status": "pending",
             "dependencies": [],
             "parentTaskId": 3
           }
@@ -1740,7 +1812,7 @@
     ],
     "metadata": {
       "created": "2025-08-13T15:04:58.939Z",
-      "updated": "2025-08-17T11:09:28.158Z",
+      "updated": "2025-08-18T10:06:24.755Z",
       "description": "Tag created on 8/13/2025"
     }
   }

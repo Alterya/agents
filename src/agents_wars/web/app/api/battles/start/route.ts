@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { createJob, getJob, updateJob, canStartJobForOwner } from "@/lib/jobs";
 import { runBattle } from "@/lib/runners";
+import { getConfig } from "@/lib/config";
 
 // Simple in-memory RPM limiter for start endpoint
 const limitWindowMs = 60_000;
@@ -71,9 +72,12 @@ export async function POST(req: NextRequest) {
     }
 
     createJob(id, "battle", owner);
-    // Fire-and-forget execution
+    // Fire-and-forget execution with timeout (from centralized config)
     (async () => {
       updateJob(id, { status: "running" });
+      const cfgTimeoutMs = getConfig().requestTimeoutMs;
+      const ac = new AbortController();
+      const to = setTimeout(() => ac.abort("timeout"), cfgTimeoutMs);
       try {
         const result = await runBattle({
           runId: id,
@@ -86,10 +90,13 @@ export async function POST(req: NextRequest) {
           userMessage: input.userMessage,
           maxTokens: input.maxTokens,
           temperature: input.temperature,
-        });
+        }, undefined, ac.signal);
+        clearTimeout(to);
         updateJob(id, { status: "succeeded", data: result });
       } catch (err: any) {
-        updateJob(id, { status: "failed", error: String(err?.message ?? err) });
+        clearTimeout(to);
+        const msg = String(err?.message ?? err);
+        updateJob(id, { status: msg === "timeout" ? "failed" : "failed", error: msg });
       }
     })();
 

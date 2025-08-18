@@ -41,4 +41,24 @@ describe("battles start/status routes", () => {
     const pageRes = await messages(new Request(`http://localhost/api/battles/${id}/messages?page=1&limit=10`) as any, { params: { conversationId: id } } as any);
     expect([200, 500, 404]).toContain(pageRes.status);
   });
+
+  it("is idempotent when starting with the same id", async () => {
+    const id = 'job-test-123';
+    const first = await start(new Request("http://localhost/api/battles/start", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id, agentId: "agent-1", provider: "openai", model: "gpt-4o" }),
+    }) as any);
+    expect([202, 200]).toContain(first.status);
+
+    const second = await start(new Request("http://localhost/api/battles/start", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id, agentId: "agent-1", provider: "openai", model: "gpt-4o" }),
+    }) as any);
+    // Second call should return an existing status (200 per route)
+    expect(second.status).toBe(200);
+    const json = await second.json();
+    expect(json.id).toBe(id);
+  });
 });
