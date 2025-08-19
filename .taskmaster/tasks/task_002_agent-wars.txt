@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: Shared: LLM provider abstraction (OpenAI + OpenRouter) with unified chat and cost/safety guards
-# Status: pending
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Create a provider layer that unifies chat completion across OpenAI and OpenRouter, exposing a single interface with model selection, token caps, and basic rate limiting. Include retries and optional streaming support.
@@ -94,6 +94,20 @@ Prompt Agent Output Policy compliance
 - Provide a reusable policy system message constant for callers (POLICY_SYSTEM_PROMPT) that instructs models to not reveal chain-of-thought and to summarize reasoning only if needed.
 - When a required fact or tool is unavailable and the caller explicitly requests hidden reasoning or insists on it, the provider-facing helper should return exactly: information unavailable. Expose a lightweight enforcePolicy(content: string, context: { missingToolOrFact: boolean; userInsists: boolean }) utility used by higher layers before sending or after receiving model text to comply with the PRD “Local Tooling Stack”.
 </info added on 2025-08-12T08:47:02.728Z>
+<info added on 2025-08-12T09:10:07.364Z>
+Quality-Gate Loop
+- a) Cleanup: remove redundant/scaffold files and dead code; prune unused mocks/fixtures; update .gitignore to exclude build/test artifacts (e.g., .env.*, .next, dist, coverage, playwright-report, .lighthouseci) and add any new ones introduced; refresh README to document new env/config keys (REQUEST_TIMEOUT_MS, PRICING_CACHE_TTL_HOURS, MAX_USD_PER_REQUEST, MAX_USD_PER_SESSION, CONCURRENCY_DEFAULT, CONCURRENCY_OVERRIDES, OPENAI_PRICING_JSON, RETRY_MAX_BACKOFF_MS), setup, and test/run instructions.
+- b) Self-Review: inspect the diff and verify each subtask’s code exists and is sane:
+  - Provider adapters: OpenAI/OpenRouter routing, required OpenRouter headers, chat() and chatStream() behavior, usage mapping.
+  - Guards: caps, whitelist, model catalog validation, token preflight/context checks, budget caps, concurrency limiter, retries/backoff honoring Retry-After, redaction, POLICY_SYSTEM_PROMPT and enforcePolicy utility, streaming timeout.
+  - Config: zod validation with helpful errors and defaults; single source of truth used by provider/guards.
+  - Tests: Vitest with openai SDK mocks; MSW for /models; fake timers for backoff; pricing normalization; streaming iterator/web modes; rate limiting and concurrency bounds.
+  - Docs/tooling: research doc present; repo tooling aligned with baseline.
+- c) Git add & commit: stage logical chunks and create descriptive commits summarizing work per area (e.g., provider, guards, config, tests, docs, tooling). DO NOT PUSH.
+
+Pre-commit enforcement
+- Add a repo pre-commit hook that runs: make quality and make test; block commits on failure. Document hook installation in README (e.g., .git/hooks/pre-commit script or Husky).
+</info added on 2025-08-12T09:10:07.364Z>
 
 # Test Strategy:
 - Unit tests validate both providers and edge cases (caps, errors, retries).
@@ -102,33 +116,53 @@ Prompt Agent Output Policy compliance
 - Security: Ensure no PII/logging of prompt content beyond hashes in tests.
 
 # Subtasks:
-## 1. Implement provider interface and adapters (OpenAI + OpenRouter) [pending]
+## 1. Implement provider interface and adapters (OpenAI + OpenRouter) [done]
 ### Dependencies: None
 ### Description: Create a unified chat() using OpenAI Node SDK v4 for both OpenAI and OpenRouter, supporting non-streaming and optional streaming, with normalized response mapping.
 ### Details:
 Install openai@^4.55.0. Define types: type ChatMessage = { role: 'system'|'user'|'assistant'|'tool', content: string }; type ChatOptions = { provider: 'openai'|'openrouter', model: string, maxTokens?: number, temperature?: number, stop?: string[], stream?: boolean }. Export async function chat(messages: ChatMessage[], opts: ChatOptions): Promise<{ text: string, usage?: { inputTokens: number, outputTokens: number }, raw: any }>. Use the same OpenAI client for both providers; for OpenAI: new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); for OpenRouter: new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' }). For OpenRouter, pass extra_headers: { 'HTTP-Referer': process.env.OPENROUTER_SITE || '', 'X-Title': 'Agent Wars' }. Call client.chat.completions.create({ model: opts.model, messages, max_tokens: opts.maxTokens ?? 512, temperature: opts.temperature ?? 0.2, stop: opts.stop, stream: opts.stream }). Non-streaming: return choices[0].message.content || ''. Streaming: consume streamed chunks, append delta content to build final text, and capture final usage when available; resolve with assembled text and usage. Normalize usage to { inputTokens: resp.usage?.prompt_tokens ?? 0, outputTokens: resp.usage?.completion_tokens ?? 0 }. Return { text, usage, raw: resp }.
 
-## 2. Add cost/safety guards, rate limiting, and retries [pending]
+Tag: backend
+
+<plan added on 2025-08-13T09:16:53.883Z>
+Plan for 2.1:
+- Add openai@^4.55.0 to web.
+- Implement src/lib/llm/provider.ts with unified chat() supporting openai and openrouter via baseURL switch.
+- Export types ChatMessage, ChatOptions, and chat().
+- Typecheck and simple smoke test later.
+
+
+## 2. Add cost/safety guards, rate limiting, and retries [done]
 ### Dependencies: 2.1
 ### Description: Enforce token and message caps, model whitelist, basic in-memory rate limiting, exponential backoff retries on 429/5xx, and prompt redaction before logging.
 ### Details:
 Implement guard layer wrapping chat(): caps: maxTokens per call <= 512 (configurable via env, default 512); max messages per conversation <= 25; reject if exceeded. Enforce allowed models whitelist from env (e.g., ALLOWED_MODELS=comma-separated); default to a safe small set if unset. Add simple in-memory rate limiter using lru-cache keyed by IP or API key with sliding window (e.g., 60 requests/60s configurable) and TTL; if serverless multi-instance detected, allow opt-out via RATE_LIMIT_ENABLED=false but keep caps. Implement exponential backoff with jitter for 429/5xx: up to 2 retries (total 3 attempts) with delays ~250ms, 750ms. Redact secrets in any logs via regex (e.g., api keys, bearer tokens, emails) before printing. Expose minimal metadata (attempts, provider) in raw for observability. Ensure streaming path also passes through guards and retries (retry only on initial call errors, not mid-stream).
 
-## 3. Cleanup: Centralize environment and config validation [pending]
+Tag: backend
+
+## 3. Cleanup: Centralize environment and config validation [done]
 ### Dependencies: 2.1
 ### Description: Create a config module using zod to validate environment variables and runtime options with clear error messages.
 ### Details:
 Add config.ts with zod schemas: At least one of OPENAI_API_KEY or OPENROUTER_API_KEY must be present; OPENROUTER_SITE optional; ALLOWED_MODELS optional CSV -> string[]; MAX_TOKENS_PER_CALL default 512; MAX_MESSAGES_PER_CONVO default 25; RATE_LIMIT_ENABLED default true; RATE_LIMIT_RPM default 60. Export getConfig() returning typed config and helpers. Validate at module load and throw descriptive errors with remediation hints. Replace scattered env reads in provider/guards with config getters.
 
-## 4. Quality Gate: tests and lint [pending]
+Tag: backend
+
+## 4. Quality Gate: tests and lint [done]
 ### Dependencies: 2.1, 2.2, 2.3
 ### Description: Add Vitest unit tests mocking OpenAI client, plus lint/format checks. Cover provider routing, caps, retries, whitelist, and streaming assembly.
 ### Details:
 Set up Vitest with tsconfig paths; mock openai client module to control responses for both OpenAI and OpenRouter paths. Tests: (1) routes to correct baseURL and headers per provider; (2) enforces maxTokens cap (reject > 512); (3) retries on 429 then succeeds; (4) rejects disallowed model; (5) streaming: emit deltas across chunks and assert assembled text and usage mapping; (6) rate limiter blocks after N requests. Add ESLint + Prettier scripts and CI tasks (test, lint).
 
-## 5. Context7 MCP research for external packages/libraries [pending]
+Tag: backend
+
+## 5. Context7 MCP research for external packages/libraries [done]
 ### Dependencies: None
 ### Description: Research and document SDK and library usage to de-risk implementation choices.
 ### Details:
 Produce docs/research-llm-provider.md summarizing: OpenAI Node SDK v4 chat.completions vs responses; streaming API patterns and how to capture usage; OpenRouter API compatibility and required headers; model naming differences and availability; lru-cache patterns suitable for rate limiting in serverless (TTL, max size, pitfalls); best practices for exponential backoff with jitter. Include links to official docs and minimal code snippets. Add decisions/risks section and confirm our API choices align with findings.
+
+Tag: backend
+
+<research> OpenAI SDK v4 chat.completions vs responses; streaming iterator; OpenRouter required headers; lru-cache rate-limiter notes; backoff with jitter. Sources documented in repo research.
 

@@ -1,0 +1,311 @@
+# Task ID: 4
+# Title: Page: Landing Page with 3D visuals and interactive node graph
+# Status: in-progress
+# Dependencies: None
+# Priority: medium
+# Description: Build the marketing/overview page with a blue futuristic theme, lightweight 3D scene (React Three Fiber + Three.js), and an interactive node graph (react-force-graph) illustrating system capabilities. Emphasize performance and lazy loading.
+# Details:
+Implementation subtasks (target 5):
+1) Implement 3D + node graph UI
+- Next.js App Router page at / with TailwindCSS and shadcn/ui. Dynamic import of 3D canvas and graph to avoid SSR.
+- 3D: @react-three/fiber v9 + @react-three/drei helpers. Minimal scene: animated glTF nodes or primitives with bloom/postprocessing kept off for perf, orbit controls disabled on mobile.
+- Graph: react-force-graph (2D) with ~20 nodes representing features; hover tooltips; click to navigate to Hub/Scale/PromptBro.
+- Theme: Tailwind + CSS variables for blues; backdrop-blur panels; gradient text.
+- Accessibility: prefers-reduced-motion disables heavy animations.
+
+2) Perf and UX polish
+- Lazy load components with suspense fallbacks; use requestAnimationFrame throttling; useResizeObserver to tune dpr; Lighthouse budget.
+
+3) Cleanup
+- Remove unused shaders/assets; compress textures; ensure components are client-only where needed ("use client").
+
+4) Quality Gate (run tests/lint)
+- Playwright smoke test: page loads, FPS above threshold via Performance API, nav via graph clicks works.
+- ESLint/TypeScript clean.
+
+5) Context7 MCP research for external packages/libraries used
+- React Three Fiber/drei latest docs; react-force-graph rendering performance tips; Next.js dynamic import patterns for client-only libs.
+
+Pseudo-code (client components):
+function Scene(){ /* Canvas, ambientLight, rotating meshes */ }
+function CapabilitiesGraph(){ /* ForceGraph2D with nodes/links, onNodeClick router.push */ }
+
+<info added on 2025-08-11T15:41:13.433Z>
+Research-backed enhancements:
+- R3F performance
+  - Load Canvas and any Three-only code via next/dynamic (ssr:false) to keep it client-only.
+  - Default Canvas frameloop='demand'; switch to 'always' only during user interaction; on prefers-reduced-motion or when tab is hidden, use frameloop='never'.
+  - Use drei AdaptiveDpr and PerformanceMonitor to auto-tune quality; clamp DPR to min 1 and max 1.5 on typical devices (up to 1.75 on high-end). Drive clamp via ResizeObserver and simple heuristics (e.g., performance memory if available).
+  - Keep scene minimal: no shadows or postprocessing, simple materials, tiny glTF or primitives.
+  - On mobile and/or reduced motion, do not mount the Scene; render a static optimized hero image instead.
+- Graph performance
+  - Use ForceGraph2D with warmupTicks and cooldownTicks (e.g., warmup 30–60, cooldown 80–120) to settle layout quickly; after first settle, freeze layout (set cooldownTicks=0 or stopAnimation) and increase d3VelocityDecay.
+  - Implement nodeCanvasObject for custom node + label rendering; precompute/cache label text widths to avoid repeated measureText calls.
+  - Use nodePointerAreaPaint to enlarge pointer hit areas for small nodes to improve hover/click accuracy without visual changes.
+  - Render tooltip as an overlay HTML element positioned on pointermove, throttled via requestAnimationFrame; avoid triggering canvas rerenders for tooltip updates.
+  - Clamp renderer pixelRatio to ~1–1.5 for large/high-DPR cases; limit linkDirectionalParticles and other animations for stability.
+- UX and loading
+  - Lazy-load heavy assets/components behind Suspense with lightweight skeletons; set prefetch=off for 3D/graph chunks; preconnect to any external asset/CDN origins.
+  - Compress models/textures (KTX2/Draco for glTF; WebP/AVIF for images) and inline tiny assets; disable OrbitControls on mobile and node dragging on touch devices.
+- CI and quality gates
+  - Lighthouse budget remains enforced; extend Playwright FPS sanity using Performance API to assert idle FPS >= 45 and that DPR clamping is active (read devicePixelRatio).
+  - Axe-core checks include tooltip contrast and reduced-motion compliance.
+  - Add a Playwright case toggling prefers-reduced-motion to assert static fallback is rendered and 3D is not mounted.
+- References to include in /docs/landing-3d-graph.md
+  - @react-three/fiber v9 best practices (frameloop, suspense), drei AdaptiveDpr and PerformanceMonitor usage.
+  - react-force-graph optimization tips (nodeCanvasObject, nodePointerAreaPaint, warmup/cooldown, pixelRatio).
+  - Next.js dynamic import patterns for client-only libraries.
+</info added on 2025-08-11T15:41:13.433Z>
+<info added on 2025-08-12T08:48:29.357Z>
+Tooling baseline and Makefile (per PRD “Local Tooling Stack”):
+- Add dev deps: eslint, eslint-config-next, eslint-config-prettier, prettier, vitest, @vitest/coverage-v8, playwright, @axe-core/playwright, lighthouse-ci.
+- Config files: .eslintrc.(js|cjs), .eslintignore, .prettierrc, .prettierignore, vitest.config.ts (jsdom for any DOM utils), playwright.config.ts (project: landing, headless by default), .lighthouserc.json pointing to lighthouse-budget.json.
+- Introduce Makefile targets used locally and in CI:
+  - make install (package install)
+  - make lint (eslint . --ext .ts,.tsx)
+  - make format (prettier --write .)
+  - make format-check (prettier --check .)
+  - make unit (vitest run --coverage)
+  - make e2e (playwright test)
+  - make a11y (playwright test -g "a11y" using @axe-core/playwright checks)
+  - make lhci (lhci autorun)
+  - make check (lint + format-check + unit)
+  - make ci (check + e2e + a11y + lhci; fail on any nonzero exit)
+- Vitest scope for this task: add unit tests for small utilities (e.g., DPR clamp heuristic, tooltip text width cache) to ensure deterministic behavior.
+- Playwright integrates axe checks (contrast, landmarks, reduced-motion compliance) alongside existing smoke; tag a11y tests to run via make a11y.
+- Lighthouse CI runs with existing budget (TTI, main-thread blocking) via make lhci.
+- Respect Output Policy for Prompt agents in any helper tools or examples referenced by this page: avoid live model calls in tests, mock responses, and include a brief policy note/link in /docs/landing-3d-graph.md.
+</info added on 2025-08-12T08:48:29.357Z>
+<info added on 2025-08-12T09:11:33.284Z>
+Quality-Gate Loop
+- a) Cleanup: remove redundant files/junk code; update .gitignore to exclude build artifacts and reports (e.g., .next, out, coverage, playwright-report, .lighthouseci, .DS_Store, logs); refresh README with setup, run, and Quality-Gate steps.
+- b) Self-Review: inspect the full diff; ensure each subtask’s deliverables exist and are sensible (app/(marketing)/page.tsx, components/Scene.tsx, components/CapabilitiesGraph.tsx, theme tokens, docs/landing-3d-graph.md, Makefile/configs). Sanity-check reduced-motion behavior, DPR clamping, graph navigation, and that tests/docs reference the actual implementations.
+- c) Git add & commit: stage changes and create descriptive, atomic commits per area (UI, perf, tests, docs). Do not push.
+
+Pre-commit enforcement
+- Add Makefile aliases:
+  - make quality → same as make check (lint + format-check + unit).
+  - make test → same as make e2e (Playwright suite).
+- Add a pre-commit hook at .git/hooks/pre-commit to run: make quality && make test; ensure it is executable and blocks the commit on failure. Document this workflow in README and discourage --no-verify.
+</info added on 2025-08-12T09:11:33.284Z>
+
+# Test Strategy:
+- Visual: Playwright screenshot diff for hero + graph.
+- Performance: Lighthouse CI with thresholds (TTI < 2.5s on Fast 3G emulation, main thread blocking < 250ms).
+- Accessibility: axe-core checks, reduced motion respected.
+- Navigation: clicking nodes routes to target pages.
+
+# Subtasks:
+## 1. Implement landing page UI with 3D scene and interactive graph [review]
+### Dependencies: None
+### Description: Create the Next.js App Router page at '/' with TailwindCSS and shadcn/ui. Dynamically import client-only 3D Scene and ForceGraph components to avoid SSR. Build a minimal React Three Fiber v9 scene (drei helpers, ambient light, a few animated primitives or small glTF, no postprocessing) and a react-force-graph 2D graph (~20 nodes) with hover tooltips and onNodeClick routing to /hub, /scale, /promptbro. Apply blue futuristic theme (CSS variables, gradient text, backdrop-blur panels) and basic a11y (reduced motion support).
+### Details:
+Deliverables: 1) app/(marketing)/page.tsx with hero + placeholders; 2) components/Scene.tsx (Canvas, minimal meshes, disable OrbitControls on mobile); 3) components/CapabilitiesGraph.tsx (nodes/links, custom tooltip, onNodeClick -> router.push); 4) Dynamic imports with ssr:false and suspense fallbacks; 5) Theme tokens and gradient styles. Add data-testid attributes for canvas and graph roots.
+
+Tag: frontend
+
+## 2. Performance and UX polish (lazy load, DPR, throttling, budgets) [done]
+### Dependencies: 4.1
+### Description: Optimize rendering and loading: lazy load heavy components with Suspense fallbacks; tune devicePixelRatio based on container size and hardware; throttle animations; set frameloop to 'demand' where possible; configure Lighthouse performance budget; ensure reduced motion disables intensive updates.
+### Details:
+Implement: 1) next/dynamic with loading skeletons; 2) useResizeObserver to clamp DPR (e.g., 0.75–1.5) for Canvas; 3) conditionally pause/limit rotations and graph cooldownTicks; 4) rAF throttling for UI effects; 5) disable node drag and orbit on mobile; 6) prefetch=off for heavy routes; 7) lighthouse-budget.json with TTI < 2.5s (Fast 3G), main-thread < 250ms. Instrument simple FPS meter via requestAnimationFrame and Performance API for smoke checks.
+
+Tag: frontend
+
+## 3. Cleanup: assets, compression, and client-only boundaries [in-progress]
+### Dependencies: 4.1, 4.2
+### Description: Remove unused shaders/assets, compress textures/models, and ensure client-only boundaries are correct with 'use client'. Audit bundle for unused imports and heavy modules.
+### Details:
+Actions: 1) Purge unused drei helpers and shaders; 2) Compress textures (WebP/AVIF for images; optional KTX2/Draco for glTF if used); 3) Verify all R3F/graph components have 'use client' and are excluded from SSR; 4) Use next-bundle-analyzer to confirm reductions; 5) Code-split optional UI blocks (modals/tooltips) and remove dead code.
+
+Tag: frontend
+<info added on 2025-08-18T07:52:46.271Z>
+**Subtask 4.3: Cleanup: assets, compression, and client-only boundaries**  
+Scope  
+- Remove unused drei helpers/shaders from Scene; verify no postprocessing/shadows.  
+- Ensure all R3F/graph components are client-only ("use client" + next/dynamic ssr:false) and no SSR-only APIs used.  
+- Compress media assets (convert hero images to WebP/AVIF if applicable); document glTF compression plan (KTX2/Draco) for later if models exist.  
+- Audit bundle: remove dead imports, code-split optional UI blocks (e.g., heavy tooltips/modals) and ensure graph chunking.  
+
+Targets  
+- components: `src/agents_wars/web/src/components/ThreeScene.tsx` (or equivalent), `src/agents_wars/web/src/components/NodeGraph.tsx`.  
+- page: `src/agents_wars/web/app/page.tsx` dynamic wrappers already present; confirm Suspense fallbacks and prefetch disabled if heavy.  
+
+Checks  
+- Typecheck and lint: zero warnings.  
+- Visual parity maintained; no SSR warnings at runtime.  
+- Reduced-motion behavior preserved.  
+
+Next steps  
+- Implement file-level edits, run make check + e2e; prepare brief diff summary.
+</info added on 2025-08-18T07:52:46.271Z>
+
+## 4. Quality Gate: tests, lint, accessibility, and performance checks [pending]
+### Dependencies: 4.1, 4.2, 4.3
+### Description: Add Playwright smoke tests, Lighthouse CI, axe-core accessibility checks, and ESLint/TypeScript cleanliness. Validate navigation via graph clicks and a minimum FPS threshold via Performance API.
+### Details:
+Implement: 1) Playwright: load '/', assert [data-testid='scene-canvas'] and [data-testid='capabilities-graph'] visible; click a known node -> expect route change; 2) FPS probe script exposes window.__fpsSample for test assertions; 3) axe-core integration for key views; 4) Lighthouse CI with thresholds; 5) ESLint/TS scripts in CI.
+
+Tag: frontend
+
+## 5. Context7 MCP research: R3F/drei, react-force-graph, Next.js dynamic import [done]
+### Dependencies: None
+### Description: Research latest stable versions, performance tips, SSR caveats, and recommended props/APIs for @react-three/fiber v9, @react-three/drei, react-force-graph (2D), and Next.js dynamic imports. Produce concise notes and implementation decisions.
+### Details:
+Deliverables: /docs/landing-3d-graph.md with: 1) Version pins and changelog notes impacting SSR or perf; 2) R3F best practices (frameloop, DPR, suspense, mobile controls); 3) react-force-graph perf tips (cooldownTicks, nodeCanvasObject, link pruning, hover/tooltip patterns); 4) Next.js dynamic import patterns for client-only libs; 5) Accessibility and reduced-motion considerations. Link primary sources.
+
+Tag: frontend
+
+## 6. NodeGraph interactivity: tooltips and onNodeClick routing [review]
+### Dependencies: None
+### Description: Add hover tooltips and onNodeClick handlers in `src/components/NodeGraph.tsx` to route to `/hub`, `/scale`, `/promptbro` per node mapping. Ensure keyboard accessibility and focus styles. Connected to: Task 4 (Landing page). Type: feat
+### Details:
+
+
+## 7. Tailwind CSS setup and shadcn/ui baseline [done]
+### Dependencies: None
+### Description: Install and configure Tailwind CSS (tailwindcss, postcss, autoprefixer), create `tailwind.config.ts`, `postcss.config.js`, and global stylesheet import in `app/layout.tsx`. Optionally initialize shadcn/ui tokens and primitives. Migrate landing page inline styles to Tailwind. Connected to: Task 4 (Landing page). Type: chore
+### Details:
+
+
+## 8. A11y and performance checks for landing [pending]
+### Dependencies: None
+### Description: Add Playwright a11y test for `/` and ensure Lighthouse CI budgets/thresholds are updated for the new 3D/graph content. Confirm reduced-motion path via test. Connected to: Task 4 (Landing page). Type: test/perf
+### Details:
+
+
+## 9. Type-safety wrapper for react-force-graph-2d [review]
+### Dependencies: None
+### Description: Create a typed wrapper or module declaration to eliminate `any` in `NodeGraph` by adding a `react-force-graph-2d` module declaration or a minimal typed adapter component. Connected to: Task 4 (Landing page). Type: chore
+### Details:
+
+
+## 10. Dependency audit and bundle impact note [pending]
+### Dependencies: None
+### Description: Run `npm audit` and document any high/critical issues from newly added 3D/graph deps; add a short docs note on bundle impact and lazy-loading strategy. Connected to: Task 4 (Landing page). Type: chore/perf
+### Details:
+
+
+## 11. Install and configure 3D/graph dependencies [pending]
+### Dependencies: None
+### Description: Add @react-three/fiber, @react-three/drei, react-force-graph; ensure dynamic import with ssr:false for client-only components; set basic perf defaults.
+### Details:
+
+
+## 12. Harden CSP with Next headers and nonces [pending]
+### Dependencies: None
+### Description: Replace temporary meta CSP with a robust CSP via Next.js headers (or middleware) using nonces for inline scripts/styles. Ensure Lighthouse CSP-XSS passes. Connected to Task 4 (Landing page). Type: security
+### Details:
+
+
+## 13. E2E: Graph node navigation routes correctly [pending]
+### Dependencies: None
+### Description: Add Playwright test that clicks graph nodes and verifies navigation to /hub, /scale, and /promptbro. Include reduced-motion preference scenario. Connected to: Task 4 (Landing page). Type: test/e2e
+### Details:
+
+
+## 14. Docs: Landing visuals and performance rationale [pending]
+### Dependencies: None
+### Description: Add README section documenting 3D/graph lazy-loading strategy, reduced-motion handling, performance budgets, and instructions to configure Tailwind/shadcn. Connected to: Task 4 (Landing page). Type: docs
+### Details:
+
+
+## 15. Static hero fallback for reduced-motion/mobile [pending]
+### Dependencies: None
+### Description: When prefers-reduced-motion is true or on narrow screens, do not mount the 3D canvas; render a lightweight static hero (optimized image) instead. Connected to: Task 4 (Landing page). Type: frontend/UX
+### Details:
+
+
+## 16. Graceful routing placeholders for /hub and /scale [pending]
+### Dependencies: None
+### Description: Add simple placeholder pages or toasts when routing from NodeGraph to /hub and /scale until those pages are implemented, avoiding dead ends. Connected to: Task 4 (Landing page). Type: frontend/UX
+### Details:
+
+
+## 17. Unit tests for reduced-motion/DPR hooks [pending]
+### Dependencies: None
+### Description: Add unit tests for `usePrefersReducedMotion` and any DPR clamp helper to ensure deterministic behavior across environments. Connected to: Task 4 (Landing page). Type: frontend/test
+### Details:
+
+
+## 18. Implement hooks: usePrefersReducedMotion and DPR clamp util [pending]
+### Dependencies: None
+### Description: Create `usePrefersReducedMotion` hook and a small DPR clamp utility used by Canvas/Scene to bound devicePixelRatio for performance.
+### Details:
+Connected to: Task 4 (Landing page). Type: frontend/utilities
+- Files: src/agents_wars/web/src/hooks/usePrefersReducedMotion.ts, src/agents_wars/web/src/lib/dpr.ts
+- Hook: returns boolean based on `(prefers-reduced-motion: reduce)` and updates on media query changes.
+- Util: `clampDpr(input: number, min=1, max=1.5)`; documented and unit-tested.
+- Tests: Vitest for hook (with matchMedia mock) and clamp util.
+- Consumers: Scene Canvas and any graph DPR logic.
+
+
+## 19. Pre-commit quality gate with Husky [pending]
+### Dependencies: None
+### Description: Setup Husky pre-commit to run `make quality` and `make test` to enforce lint/format/unit + e2e before committing.
+### Details:
+Connected to: Task 4 (Landing page). Type: chore/devops
+- Add husky as devDependency (web or repo root as appropriate) and initialize hooks.
+- Hook: `.husky/pre-commit` → `make quality && make test`.
+- Document workflow in README; discourage `--no-verify`.
+- Ensure CI unaffected.
+
+
+## 20. Canvas ErrorBoundary for WebGL context loss [pending]
+### Dependencies: None
+### Description: Wrap 3D Canvas with an error boundary to degrade gracefully on WebGL context crashes/unsupported environments.
+### Details:
+Connected to: Task 4 (Landing page). Type: frontend/UX/resilience
+- Implement a lightweight ErrorBoundary Client Component around dynamic Canvas import.
+- Friendly fallback UI with retry.
+- Optional: integrate `use-error-boundary` or simple class-based boundary.
+
+
+## 21. Lighthouse budget and CI config files [pending]
+### Dependencies: None
+### Description: Add Lighthouse CI config and performance budgets for landing page with 3D/graph.
+### Details:
+Connected to: Task 4 (Landing page). Type: chore/ci
+- Files: `.lighthouserc.json` and `lighthouse-budget.json` with thresholds (e.g., TTI < 2.5s, main-thread blocking < 250ms) per prior notes.
+- Ensure `npm run lhci` works locally and in CI.
+
+
+## 22. FPS probe script and Playwright helper [pending]
+### Dependencies: None
+### Description: Expose a simple FPS probe on window and add a Playwright helper to assert idle FPS threshold.
+### Details:
+Connected to: Task 4 (Landing page). Type: test/perf
+- Add a tiny client script (loaded only on `/`) that samples `requestAnimationFrame` over N frames and sets `window.__fpsSample`.
+- Playwright util to read value and assert >= ~45 when idle.
+- Respect reduced-motion: probe should not force animations.
+
+
+## 23. Client-only dynamic wrappers for Scene and Graph with Suspense fallbacks [review]
+### Dependencies: None
+### Description: Create dynamic client-only wrappers for heavy components (R3F Canvas Scene and ForceGraph2D) using next/dynamic with ssr:false and sensible loading fallbacks.
+### Details:
+Connected to: Task 4 (Landing page). Type: frontend
+- Files: src/agents_wars/web/src/components/Scene.client.tsx, src/agents_wars/web/src/components/CapabilitiesGraph.client.tsx
+- Use next/dynamic({ ssr:false }) and Suspense fallback skeletons.
+- Ensure wrappers export a single default component consumed by the Server Page.
+
+
+## 24. Routing map and keyboard accessibility for NodeGraph [review]
+### Dependencies: None
+### Description: Define a typed node→route mapping and implement keyboard navigation/aria for graph interactions.
+### Details:
+Connected to: Task 4 (Landing page). Type: frontend/a11y
+- Files: src/agents_wars/web/src/lib/graphRoutes.ts, update CapabilitiesGraph to support Enter/Space activation, focus ring, aria-labels, and tooltip role.
+- Tests: Playwright a11y assertions for keyboard activation and labels.
+
+
+## 25. Integrate next-bundle-analyzer and baseline report [pending]
+### Dependencies: None
+### Description: Add bundle analyzer to measure initial JS size and landing page chunks; produce a baseline report for future comparisons.
+### Details:
+Connected to: Task 4 (Landing page). Type: chore/tooling
+- Install `@next/bundle-analyzer` and wire it in `next.config.js` (conditionally via ANALYZE=1).
+- Document usage in README: `ANALYZE=1 npm run build` to open report.
+- Capture a baseline report (commit as artifact path or note sizes in docs).
+
+

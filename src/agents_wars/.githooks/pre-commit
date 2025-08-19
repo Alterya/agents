@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+
+echo "Running quality checks..."
+make -C "$ROOT_DIR/src/agents_wars" quality
+
+echo "Running unit tests..."
+make -C "$ROOT_DIR/src/agents_wars" test
+
+#!/bin/bash
+set -euo pipefail
+
+echo "Running Agent Wars quality gate..."
+make -C src/agents_wars quality
+make -C src/agents_wars test
+

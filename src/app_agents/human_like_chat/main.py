@@ -21,7 +21,7 @@ async def main():
         },
     )
 
-    set_tracing_disabled(True)   
+    set_tracing_disabled(True)
 
     print("Starting human like chat")
     reasoning_agent = Agent(

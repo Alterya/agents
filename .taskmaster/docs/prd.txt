@@ -1,238 +1,97 @@
 <context>
 # Overview
-Agent Wars Website is a focused platform that helps prompt engineers and non-technical users improve prompts and identify weaknesses like hallucinations, goal failures, and character inconsistency through repeated conversational testing. The product provides a fun, futuristic interface and powerful tooling to run one-off “battles” and scalable test runs against prebuilt agents.
+Agent Wars Website supports prompt engineers and non-technical users in crafting strong prompts and diagnosing weaknesses (hallucinations, goal failures, character inconsistency) via repeated conversational tests.
 
 # Core Features
-- Landing Page: Blue futuristic theme with 3D moving elements and an interactive node graph showcasing system capabilities.
-- Agent Wars Hub: Run concurrent battles between a chosen LLM+system prompt vs. a prebuilt agent from a local DB. Conversations stop when the goal is achieved or after 25 messages. Multiple battles can run in parallel.
-- Scale Testing: Configure model, system prompt, and run count; select a prebuilt agent; execute many conversations in the background with per-run reports stored in DB and a summarized analysis (failures, prompt issues, and a revised prompt suggestion).
-- PromptBro: Guided prompt creation experience where a custom LLM agent asks guiding questions; user iterates with free text and later performs additional checks/fixes (to be added later).
+- Landing Page: Blue futuristic theme, 3D moving objects, interactive node graph to visualize system capabilities.
+- Agent Wars Hub: Run one or more concurrent battles: a chosen LLM model + system prompt vs a prebuilt agent (from local DB). Conversation stops when goal reached or after 25 messages.
+- Scale Testing: Configure model, system prompt, and run count; select a prebuilt agent. Execute N background conversations, store each conversation + run report, and produce a summarized report including failures, prompt issues, and a revised prompt.
+- PromptBro: Guided prompt creator with free text plus questions from a custom LLM agent; later we’ll add extra checks/fixes.
 
 # User Experience
-- Primary users: Prompt engineers and builders refining prompts; secondary: non-technical users learning to craft strong prompts.
-- Key flows:
-  - Explore landing page, see visualizations, click through to features.
-  - In Agent Wars Hub, configure model+system prompt, pick prebuilt agent, launch one or more battles, view live transcripts and stop conditions.
-  - In Scale Testing, configure batch parameters, run N conversations asynchronously, view summary and download/export results.
-  - In PromptBro, answer guiding questions and refine prompt with iterative feedback.
+- Primary: Prompt engineers; Secondary: non-technical users learning prompt craft.
+- Clear navigation to 4 pages, with live feedback and progress indicators where relevant.
 </context>
 <PRD>
-# Technical Architecture
-- Frontend: Next.js (React) + TypeScript; UI: Tailwind + shadcn/ui; 3D/graph: Three.js + React Three Fiber + a lightweight node-graph library (e.g., react-force-graph) with a blue futuristic theme.
-- Backend: Node.js + TypeScript (Next.js route handlers) or a slim Express server if needed. Background jobs with simple queue (BullMQ) or Next.js Route Handler + worker approach.
-- LLM Providers: OpenAI and OpenRouter only. Abstract via a provider layer with a shared interface to run chats.
-- Database: Postgres (via Prisma). Entities: Agent (prebuilt), Conversation, Message, RunReport, PromptTemplate.
-- Infra: Deployed to Vercel (frontend + serverless) and Neon/Supabase for Postgres; or Docker-based deployment as fallback.
+# Technical Architecture (MVP)
+- Frontend: Next.js (React + TypeScript), TailwindCSS + shadcn/ui. 3D via React Three Fiber + Three.js. Node graph via react-force-graph or similar.
+- Backend: Next.js Route Handlers (Node + TypeScript). Background job runner (either simple in-process queue or BullMQ + Redis if needed).
+- LLM Providers: Only OpenAI and OpenRouter, abstracted behind a provider layer.
+- Database: Postgres via Prisma. Entities: Agent (prebuilt), Conversation, Message, RunReport, PromptTemplate.
+- Deployment: Vercel + managed Postgres (Neon/Supabase). Keep costs controlled; cap run counts.
 
-# Development Roadmap (MVP)
-- Implement per-page features with minimal cross-cutting infra to keep scope low. One task per page plus a few shared tasks.
-- Cross-cutting: LLM provider abstraction, DB schema + migrations, background runner for scale tests.
+# Development Roadmap (Keep tasks minimal)
+Create ~7 tasks total: one per page (4) plus 2–3 shared infra tasks.
 
-# Logical Dependency Chain
-1) Shared foundation (DB schema + LLM provider layer)
-2) Landing page visuals
-3) Agent Wars Hub battle runner
-4) Scale Testing batch runner + reporting
-5) PromptBro guided prompt tool
+1) Shared: Database schema and Prisma models (Agent, Conversation, Message, RunReport, PromptTemplate) with migrations.
+2) Shared: LLM provider abstraction for OpenAI and OpenRouter with a unified chat interface and safety/cost guards.
+3) Shared: Background execution APIs for battles and batch runs (queue or in-process runners) with persistence and streaming updates.
+4) Page: Landing Page with 3D visuals and interactive node graph (blue futuristic theme).
+5) Page: Agent Wars Hub for concurrent battles with goal/25-message stop condition; UI supports multiple sessions at once.
+6) Page: Scale Testing to run N background conversations, save runs and reports, and show a summarized analysis with revised prompt.
+7) Page: PromptBro guided prompt creation with a custom LLM agent and free text inputs; room for later checks/fixes.
 
-# Risks and Mitigations
-- 3D performance: Use lightweight scenes and lazy-load assets.
-- Cost control: Add rate limiting and provider key selection; cap run counts.
-- Async scale: Queue jobs and stream incremental updates to UI.
+# Constraints & Directives
+- Only OpenRouter and OpenAI are supported in MVP.
+- Do not add authentication, payments, advanced analytics, mobile apps, or real-time collaboration in MVP.
+- IMPORTANT: The final three subtasks of every task must be: Cleanup, Quality Gate (run tests/lint), and Context7 MCP research for external packages/libraries used.
+- Perform deep research to break down subtasks effectively but keep subtask count small (target 5 per task: 2 implementation + the 3 standardized finals).
 
-# Appendix
-- Only OpenAI and OpenRouter supported initially.
-- Final three subtasks of every task: Cleanup, Quality Gate (tests/lint), and Context7 MCP research for libraries/packages.
-- Deep research required to break down subtasks effectively.
+# Logical Dependencies
+- All pages depend on Shared DB schema and LLM provider abstraction. Hub and Scale Testing also depend on Background execution APIs.
+
+# Risks & Mitigations
+- 3D performance: lightweight scenes, lazy load.
+- Cost control: cap batch sizes, rate limit.
+- Async reliability: retries and structured error handling.
 </PRD>
-# Daily Alert Summary Agent - Product Requirements Document
 
-## Project Overview
 
-### Mission Statement
-Create an automated agent that triggers daily at 10 AM Jerusalem time to retrieve all Grafana alerts from the previous 24 hours, intelligently group them using OpenRouter with Claude 4 Sonnet, and deliver a comprehensive summary to the team via Slack.
+# Research Addendum (2025)
 
-### Primary Goal
-Summarize the day-before alerts to improve team awareness and reduce time spent manually reviewing alert data, enhancing overall incident response and system health visibility.
+- Arena patterns (LMSYS Chatbot Arena)
+  - Blind A/B layout with randomized side assignment; single input broadcast to both; reveal participants after outcome.
+  - Outcome: goal-first wins; if both reach goal, tie-break by fewer turns → fewer tokens → lower latency; allow tie.
+  - Optional ratings (future): store outcomes for Elo/BTL/TrueSkill aggregation.
 
-## User Stories
+- Provider strategy (OpenAI + OpenRouter)
+  - OpenRouter: include HTTP-Referer and X-Title headers on every request; fetch /models with 6h TTL, use pricing/context_length dynamically.
+  - Preflight guards: estimate tokens (o200k_base/cl100k_base), enforce model context and per-request/session budget caps; concurrency limiter and 429 backoff.
+  - Persist usage/cost per message; aggregate per conversation and run report.
 
-### Primary Users: Development/Operations Team
-- **As a team member**, I want to receive a daily digest of yesterday's alerts so I can quickly understand what happened in our systems without manually checking multiple dashboards.
-- **As a team lead**, I want alerts grouped logically (by service, severity, frequency) so I can prioritize follow-up actions and identify patterns.
-- **As an on-call engineer**, I want to see alert trends and resolutions so I can better prepare for potential recurring issues.
+- Serverless Postgres (Prisma v5)
+  - Use pooled DATABASE_URL (PgBouncer) with pgbouncer=true, connection_limit=1, sslmode=require; use DIRECT_URL for migrate/studio.
+  - Consider Prisma Accelerate for Edge/high concurrency.
+  - Add Message.seq for incremental polling; add aggregates (tokens/cost) on Conversation/RunReport.
 
-## Technical Requirements
+- Background execution on Vercel
+  - Polling-first status/messages; reserve SSE for short-lived streams.
+  - For durable jobs, prefer BullMQ + Upstash Redis with an off-Vercel worker; in-process fallback when worker absent.
+  - Status endpoints return minimal JSON; messages support sinceSeq.
 
-### Core Functionality
-1. **Scheduling**: Local cron-based scheduling system triggering at 10:00 AM Jerusalem time (UTC+2/UTC+3 depending on DST)
-2. **Data Collection**: Integrate with Grafana MCP to fetch all alerts from the previous 24-hour period
-3. **AI-Powered Grouping**: Use OpenRouter with Claude 4 Sonnet for intelligent alert grouping by:
-   - Service/component
-   - Severity level
-   - Alert frequency/patterns
-   - Resolution status
-4. **Summary Generation**: Create human-readable summaries with actionable insights using Claude 4 Sonnet
-5. **Delivery**: Send formatted summaries to designated Slack channel/group
+- Judging and evaluation
+  - Deterministic validators first; fast judge per turn; strong confirm before stopping on goal; store JudgeDecision rows.
+  - Batch evaluation via Promptfoo (primary); optional DeepEval/TruLens worker; map failures to FailureTag; include costs/latency/token stats and revised prompt.
 
-### Technical Stack
-- **Language**: Python 3.11+
-- **AI Provider**: OpenRouter with Claude 4 Sonnet model
-- **Scheduling**: Python cron (APScheduler) with Jerusalem timezone support
-- **Environment Management**: Python virtual environment with requirements.txt
-- **Configuration**: Python-dotenv for environment variables and YAML configuration
-- **HTTP Client**: httpx for async requests to Grafana and Slack APIs
+- 3D/Graph performance (Landing)
+  - React Three Fiber: dynamic import client-only; frameloop='demand'; AdaptiveDpr; respect reduced motion; minimal scene.
+  - react-force-graph 2D: warmup/cooldown; nodeCanvasObject with cached labels; nodePointerAreaPaint; overlay HTML tooltip; clamp pixelRatio.
 
-### Technical Constraints
-- Use local Python scheduling system (APScheduler)
-- Leverage existing mcp.json configuration for Grafana setup inspiration
-- No specific Slack workspace/channel requirements (flexible configuration)
-- Custom AI prompt-driven alert grouping logic using Claude 4 Sonnet via OpenRouter
 
-### Integration Points
-- **Grafana MCP**: Primary data source for alert information
-- **OpenRouter API**: AI service provider for Claude 4 Sonnet access
-- **Slack API**: Delivery mechanism for summaries
-- **Local Python Scheduler**: Scheduling and automation
+# Local Tooling Stack (free/local, 2025)
 
-## Functional Requirements
+- Linters (JS/TS): ESLint with configs/plugins: next/core-web-vitals, @typescript-eslint, react, react-hooks, jsx-a11y, import (or import-x), eslint-config-prettier.
+- Tailwind lint: eslint-plugin-tailwindcss (enable no-contradicting-classname; keep class order via Prettier plugin).
+- Formatters: Prettier + prettier-plugin-tailwindcss for class sorting. Optional: Biome as an all-in-one alternative, or Oxlint for very fast linting (keep ESLint as primary for ecosystem coverage).
+- Testing (unit/integration): Vitest + React Testing Library + @testing-library/jest-dom; MSW for network mocking.
+- E2E: Playwright (App Router friendly). Accessibility: axe (via playwright-axe). Performance: Lighthouse CI budgets.
+- Prisma: prisma format, prisma validate, prisma migrate; repository tests against Docker Postgres or Neon branch.
+- Optional Python worker: Ruff (linter), Black (formatter), isort, Pytest, coverage.py.
+- Makefile: standard targets for lint, format, typecheck, unit, e2e, prisma:format/validate/migrate/seed/studio, check, and ci.
 
-### Alert Data Processing
-1. Retrieve alerts from last 24 hours via Grafana MCP
-2. Parse and structure alert data (timestamp, severity, service, description, status)
-3. Apply AI-powered grouping using Claude 4 Sonnet via OpenRouter
-4. Generate summary statistics and trend analysis
+# Prompt Agent Output Policy (applies to PromptBro and internal assistants)
 
-### AI-Powered Summary Generation
-1. Use Claude 4 Sonnet to create executive summary with key metrics
-2. Provide AI-generated detailed breakdowns by service/severity
-3. Highlight critical alerts requiring attention using AI analysis
-4. Include resolution status and timing information
-5. Format content for optimal Slack readability
+- Phase 3: Present Output
+- Do not skip phases. Do not reveal hidden reasoning; show only structured results.
+- If a required fact or tool is unavailable and the user insists on proceeding, return exactly: "information unavailable".
 
-### Delivery System
-1. Format summaries for Slack channel consumption
-2. Include appropriate formatting (markdown, mentions, threads)
-3. Handle delivery failures gracefully with retry logic
-4. Provide configuration options for channel selection
-
-## Non-Functional Requirements
-
-### Reliability
-- Ensure daily execution consistency with Python cron
-- Implement error handling and recovery mechanisms
-- Provide logging for troubleshooting
-
-### Performance
-- Complete processing within reasonable time limits (< 5 minutes)
-- Handle large volumes of alert data efficiently
-- Minimize API calls to external services
-- Optimize OpenRouter API usage for cost efficiency
-
-### Maintainability
-- Modular Python code structure for easy updates
-- Configurable parameters via environment variables and YAML
-- Clear documentation and setup instructions
-- Virtual environment for dependency isolation
-
-## Success Criteria
-
-### Primary Success Metrics
-1. **Automation Success**: 100% reliable daily execution at scheduled time
-2. **Data Accuracy**: Complete and accurate alert data retrieval from Grafana
-3. **AI Quality**: High-quality, contextual grouping and summaries from Claude 4 Sonnet
-4. **Team Adoption**: Regular team consumption of daily summaries
-5. **Time Savings**: Reduced manual alert review time for team members
-
-### Secondary Success Metrics
-1. **Alert Pattern Recognition**: AI-powered identification of recurring issues through intelligent grouping
-2. **Actionable Insights**: Summaries that lead to proactive system improvements
-3. **Slack Integration**: Seamless delivery and formatting in team channels
-4. **Cost Efficiency**: Optimized OpenRouter API usage
-
-## Out of Scope (Initial Version)
-- Interactive alert management capabilities
-- Historical trend analysis beyond 24 hours
-- Integration with monitoring tools other than Grafana
-- Advanced ML-based alert correlation beyond Claude 4 Sonnet capabilities
-- Real-time alert notifications (this is for daily summaries only)
-- Custom dashboard creation
-- Alert escalation workflows
-- Complex deployment infrastructure (CI/CD, containers, Kubernetes)
-- Comprehensive testing frameworks
-- Performance optimization beyond basic requirements
-
-## Implementation Phases
-
-### Phase 1: Core Python Agent Development
-- Python project setup with virtual environment
-- Basic Grafana MCP integration using httpx
-- Alert data retrieval and parsing
-- Local Python scheduling setup with APScheduler
-
-### Phase 2: AI-Powered Processing with OpenRouter
-- OpenRouter client setup for Claude 4 Sonnet access
-- AI-powered alert grouping and analysis
-- Summary generation using Claude 4 Sonnet
-- Data formatting and structuring
-
-### Phase 3: Slack Integration & Orchestration
-- Slack API integration with httpx
-- Message formatting and delivery
-- Error handling and retry logic
-- Main orchestrator script
-
-## Technical Architecture
-
-### Components
-1. **Scheduler**: APScheduler-based daily trigger
-2. **Data Collector**: Grafana MCP integration module using httpx
-3. **AI Processor**: OpenRouter + Claude 4 Sonnet integration for grouping and analysis
-4. **Generator**: AI-powered summary creation and formatting
-5. **Notifier**: Slack delivery system
-6. **Configuration**: Environment and YAML configuration management
-
-### Data Flow
-1. APScheduler triggers agent at 10 AM Jerusalem time
-2. Agent connects to Grafana via MCP using httpx
-3. Retrieves alerts from previous 24 hours
-4. Sends alert data to Claude 4 Sonnet via OpenRouter for intelligent grouping
-5. Generates AI-powered formatted summary
-6. Delivers summary to Slack channel using httpx
-7. Logs execution results
-
-## Configuration Requirements
-
-### Environment Setup
-- Python 3.11+ virtual environment
-- OpenRouter API key for Claude 4 Sonnet access
-- Grafana MCP configuration (using mcp.json as inspiration)
-- Slack API credentials and channel configuration
-- Timezone settings for Jerusalem time
-- APScheduler configuration for daily execution
-
-### Customization Options
-- AI prompt templates for alert grouping and summary generation
-- OpenRouter model parameters (temperature, max_tokens, etc.)
-- Summary format templates
-- Slack channel targeting
-- Execution time adjustment
-- Data retention policies
-
-## Quality Gates and Standards
-
-### Code Quality
-- Python code formatting with black and isort
-- Type hints with mypy
-- Basic error handling and logging
-- Environment variable validation
-
-### Operational Quality
-- Basic monitoring for agent failures
-- Simple logging for troubleshooting
-- Secure API key management
-- Basic backup of configuration
-
----
-
-*Note: This simplified PRD focuses on core functionality without extensive testing, CI/CD, or deployment infrastructure. The project emphasizes rapid development and deployment of the essential daily alert summary capability using modern Python tools and AI-powered analysis via OpenRouter's Claude 4 Sonnet.*

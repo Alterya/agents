@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  system
+  user
+  assistant
+  tool
+}
+
+enum EndReason {
+  goal
+  limit
+  error
+  manual
+  timeout
+}
+
+model Agent {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  description   String?
+  systemPrompt  String
+  persona       Json?
+  isActive      Boolean        @default(true)
+  tags          String[]       @default([])
+  conversations Conversation[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  runReports    RunReport[]
+}
+
+model Conversation {
+  id           String     @id @default(cuid())
+  agentId      String
+  agent        Agent      @relation(fields: [agentId], references: [id])
+  model        String
+  systemPrompt String?
+  goal         String?
+  goalReached  Boolean    @default(false)
+  endedReason  EndReason?
+  messageLimit Int        @default(25)
+  messageCount Int        @default(0)
+  runId        String?
+  startedAt    DateTime   @default(now())
+  endedAt      DateTime?
+  messages     Message[]
+
+  @@index([agentId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           Role
+  content        String
+  tokensIn       Int?
+  tokensOut      Int?
+  costUsd        Decimal?     @db.Decimal(10, 5)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model RunReport {
+  id            String   @id @default(cuid())
+  runId         String   @unique
+  agentId       String
+  agent         Agent    @relation(fields: [agentId], references: [id])
+  model         String
+  systemPrompt  String?
+  runCount      Int
+  failures      Json?
+  summary       String?
+  revisedPrompt String?
+  stats         Json?
+  createdAt     DateTime @default(now())
+}
+
+model PromptTemplate {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  template    String
+  variables   String[]  @default([])
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

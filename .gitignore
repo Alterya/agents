@@ -155,3 +155,12 @@ node_modules/
 src/app_agents/domain_scam_finder/domain_scam_finder.csv
 src/app_agents/prompt_creator/input.txt
 src/app_agents/prompt_creator/output.md
+docker-compose.yml
+
+# Backup files
+.cursor/*.bak
+.taskmaster/*.bak
+.taskmaster/tasks/*.bak
+
+# Agent Wars web coverage output
+src/agents_wars/web/coverage/

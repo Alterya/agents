@@ -1,7 +1,7 @@
 # Task ID: 3
 # Title: Shared: Background execution APIs for battles and batch runs with persistence and streaming updates
-# Status: pending
-# Dependencies: 1, 2
+# Status: in-progress
+# Dependencies: None
 # Priority: high
 # Description: Implement Next.js Route Handlers to start and monitor battles and scale tests. Provide an in-process runner by default with optional BullMQ+Redis when REDIS_URL is set. Persist conversations and messages; expose polling and basic SSE endpoints.
 # Details:
@@ -104,6 +104,13 @@ Developer tooling and CI baseline
 - CI must gate merges by invoking make typecheck, make lint, and make test; failures block the PR.
 - Output Policy: ensure user-facing examples/docs for these APIs follow “no hidden reasoning”. If a required fact/tool is missing and a user insists, reply exactly: information unavailable.
 </info added on 2025-08-12T08:47:49.849Z>
+<info added on 2025-08-12T09:11:05.338Z>
+Quality-Gate Loop
+- a) Cleanup: remove redundant files/junk code, delete dead spikes, consolidate duplicate types; update .gitignore to exclude build artifacts and test outputs (.next, dist, coverage, playwright-report, test-results, .turbo, .vercel, .DS_Store, *.log, .env.local) and refresh README with setup/run instructions (queues, external worker, SSE vs polling, CI/Make targets).
+- b) Self-Review: inspect the diff and verify each subtask’s code exists and is sane (runners, routes, queue layer, cleanup/guards, ADR/docs). Confirm endpoint JSON contracts, caps, abort/cancel paths, and persistence fields match the spec; no secrets/PII or noisy logs; TypeScript strict, eslint/prettier clean; tests pass locally.
+- c) Git add & commit: stage changes and create descriptive commits grouped by subtask using conventional message prefixes (feat, fix, chore, docs, refactor). Summaries must explain scope and rationale. DO NOT PUSH.
+- Pre-commit enforcement: add a repo pre-commit hook that runs make quality and make test and blocks on failure. Define make quality to execute make typecheck and make lint. Ensure the hook exits non-zero on failures and prints actionable output.
+</info added on 2025-08-12T09:11:05.338Z>
 
 # Test Strategy:
 - Integration: Start battle and assert conversation reaches 'goal' given mocked LLM; another test reaches 'limit' at 25.
@@ -112,17 +119,21 @@ Developer tooling and CI baseline
 - Performance: Verify caps prevent runaway costs; simulate 10-run scale test completes under timeouts.
 
 # Subtasks:
-## 1. Implement server runners: runBattle and runScaleTest with persistence and goal-check [pending]
+## 1. Implement server runners: runBattle and runScaleTest with persistence and goal-check [done]
 ### Dependencies: None
 ### Description: Build server-only runners that execute battles and scale tests, persist conversations/messages, and determine termination via goal or message limit.
 ### Details:
 Implement runBattle(job) and runScaleTest(job) using the provider abstraction (Task 2) and repositories (Task 1). runBattle flow: createConversation(agentId, model, systemPrompt, goal) -> loop until goalReached or 25 messages -> after each assistant reply, appendMessage with tokens/cost -> run a tiny-model classifier chat to determine goalReached (yes/no) -> completeConversation(endedReason: 'goal'|'limit'|'error'). Emit progress events after each assistant turn (EventEmitter keyed by conversationId) for SSE consumers. Capture and propagate AbortSignal. runScaleTest: accept {runCount<=10, concurrency<=3, messageLimit<=25, ...}, orchestrate N battle runs, aggregate results (counts by endedReason, latency, usage totals), and persist a RunReport via repository. Ensure retries on transient LLM errors with exponential backoff and per-run token caps using provider options.
 
-## 2. Implement Next.js Route Handlers, SSE stream, and queue layer (in-memory default, BullMQ optional) [pending]
+Tag: backend
+
+## 2. Implement Next.js Route Handlers, SSE stream, and queue layer (in-memory default, BullMQ optional) [done]
 ### Dependencies: 3.1
 ### Description: Expose API endpoints to start and monitor battles/scale tests, wire runners through an in-process queue by default, and enable BullMQ+Redis when REDIS_URL is set.
 ### Details:
 Routes: POST /api/battles/start -> {jobId}; GET /api/battles/:jobId/status -> {progress, conversationId, endedReason}; GET /api/battles/:conversationId/messages?page&limit -> paginated; POST /api/scale/start -> {runId}; GET /api/scale/:runId/status -> {progress, completed, total}; GET /api/scale/:runId/report -> RunReport; GET /api/stream/:conversationId -> text/event-stream using Node runtime. Queue: default in-memory FIFO (e.g., p-queue) with concurrency=3; when process.env.REDIS_URL is present, initialize BullMQ Queue/Worker ('battles', 'scale-tests') compatible with Upstash Redis. Validate inputs and enforce caps: runCount<=10, messageLimit<=25, per-IP concurrent jobs<=3. Map jobId/runId to conversationId(s) and progress. For SSE: subscribe to EventEmitter per conversationId; send events on new assistant messages and on completion; document polling as the primary pattern on Vercel multi-instance. Ensure proper runtime config (runtime: 'nodejs') and guard single worker initialization in serverless environments.
+
+Tag: backend
 
 ## 3. Cleanup and hardening: aborts, caps, dedupe, and input sanitization [pending]
 ### Dependencies: 3.1, 3.2
@@ -130,15 +141,81 @@ Routes: POST /api/battles/start -> {jobId}; GET /api/battles/:jobId/status -> {p
 ### Details:
 Implement AbortSignal wiring end-to-end; clear EventEmitter listeners on completion/error; add idempotency keys on start endpoints to avoid duplicate runs; enforce per-IP concurrency<=3 with in-memory (and Redis-backed when available) counters; sanitize and validate agentId/model/goal inputs; redact sensitive fields from logs; implement exponential backoff and jitter for provider retries; normalize error mapping to consistent status/errors; add TTL eviction for in-memory maps (jobs, emitters) to prevent leaks; ensure BullMQ workers close gracefully on process signals. Confirm messageLimit and runCount caps enforced in both route validation and runner execution.
 
+Tag: backend
+
 ## 4. Quality Gate: tests, lint, and type safety [pending]
 ### Dependencies: 3.1, 3.2
 ### Description: Add comprehensive tests and static checks to ensure correctness and maintainability.
 ### Details:
 Set up Vitest for unit/integration tests; add route contract tests and provider fakes; include coverage for stop conditions, persistence, pagination, queue behavior, and SSE. Add TypeScript strict mode, ESLint, and Prettier. Ensure CI runs: typecheck, lint, test. Provide minimal fixtures for Agents and Conversations for deterministic tests.
 
-## 5. Context7 MCP research: queue, Redis, and Next.js streaming trade-offs [pending]
+Tag: backend
+
+## 5. Context7 MCP research: queue, Redis, and Next.js streaming trade-offs [in-progress]
 ### Dependencies: None
 ### Description: Research external packages/libraries and platform constraints to finalize defaults and document decisions.
 ### Details:
 Produce an ADR summarizing: (1) In-memory queue vs BullMQ on Vercel (cold starts, multi-instance, durability, cost); (2) Upstash Redis specifics (connection limits, TLS, BullMQ compat, recommended settings, TTLs); (3) Next.js Route Handlers streaming constraints (Node runtime only for SSE, edge incompatibilities, buffering, headers); (4) Polling fallback cadence and backoff; (5) p-queue configuration guidance and operational caps; (6) Retry strategies for LLM providers and rate limiting considerations. Include recommended defaults and code snippets to align implementation.
+
+Tag: backend
+
+## 6. API route design and in-memory job orchestration [pending]
+### Dependencies: None
+### Description: Define endpoints: POST /api/battles/start, GET /api/battles/:id/status (SSE); POST /api/scale/start, GET /api/scale/:runId/status. Use in-process job store by default; enable BullMQ when REDIS_URL is set. Wire to runBattle/runScaleTest.
+### Details:
+
+
+## 7. Input validation and idempotency [pending]
+### Dependencies: None
+### Description: Add zod schemas for request bodies; dedupe by client-provided runId/jobId; add abort/timeout handling and caps via existing guardrails.
+### Details:
+
+
+## 8. Persisted battle runner wired to LLM provider + Prisma [in-progress]
+### Dependencies: None
+### Description: Integrate runBattle with chat provider and persist Conversation/Message; stream interim deltas to clients. Connected to Task 3. Type: backend
+### Details:
+
+
+## 9. Optional BullMQ adapter (REDIS_URL) + concurrency limits [pending]
+### Dependencies: None
+### Description: Add BullMQ queue if REDIS_URL is set; fallback to in-memory. Enforce concurrency per provider:model. Connected to Task 3. Type: backend
+### Details:
+
+
+## 10. Runner timeouts/abort (REQUEST_TIMEOUT_MS) → 504 [pending]
+### Dependencies: None
+### Description: Abort long runs using AbortController with REQUEST_TIMEOUT_MS; surface 504 and clean up listeners. Connected to Task 3. Type: backend
+### Details:
+
+
+## 11. Budget caps + persist usage/cost on Message/Conversation [pending]
+### Dependencies: None
+### Description: Enforce per-request/session USD caps; persist tokens and cost fields on Message; aggregate on Conversation. Connected to Task 3. Type: backend
+### Details:
+
+
+## 12. Rate-limit POST /api/battles/start + tests [in-progress]
+### Dependencies: None
+### Description: Apply rate limit window to start endpoint and add unit tests for blocking/allowing windows. Connected to Task 3. Type: backend
+### Details:
+
+
+## 13. Zod validation + error mapping for battle endpoints [pending]
+### Dependencies: None
+### Description: Validate inputs for start/status/cancel/stream; map errors to 400/404/429/502 consistently. Connected to Task 3. Type: backend
+### Details:
+
+
+## 14. E2E Playwright SSE smoke for /api/battles/stream (mocked) [pending]
+### Dependencies: None
+### Description: Add Playwright test with route interception/MSW to validate streaming flow and a11y smoke. Connected to Task 3. Type: backend
+### Details:
+
+
+## 15. Observability: request IDs and basic metrics/logging [pending]
+### Dependencies: None
+### Description: Add request IDs to routes and log runner lifecycle; add minimal counters/timers. Connected to Task 3. Type: backend
+### Details:
+
 
