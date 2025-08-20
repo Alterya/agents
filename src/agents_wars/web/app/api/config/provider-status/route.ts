@@ -3,13 +3,14 @@ import { getConfig } from "@/lib/config";
 
 export async function GET(_req: NextRequest) {
   try {
-    // Try to use validated config when available
+    // Use config for models, but compute provider booleans from env to keep tests deterministic
     const cfg = getConfig();
+    const openaiConfigured = Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim().length > 0);
+    const openrouterConfigured = Boolean(
+      process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY.trim().length > 0,
+    );
     const body = {
-      providers: {
-        openaiConfigured: Boolean(cfg.openaiApiKey && cfg.openaiApiKey.length > 0),
-        openrouterConfigured: Boolean(cfg.openrouterApiKey && cfg.openrouterApiKey.length > 0),
-      },
+      providers: { openaiConfigured, openrouterConfigured },
       allowedModels: cfg.allowedModels,
     };
     return new Response(JSON.stringify(body), {

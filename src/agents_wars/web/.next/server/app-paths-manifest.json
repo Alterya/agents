@@ -1,0 +1,20 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/agents/route": "app/api/agents/route.js",
+  "/api/battles/[id]/messages/route": "app/api/battles/[id]/messages/route.js",
+  "/api/battles/[id]/cancel/route": "app/api/battles/[id]/cancel/route.js",
+  "/api/config/provider-status/route": "app/api/config/provider-status/route.js",
+  "/api/llm/chat/route": "app/api/llm/chat/route.js",
+  "/api/llm/models/route": "app/api/llm/models/route.js",
+  "/api/prompt-templates/route": "app/api/prompt-templates/route.js",
+  "/api/scale/[id]/report/route": "app/api/scale/[id]/report/route.js",
+  "/api/scale/[id]/status/route": "app/api/scale/[id]/status/route.js",
+  "/api/scale/start/route": "app/api/scale/start/route.js",
+  "/debug/llm/page": "app/debug/llm/page.js",
+  "/hub/page": "app/hub/page.js",
+  "/page": "app/page.js",
+  "/promptbro/page": "app/promptbro/page.js",
+  "/scale/page": "app/scale/page.js",
+  "/api/battles/start/route": "app/api/battles/start/route.js",
+  "/api/battles/[id]/status/route": "app/api/battles/[id]/status/route.js"
+}

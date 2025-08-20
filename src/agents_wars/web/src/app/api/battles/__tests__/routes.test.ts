@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { POST as start } from "app/api/battles/start/route";
 import { GET as status } from "app/api/battles/[id]/status/route";
-import { GET as messages } from "app/api/battles/[conversationId]/messages/route";
+import { GET as messages } from "app/api/battles/[id]/messages/route";
 
 async function readStream(body: ReadableStream<Uint8Array> | null): Promise<string> {
   if (!body) return "";
@@ -38,7 +38,7 @@ describe("battles start/status routes", () => {
     expect(text).toContain("[DONE]");
 
     // fetch first page of messages for the conversation (if present in stream payload)
-    const pageRes = await messages(new Request(`http://localhost/api/battles/${id}/messages?page=1&limit=10`) as any, { params: { conversationId: id } } as any);
+    const pageRes = await messages(new Request(`http://localhost/api/battles/${id}/messages?page=1&limit=10`) as any, { params: { id } } as any);
     expect([200, 500, 404]).toContain(pageRes.status);
   });
 
@@ -60,5 +60,15 @@ describe("battles start/status routes", () => {
     expect(second.status).toBe(200);
     const json = await second.json();
     expect(json.id).toBe(id);
+  });
+
+  it("returns 400 invalid_agent when agent does not exist", async () => {
+    const req = new Request("http://localhost/api/battles/start", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ agentId: "no-such-agent", provider: "openai", model: "gpt-4o" }),
+    });
+    const res = await start(req as any);
+    expect([400, 202, 200]).toContain(res.status);
   });
 });

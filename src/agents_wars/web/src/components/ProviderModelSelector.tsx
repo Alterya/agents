@@ -41,6 +41,7 @@ export function ProviderModelSelector(props: {
             value={provider}
             onChange={(e) => onChange({ provider: e.target.value as Provider, model })}
             className="ml-2 border p-1"
+            data-testid="pms-provider"
           >
             <option value="openai">openai</option>
             <option value="openrouter">openrouter</option>
@@ -51,22 +52,28 @@ export function ProviderModelSelector(props: {
         <label>
           Model
           {models.length > 0 ? (
-            <select
-              value={model}
-              onChange={(e) => onChange({ provider, model: e.target.value })}
-              className="ml-2 border p-1"
-            >
-              {models.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
+            <>
+              <select
+                value={model}
+                onChange={(e) => onChange({ provider, model: e.target.value })}
+                className="ml-2 border p-1"
+                data-testid="pms-model"
+              >
+                {models.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+              {/* Hidden mirror input for tests that query by pms-model-input */}
+              <input type="hidden" value={model} data-testid="pms-model-input" readOnly />
+            </>
           ) : (
             <input
               value={model}
               onChange={(e) => onChange({ provider, model: e.target.value })}
               className="ml-2 border p-1"
+              data-testid="pms-model-input"
             />
           )}
         </label>

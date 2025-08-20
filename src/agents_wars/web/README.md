@@ -62,9 +62,55 @@ make -C src/agents_wars quality
 make -C src/agents_wars check
 ```
 
-## Notes
+## Playwright E2E
 
-- Only OpenAI and OpenRouter are supported providers. Set at least one API key.
-- For performance/cost controls, you can set `ALLOWED_MODELS`, `MAX_TOKENS_PER_CALL`, and `RATE_LIMIT_*` in `.env.local`.
-- Prisma UI: `make -C src/agents_wars prisma-studio`.
-- If using a cloud Postgres (Neon/Supabase), update `DATABASE_URL`/`DIRECT_URL` accordingly.
+The project includes Playwright tests for the Scale page, including axe-core accessibility checks.
+
+- Start tests (auto-starts dev server on an open port):
+
+```bash
+cd src/agents_wars/web
+npm run e2e
+```
+
+- Headed mode for debugging:
+
+```bash
+npm run e2e:headed
+```
+
+- Run only accessibility tests:
+
+```bash
+npm run a11y
+```
+
+- CI pipeline target (runs lint, typecheck, unit tests, Playwright, and Lighthouse):
+
+```bash
+make -C src/agents_wars ci
+```
+
+Notes:
+- Ensure `.env.local` contains a valid `DATABASE_URL` and either `OPENAI_API_KEY` or `OPENROUTER_API_KEY` for full end‑to‑end behavior.
+- When running locally without API keys, tests may still pass due to graceful fallbacks, but summary/revised prompt content may be "information unavailable".
+
+## BullMQ Worker (Optional)
+
+If you set `REDIS_URL`, battles and scale runs will be enqueued and processed by BullMQ workers.
+
+- Start workers:
+
+```bash
+cd src/agents_wars/web
+REDIS_URL=redis://localhost:6379 node dist/worker.js
+```
+
+- Dev (ts-node via tsx):
+
+```bash
+cd src/agents_wars/web
+REDIS_URL=redis://localhost:6379 tsx worker.ts
+```
+
+Without `REDIS_URL`, the app falls back to in‑memory execution automatically.

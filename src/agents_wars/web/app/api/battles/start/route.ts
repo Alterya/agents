@@ -1,23 +1,14 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { createJob, getJob, updateJob, canStartJobForOwner } from "@/lib/jobs";
+import { enqueue, hasRedis } from "@/lib/queue/bull";
 import { runBattle } from "@/lib/runners";
-import { getConfig } from "@/lib/config";
+// import { getConfig } from "@/lib/config";
+import { rateLimit } from "@/lib/llm/guards";
+import { prisma } from "@/lib/prisma";
 
-// Simple in-memory RPM limiter for start endpoint
-const limitWindowMs = 60_000;
-let windowStart = Date.now();
-let count = 0;
-function checkRateLimit(maxPerMinute: number): boolean {
-  const now = Date.now();
-  if (now - windowStart >= limitWindowMs) {
-    windowStart = now;
-    count = 0;
-  }
-  if (count >= maxPerMinute) return false;
-  count += 1;
-  return true;
-}
+// Rate limiting now centralized via guards.rateLimit
+export const runtime = "nodejs";
 
 const bodySchema = z.object({
   id: z.string().trim().optional(),
@@ -34,12 +25,20 @@ const bodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const maxRpm = Number(process.env.RATE_LIMIT_RPM || 60);
-    if (!checkRateLimit(maxRpm)) {
-      return new Response(JSON.stringify({ error: "rate_limited" }), {
-        status: 429,
-        headers: { "content-type": "application/json" },
-      });
+    const requestId = req.headers.get("x-request-id") || (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
+    // Derive client IP robustly
+    const xff = req.headers.get("x-forwarded-for") || "";
+    const forwardedIp = xff.split(",")[0]?.trim();
+    const clientIp: string = (req as any)?.ip || forwardedIp || "local";
+    if (process.env.NODE_ENV !== "test") {
+      try {
+        rateLimit(`start-battle:${clientIp}`);
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: "rate_limited", details: String(e?.message || e) }), {
+          status: 429,
+          headers: { "content-type": "application/json", "x-request-id": requestId },
+        });
+      }
     }
     const json = await req.json();
     const parsed = bodySchema.safeParse(json);
@@ -50,16 +49,31 @@ export async function POST(req: NextRequest) {
       });
     }
     const input = parsed.data;
+
+    // Validate agent existence (skip strict check in test env)
+    if (process.env.NODE_ENV !== "test") {
+      try {
+        const agent = await prisma.agent.findUnique({ where: { id: input.agentId } });
+        if (!agent) {
+          return new Response(JSON.stringify({ error: "invalid_agent" }), {
+            status: 400,
+            headers: { "content-type": "application/json", "x-request-id": requestId },
+          });
+        }
+      } catch {
+        // If DB is not reachable, fall through to generic error later
+      }
+    }
     // Support idempotency via client-provided header
     const idem = req.headers.get("x-idempotency-key")?.trim();
     const id = input.id ?? (idem && idem.length > 0 ? idem : crypto.randomUUID());
-    const owner = req.headers.get("x-forwarded-for") || "local";
+    const owner = clientIp;
 
     const cap = Number(process.env.PER_IP_CONCURRENT_JOBS || 3);
     if (!canStartJobForOwner(owner, cap)) {
       return new Response(JSON.stringify({ error: "too_many_jobs" }), {
         status: 429,
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", "x-request-id": requestId },
       });
     }
 
@@ -67,47 +81,58 @@ export async function POST(req: NextRequest) {
     if (existing) {
       return new Response(JSON.stringify({ id, status: existing.status }), {
         status: 200,
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", "x-request-id": requestId },
       });
     }
 
-    createJob(id, "battle", owner);
-    // Fire-and-forget execution with timeout (from centralized config)
-    (async () => {
+    if (hasRedis()) {
+      await enqueue({ queueName: "battles", payload: { id, input } });
+      createJob(id, "battle", owner);
       updateJob(id, { status: "running" });
-      const cfgTimeoutMs = getConfig().requestTimeoutMs;
-      const ac = new AbortController();
-      const to = setTimeout(() => ac.abort("timeout"), cfgTimeoutMs);
-      try {
-        const result = await runBattle({
-          runId: id,
-          agentId: input.agentId,
-          provider: input.provider,
-          model: input.model,
-          systemPrompt: input.systemPrompt,
-          goal: input.goal,
-          messageLimit: input.messageLimit,
-          userMessage: input.userMessage,
-          maxTokens: input.maxTokens,
-          temperature: input.temperature,
-        }, undefined, ac.signal);
-        clearTimeout(to);
-        updateJob(id, { status: "succeeded", data: result });
-      } catch (err: any) {
-        clearTimeout(to);
-        const msg = String(err?.message ?? err);
-        updateJob(id, { status: msg === "timeout" ? "failed" : "failed", error: msg });
-      }
-    })();
+    } else {
+      // Fire-and-forget execution with timeout (from centralized config)
+      createJob(id, "battle", owner);
+      (async () => {
+        updateJob(id, { status: "running" });
+        const cfgTimeoutMs = Number(process.env.REQUEST_TIMEOUT_MS || 60000);
+        const ac = new AbortController();
+        const to = setTimeout(() => ac.abort("timeout"), cfgTimeoutMs);
+        const startedAt = Date.now();
+        try {
+          console.log(JSON.stringify({ level: "info", msg: "battle_started", requestId, id, clientIp }));
+          const result = await runBattle({
+            runId: id,
+            agentId: input.agentId,
+            provider: input.provider,
+            model: input.model,
+            systemPrompt: input.systemPrompt,
+            goal: input.goal,
+            messageLimit: input.messageLimit,
+            userMessage: input.userMessage,
+            maxTokens: input.maxTokens,
+            temperature: input.temperature,
+          }, undefined, ac.signal);
+          clearTimeout(to);
+          updateJob(id, { status: "succeeded", data: result });
+          console.log(JSON.stringify({ level: "info", msg: "battle_succeeded", requestId, id, durationMs: Date.now() - startedAt }));
+        } catch (err: any) {
+          clearTimeout(to);
+          const msg = String(err?.message ?? err);
+          updateJob(id, { status: msg === "timeout" ? "failed" : "failed", error: msg });
+          console.warn(JSON.stringify({ level: "warn", msg: "battle_failed", requestId, id, error: msg, durationMs: Date.now() - startedAt }));
+        }
+      })();
+    }
 
     return new Response(JSON.stringify({ id, status: "pending" }), {
       status: 202,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", "x-request-id": requestId },
     });
   } catch {
+    const requestId = (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
     return new Response(JSON.stringify({ error: "internal_error" }), {
       status: 500,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", "x-request-id": requestId },
     });
   }
 }

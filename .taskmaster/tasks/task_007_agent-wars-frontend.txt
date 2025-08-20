@@ -1,6 +1,6 @@
 # Task ID: 7
 # Title: Page: PromptBro guided prompt creator
-# Status: pending
+# Status: in-progress
 # Dependencies: None
 # Priority: medium
 # Description: Build a guided prompt creation experience where users input free text and interact with a custom LLM agent that asks clarifying questions. Save resulting prompts as PromptTemplates for reuse. Leave hooks for future checks/fixes.
@@ -134,7 +134,7 @@ Pre-commit enforcement
 
 Tag: frontend
 
-## 2. Draft assembly, templating, versioning, and export [pending]
+## 2. Draft assembly, templating, versioning, and export [done]
 ### Dependencies: 7.1
 ### Description: Implement deterministic draft assembly with templating variables, lightweight versioning with timestamped snapshots, restore, and export/copy utilities.
 ### Details:

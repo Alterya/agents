@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Page: Agent Wars Hub for concurrent battles
-# Status: pending
+# Status: done
 # Dependencies: None
 # Priority: medium
 # Description: Create the Hub page to configure and run one or more concurrent battles between a chosen LLM model/system prompt and a prebuilt Agent from the DB. Enforce stop when goal reached or after 25 messages. Support multiple sessions with live progress.
@@ -111,7 +111,7 @@ Pre-commit hook
 - E2E: Run with fake provider to assert multiple sessions can run concurrently and stop at goal or 25.
 
 # Subtasks:
-## 1. Implement Hub UI and session orchestration [review]
+## 1. Implement Hub UI and session orchestration [done]
 ### Dependencies: None
 ### Description: Build /hub page with shadcn/ui form to configure and start one or more battles, manage sessions list, and display live conversations.
 ### Details:
@@ -119,7 +119,7 @@ Create app/hub/page.tsx with shadcn/ui components (Select, Textarea, Input, Butt
 
 Tag: frontend
 
-## 2. UX and safeguards (validation, costs, persistence, controls) [review]
+## 2. UX and safeguards (validation, costs, persistence, controls) [done]
 ### Dependencies: 5.1
 ### Description: Harden the Hub experience with validation, disabled states, cost estimate, local persistence, and shortcuts.
 ### Details:
@@ -127,7 +127,7 @@ Implement client-side validation: require provider, model (must be in whitelist 
 
 Tag: frontend
 
-## 3. Cleanup and performance polish [review]
+## 3. Cleanup and performance polish [done]
 ### Dependencies: 5.1, 5.2
 ### Description: Stabilize polling and resource usage; remove debug output and ensure clean unmount.
 ### Details:
@@ -135,7 +135,7 @@ Refactor polling to avoid thundering herd: debounce or stagger per-session inter
 
 Tag: frontend
 
-## 4. Quality Gate: tests, lint, and e2e [review]
+## 4. Quality Gate: tests, lint, and e2e [done]
 ### Dependencies: 5.1, 5.2, 5.3
 ### Description: Add automated tests and static checks to ensure reliability of the Hub page.
 ### Details:
@@ -143,7 +143,7 @@ React Testing Library: form validation (required fields, model whitelist), Start
 
 Tag: frontend
 
-## 5. Context7 MCP research for external packages and patterns [review]
+## 5. Context7 MCP research for external packages and patterns [done]
 ### Dependencies: None
 ### Description: Research and document component APIs and platform patterns to guide implementation decisions.
 ### Details:
@@ -151,9 +151,36 @@ Produce docs/hub-research.md summarizing: shadcn/ui component APIs used (Select,
 
 Tag: frontend
 
-## 6. Hook Hub UI to background APIs [review]
+## 6. Hook Hub UI to background APIs [done]
 ### Dependencies: None
 ### Description: Use new /api/battles/* endpoints to create and monitor sessions; render live conversations using polling or SSE.
 ### Details:
 
+
+## 7. Arena A/B tab groundwork: skeleton UI and shared hooks [done]
+### Dependencies: None
+### Description: Add an "Arena" tab to the Hub page with a skeleton side-by-side A/B layout and shared state hooks. The UI should:
+- Render two anonymized panels labeled "A" and "B" with identical styling (no identities revealed)
+- Provide a single broadcast input that would be sent to both sides simultaneously (disabled until basic fields are valid)
+- Include per-side system prompt inputs
+- Reuse `ProviderModelSelector` and Agent selector (shared across the Arena)
+- Add a Start Arena button (disabled until valid) that will later trigger two sessions; for now, wire a no-op handler and placeholder state updates
+- Include clear placeholders for outcome, metrics, and a "Reveal Participants" button (no-op)
+Create a shared hook `useArenaState` to manage broadcast input, per-side prompts, simple validation, and button disabled state. Ensure the code compiles, is type-safe, and does not break existing Hub behavior.
+### Details:
+
+
+## 8. Arena outcomes & reveal: metrics, tie-breakers, and judge scaffolding [done]
+### Dependencies: None
+### Description: Extend Arena tab to compute/display outcomes and support reveal. Implement:
+- Track both side sessions' terminal status and compute winner: goal-first; ties broken by fewer turns, then fewer tokens (if available), then lower median latency; allow tie when equal.
+- Display normalized metrics (tokens/turn, latency/turn) in the outcome area; keep uniform styling, no identities until reveal.
+- Implement "Reveal Participants" to swap anonymized labels for actual identities.
+- Add optional judge button (no-op backend) that would show a mocked structured response for now; wire UI-only with strict JSON parsing placeholder.
+- Keep polling optimizations and avoid UI jank; maintain accessibility.
+Add unit tests for reveal toggling, disabled state until running, and outcome display logic with mocked sessions.
+### Details:
+<info added on 2025-08-19T13:21:08.994Z>
+Wired real outcome signals and richer metrics in Arena. Outcome: winner determined by endedReason: "goal" or status "succeeded"; tie-breakers remain turns -> tokens -> latency. Metrics: added tokensPerTurn and latencyPerTurn derived from message content and timestamps. UI: Outcome line shows winner/tie and both sides' turns, tokens (and per turn), median latency (and per-turn approximation). Kept identities masked until reveal. Tests: Updated hub.arena.test.tsx to simulate a terminal goal outcome for side A and validate metrics rendering, reveal toggle, and mock judge output. All tests pass. Note: Reveal toggle uses current boolean form to align with latest edit; judge remains mocked UI only.
+</info added on 2025-08-19T13:21:08.994Z>
 

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 type CreateConversationInput = {
   agentId: string;
@@ -6,6 +7,7 @@ type CreateConversationInput = {
   systemPrompt?: string;
   goal?: string;
   messageLimit?: number;
+  runId?: string;
 };
 
 export async function createConversation(input: CreateConversationInput) {
@@ -16,6 +18,7 @@ export async function createConversation(input: CreateConversationInput) {
       systemPrompt: input.systemPrompt,
       goal: input.goal,
       messageLimit: input.messageLimit ?? 25,
+      runId: input.runId,
     },
   });
 }
@@ -43,7 +46,12 @@ export async function appendMessage(
     });
     await tx.conversation.update({
       where: { id: conversationId },
-      data: { messageCount: { increment: 1 } },
+      data: {
+        messageCount: { increment: 1 },
+        totalTokensIn: data.tokensIn ? { increment: data.tokensIn } : undefined,
+        totalTokensOut: data.tokensOut ? { increment: data.tokensOut } : undefined,
+        totalCostUsd: data.costUsd != null ? { increment: new Prisma.Decimal(data.costUsd) } : undefined,
+      },
     });
     return msg;
   });

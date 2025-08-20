@@ -1,0 +1,37 @@
+# Task ID: 14
+# Title: Enrich Summarizer Input for RunsLite
+# Status: done
+# Dependencies: 6
+# Priority: medium
+# Description: Enhance the summarizer input for runsLite by incorporating sampled transcript snippets and goal flags for each conversation.
+# Details:
+1. Modify the runsLite summarizer to include the following fields for each conversation: goal, goalReached, endedReason, and a trimmed messages sample (first N system/user + last M assistant messages) while adhering to a strict token budget. 2. Update the summarizer policy tests to ensure that the rationale is limited to 100 words and defaults to 'information unavailable' when any of the required fields are missing. 3. Ensure that the summarization process respects token caps and that the revisedPrompt/rationale is persisted in the RunReport. 4. Implement necessary validations to check that the summarization logic is functioning correctly and efficiently within the token limits.
+
+# Test Strategy:
+1. Run unit tests to verify that the summarizer correctly includes the new fields and adheres to the token budget. 2. Validate that the rationale does not exceed 100 words and defaults to 'information unavailable' when fields are missing. 3. Conduct integration tests to ensure that the revisedPrompt/rationale is correctly persisted in the RunReport. 4. Perform manual testing to check the overall functionality and correctness of the summarization output.
+
+# Subtasks:
+## 1. Add sampled transcript and goal flags to runsLite input [done]
+### Dependencies: None
+### Description: For each conversation, include `goal`, `goalReached`, `endedReason`, and a trimmed messages sample: first N system/user + last M assistant messages under token budget.
+### Details:
+Implemented in `src/agents_wars/web/src/lib/runners.ts`: sampling uses first 2 system/user and last 2 assistant messages; includes conversation flags. Token budget enforced downstream by summarizer.
+
+## 2. Summarizer policy: rationale <= 100 words; fallback to 'information unavailable' [done]
+### Dependencies: None
+### Description: Update/verify summarizer policy: cap rationale to 100 words and use 'information unavailable' for missing fields.
+### Details:
+Policy enforced in `src/agents_wars/web/src/lib/summarizer.ts`. Added tests to verify truncation and fallback behavior.
+
+## 3. Respect token caps and persist revisedPrompt/rationale in RunReport [done]
+### Dependencies: None
+### Description: Ensure summarization max tokens are capped and `revisedPrompt` plus rationale are persisted to `RunReport`.
+### Details:
+Summarizer calls use maxTokens=512, temperature=0.2. Persistence via `saveRunReport` includes `revisedPrompt` and `stats.rationale`.
+
+## 4. Validations for summarization logic within token limits [done]
+### Dependencies: None
+### Description: Implement basic guards to avoid chain-of-thought and handle malformed JSON.
+### Details:
+Guards in `summarizer.ts`: JSON parse fallback, CoT markers -> 'information unavailable'. Tests added.
+

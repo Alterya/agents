@@ -3,7 +3,8 @@
     "collect": {
       "startServerCommand": "next start",
       "url": ["http://localhost:3000/"],
-      "numberOfRuns": 1
+      "numberOfRuns": 1,
+      "budgetPath": "./lighthouse-budget.json"
     },
     "assert": {
       "preset": "lighthouse:recommended",

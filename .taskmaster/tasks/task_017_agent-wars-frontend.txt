@@ -1,0 +1,11 @@
+# Task ID: 17
+# Title: Wire BullMQ queues for battles/scale when REDIS_URL is set
+# Status: review
+# Dependencies: 6
+# Priority: low
+# Description: Implement BullMQ queues for managing battle and scale runs, utilizing Redis for job processing when available.
+# Details:
+1. Integrate BullMQ into the backend by modifying the existing lib/queue/bull.ts to enqueue scale runs. 2. Ensure that the system can fallback to in-memory execution when REDIS_URL is not set. 3. Implement Server-Sent Events (SSE) to stream job status updates based on the progress of the BullMQ jobs. 4. Document a simple command for starting the worker that processes the queued jobs. 5. Add minimal tests for the new functionality, ensuring they are behind a feature flag or use mocked BullMQ to avoid dependencies on Redis during testing.
+
+# Test Strategy:
+1. Verify that jobs are correctly enqueued in BullMQ when REDIS_URL is set and that they are processed by the worker. 2. Test the fallback mechanism to ensure that jobs can run in-memory when Redis is not available. 3. Check that SSE correctly streams job status updates to the client. 4. Run unit tests to confirm that the feature flag and mocked BullMQ tests function as expected. 5. Conduct manual testing to ensure that the worker startup command operates correctly and that job processing behaves as intended.
