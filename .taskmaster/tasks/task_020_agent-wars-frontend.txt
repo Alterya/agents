@@ -1,0 +1,11 @@
+# Task ID: 20
+# Title: Report Stats Badges and Mini-Cards on /scale Completion
+# Status: review
+# Dependencies: 6
+# Priority: low
+# Description: Render small badges for succeeded/failed, winRate, and a mini-card layout on the /scale completion page when report.stats is present.
+# Details:
+1. Check if report.stats is available after the completion of the scale run. 2. If present, render small badges indicating the success or failure of the runs. 3. If winRate is computed, display it alongside the badges. 4. Create a mini-card layout to summarize the results, ensuring that the layout is resilient to missing fields. 5. Implement conditional rendering to handle cases where certain stats may not be available. 6. Ensure that the UI is responsive and visually appealing, adhering to the existing design guidelines. 7. Update the relevant components in the frontend to include these new UI elements.
+
+# Test Strategy:
+1. Create RTL snapshot tests for the badges to ensure they render correctly. 2. Implement tests for conditional rendering to verify that the UI behaves as expected when certain stats are missing. 3. Manually test the UI to confirm that badges and mini-cards display correctly under various scenarios (e.g., all stats present, some stats missing). 4. Validate that the layout remains consistent across different screen sizes and devices.

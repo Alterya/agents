@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+set -e
+
+echo "Running quality checks..."
+make -C src/agents_wars quality
+
+echo "Running tests..."
+make -C src/agents_wars test
+
+

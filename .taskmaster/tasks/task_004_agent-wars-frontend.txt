@@ -1,6 +1,6 @@
 # Task ID: 4
 # Title: Page: Landing Page with 3D visuals and interactive node graph
-# Status: in-progress
+# Status: review
 # Dependencies: None
 # Priority: medium
 # Description: Build the marketing/overview page with a blue futuristic theme, lightweight 3D scene (React Three Fiber + Three.js), and an interactive node graph (react-force-graph) illustrating system capabilities. Emphasize performance and lazy loading.
@@ -104,7 +104,7 @@ Deliverables: 1) app/(marketing)/page.tsx with hero + placeholders; 2) component
 
 Tag: frontend
 
-## 2. Performance and UX polish (lazy load, DPR, throttling, budgets) [done]
+## 2. Performance and UX polish (lazy load, DPR, throttling, budgets) [review]
 ### Dependencies: 4.1
 ### Description: Optimize rendering and loading: lazy load heavy components with Suspense fallbacks; tune devicePixelRatio based on container size and hardware; throttle animations; set frameloop to 'demand' where possible; configure Lighthouse performance budget; ensure reduced motion disables intensive updates.
 ### Details:
@@ -112,7 +112,7 @@ Implement: 1) next/dynamic with loading skeletons; 2) useResizeObserver to clamp
 
 Tag: frontend
 
-## 3. Cleanup: assets, compression, and client-only boundaries [in-progress]
+## 3. Cleanup: assets, compression, and client-only boundaries [review]
 ### Dependencies: 4.1, 4.2
 ### Description: Remove unused shaders/assets, compress textures/models, and ensure client-only boundaries are correct with 'use client'. Audit bundle for unused imports and heavy modules.
 ### Details:
@@ -140,7 +140,7 @@ Next steps
 - Implement file-level edits, run make check + e2e; prepare brief diff summary.
 </info added on 2025-08-18T07:52:46.271Z>
 
-## 4. Quality Gate: tests, lint, accessibility, and performance checks [pending]
+## 4. Quality Gate: tests, lint, accessibility, and performance checks [review]
 ### Dependencies: 4.1, 4.2, 4.3
 ### Description: Add Playwright smoke tests, Lighthouse CI, axe-core accessibility checks, and ESLint/TypeScript cleanliness. Validate navigation via graph clicks and a minimum FPS threshold via Performance API.
 ### Details:
@@ -148,7 +148,7 @@ Implement: 1) Playwright: load '/', assert [data-testid='scene-canvas'] and [dat
 
 Tag: frontend
 
-## 5. Context7 MCP research: R3F/drei, react-force-graph, Next.js dynamic import [done]
+## 5. Context7 MCP research: R3F/drei, react-force-graph, Next.js dynamic import [review]
 ### Dependencies: None
 ### Description: Research latest stable versions, performance tips, SSR caveats, and recommended props/APIs for @react-three/fiber v9, @react-three/drei, react-force-graph (2D), and Next.js dynamic imports. Produce concise notes and implementation decisions.
 ### Details:
@@ -162,13 +162,13 @@ Tag: frontend
 ### Details:
 
 
-## 7. Tailwind CSS setup and shadcn/ui baseline [done]
+## 7. Tailwind CSS setup and shadcn/ui baseline [review]
 ### Dependencies: None
 ### Description: Install and configure Tailwind CSS (tailwindcss, postcss, autoprefixer), create `tailwind.config.ts`, `postcss.config.js`, and global stylesheet import in `app/layout.tsx`. Optionally initialize shadcn/ui tokens and primitives. Migrate landing page inline styles to Tailwind. Connected to: Task 4 (Landing page). Type: chore
 ### Details:
 
 
-## 8. A11y and performance checks for landing [pending]
+## 8. A11y and performance checks for landing [review]
 ### Dependencies: None
 ### Description: Add Playwright a11y test for `/` and ensure Lighthouse CI budgets/thresholds are updated for the new 3D/graph content. Confirm reduced-motion path via test. Connected to: Task 4 (Landing page). Type: test/perf
 ### Details:
@@ -180,55 +180,55 @@ Tag: frontend
 ### Details:
 
 
-## 10. Dependency audit and bundle impact note [pending]
+## 10. Dependency audit and bundle impact note [review]
 ### Dependencies: None
 ### Description: Run `npm audit` and document any high/critical issues from newly added 3D/graph deps; add a short docs note on bundle impact and lazy-loading strategy. Connected to: Task 4 (Landing page). Type: chore/perf
 ### Details:
 
 
-## 11. Install and configure 3D/graph dependencies [pending]
+## 11. Install and configure 3D/graph dependencies [review]
 ### Dependencies: None
 ### Description: Add @react-three/fiber, @react-three/drei, react-force-graph; ensure dynamic import with ssr:false for client-only components; set basic perf defaults.
 ### Details:
 
 
-## 12. Harden CSP with Next headers and nonces [pending]
+## 12. Harden CSP with Next headers and nonces [review]
 ### Dependencies: None
 ### Description: Replace temporary meta CSP with a robust CSP via Next.js headers (or middleware) using nonces for inline scripts/styles. Ensure Lighthouse CSP-XSS passes. Connected to Task 4 (Landing page). Type: security
 ### Details:
 
 
-## 13. E2E: Graph node navigation routes correctly [pending]
+## 13. E2E: Graph node navigation routes correctly [review]
 ### Dependencies: None
 ### Description: Add Playwright test that clicks graph nodes and verifies navigation to /hub, /scale, and /promptbro. Include reduced-motion preference scenario. Connected to: Task 4 (Landing page). Type: test/e2e
 ### Details:
 
 
-## 14. Docs: Landing visuals and performance rationale [pending]
+## 14. Docs: Landing visuals and performance rationale [review]
 ### Dependencies: None
 ### Description: Add README section documenting 3D/graph lazy-loading strategy, reduced-motion handling, performance budgets, and instructions to configure Tailwind/shadcn. Connected to: Task 4 (Landing page). Type: docs
 ### Details:
 
 
-## 15. Static hero fallback for reduced-motion/mobile [pending]
+## 15. Static hero fallback for reduced-motion/mobile [review]
 ### Dependencies: None
 ### Description: When prefers-reduced-motion is true or on narrow screens, do not mount the 3D canvas; render a lightweight static hero (optimized image) instead. Connected to: Task 4 (Landing page). Type: frontend/UX
 ### Details:
 
 
-## 16. Graceful routing placeholders for /hub and /scale [pending]
+## 16. Graceful routing placeholders for /hub and /scale [review]
 ### Dependencies: None
 ### Description: Add simple placeholder pages or toasts when routing from NodeGraph to /hub and /scale until those pages are implemented, avoiding dead ends. Connected to: Task 4 (Landing page). Type: frontend/UX
 ### Details:
 
 
-## 17. Unit tests for reduced-motion/DPR hooks [pending]
+## 17. Unit tests for reduced-motion/DPR hooks [review]
 ### Dependencies: None
 ### Description: Add unit tests for `usePrefersReducedMotion` and any DPR clamp helper to ensure deterministic behavior across environments. Connected to: Task 4 (Landing page). Type: frontend/test
 ### Details:
 
 
-## 18. Implement hooks: usePrefersReducedMotion and DPR clamp util [pending]
+## 18. Implement hooks: usePrefersReducedMotion and DPR clamp util [review]
 ### Dependencies: None
 ### Description: Create `usePrefersReducedMotion` hook and a small DPR clamp utility used by Canvas/Scene to bound devicePixelRatio for performance.
 ### Details:
@@ -240,7 +240,7 @@ Connected to: Task 4 (Landing page). Type: frontend/utilities
 - Consumers: Scene Canvas and any graph DPR logic.
 
 
-## 19. Pre-commit quality gate with Husky [pending]
+## 19. Pre-commit quality gate with Husky [review]
 ### Dependencies: None
 ### Description: Setup Husky pre-commit to run `make quality` and `make test` to enforce lint/format/unit + e2e before committing.
 ### Details:
@@ -251,7 +251,7 @@ Connected to: Task 4 (Landing page). Type: chore/devops
 - Ensure CI unaffected.
 
 
-## 20. Canvas ErrorBoundary for WebGL context loss [pending]
+## 20. Canvas ErrorBoundary for WebGL context loss [review]
 ### Dependencies: None
 ### Description: Wrap 3D Canvas with an error boundary to degrade gracefully on WebGL context crashes/unsupported environments.
 ### Details:
@@ -261,7 +261,7 @@ Connected to: Task 4 (Landing page). Type: frontend/UX/resilience
 - Optional: integrate `use-error-boundary` or simple class-based boundary.
 
 
-## 21. Lighthouse budget and CI config files [pending]
+## 21. Lighthouse budget and CI config files [review]
 ### Dependencies: None
 ### Description: Add Lighthouse CI config and performance budgets for landing page with 3D/graph.
 ### Details:
@@ -270,7 +270,7 @@ Connected to: Task 4 (Landing page). Type: chore/ci
 - Ensure `npm run lhci` works locally and in CI.
 
 
-## 22. FPS probe script and Playwright helper [pending]
+## 22. FPS probe script and Playwright helper [review]
 ### Dependencies: None
 ### Description: Expose a simple FPS probe on window and add a Playwright helper to assert idle FPS threshold.
 ### Details:
@@ -299,7 +299,7 @@ Connected to: Task 4 (Landing page). Type: frontend/a11y
 - Tests: Playwright a11y assertions for keyboard activation and labels.
 
 
-## 25. Integrate next-bundle-analyzer and baseline report [pending]
+## 25. Integrate next-bundle-analyzer and baseline report [review]
 ### Dependencies: None
 ### Description: Add bundle analyzer to measure initial JS size and landing page chunks; produce a baseline report for future comparisons.
 ### Details:
@@ -307,5 +307,34 @@ Connected to: Task 4 (Landing page). Type: chore/tooling
 - Install `@next/bundle-analyzer` and wire it in `next.config.js` (conditionally via ANALYZE=1).
 - Document usage in README: `ANALYZE=1 npm run build` to open report.
 - Capture a baseline report (commit as artifact path or note sizes in docs).
+
+
+## 26. Playwright e2e + a11y tests for landing page [review]
+### Dependencies: None
+### Description: Connected to: Task 4 (Landing page). Type: frontend/test.
+- Verify 3D Scene and Node Graph render via data-testid
+- Click a graph node to navigate to /hub, /scale, /promptbro
+- Prefers-reduced-motion: static fallback shown (3D not mounted)
+- FPS probe: assert window.__fpsSample >= ~45 when not reduced-motion
+- Integrate axe-core checks and ensure CI scripts/tags
+### Details:
+
+
+## 27. Static hero fallback assets for reduced-motion/mobile [review]
+### Dependencies: None
+### Description: Connected to: Task 4 (Landing page). Type: frontend/assets.
+- Add optimized hero image asset(s) (WebP/AVIF)
+- Render static hero when prefers-reduced-motion or on narrow screens
+- Ensure proper alt text and accessible labeling; tests for visibility toggling
+### Details:
+
+
+## 28. CI: enforce Lighthouse budgets [review]
+### Dependencies: None
+### Description: Connected to: Task 4 (Landing page). Type: ci.
+- Update workflow to run `npm run lhci` and fail on threshold/budget breach
+- Ensure `.lighthouserc.json` references `lighthouse-budget.json`
+- Document local usage and troubleshooting
+### Details:
 
 

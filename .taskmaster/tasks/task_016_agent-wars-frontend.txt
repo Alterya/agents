@@ -1,0 +1,11 @@
+# Task ID: 16
+# Title: Add budget/cost card to ScaleRunner using pricing estimates
+# Status: done
+# Dependencies: 6, 15
+# Priority: low
+# Description: Implement a budget/cost card in the ScaleRunner that displays estimated costs based on pricing estimates from transcripts.
+# Details:
+1. Utilize the existing pricing.ts module to calculate the estimated input/output costs in USD based on the number of turns in the transcripts. 2. Create a new card component in the ScaleRunner UI that displays the estimated cost for the batch run. 3. Implement an optional field for maxBudgetUsd that warns or disables the start button if the estimated cost exceeds this budget. 4. Add a progress bar to visually represent the estimated cost versus actual cost, where the actual cost can be approximated from the accumulated message costs if available. 5. Ensure that the UI is responsive and integrates seamlessly with the existing ScaleRunner layout.
+
+# Test Strategy:
+1. Unit tests to verify that the pricing.ts module correctly calculates estimated costs based on input data. 2. Integration tests to ensure that the budget/cost card displays the correct estimated costs and that the maxBudgetUsd functionality works as intended. 3. Manual testing to confirm that the progress bar accurately reflects the estimated versus actual costs during batch runs. 4. UI tests to ensure that the card displays correctly across different screen sizes and that the warning/disable functionality for the start button works as expected.

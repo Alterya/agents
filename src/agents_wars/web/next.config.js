@@ -5,5 +5,4 @@ const nextConfig = {
     // We may use the App Router by default; leave experimental off unless needed
   },
 };
-
 module.exports = nextConfig;

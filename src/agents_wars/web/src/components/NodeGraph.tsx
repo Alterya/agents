@@ -36,6 +36,20 @@ export default function NodeGraph() {
   const [hovered, setHovered] = useState<Node | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  // Expose a minimal test hook in non-production to trigger routing deterministically from E2E
+  useEffect(() => {
+    if (typeof window === "undefined" || process.env.NODE_ENV === "production") return;
+    (window as any).__clickGraphNode = (id: string) => {
+      const node = data.nodes.find((n) => String(n.id) === id);
+      if (node?.route) router.push(node.route);
+    };
+    return () => {
+      try {
+        delete (window as any).__clickGraphNode;
+      } catch {}
+    };
+  }, [data, router]);
+
   useEffect(() => {
     if (!ref.current) return;
     // Reduce work on low motion preference

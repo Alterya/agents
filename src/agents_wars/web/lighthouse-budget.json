@@ -1,0 +1,16 @@
+[
+  {
+    "path": "/",
+    "resourceSizes": [
+      { "resourceType": "total", "budget": 350 },
+      { "resourceType": "script", "budget": 200 },
+      { "resourceType": "image", "budget": 100 }
+    ],
+    "timings": [
+      { "metric": "interactive", "budget": 2500 },
+      { "metric": "mainthread-work-breakdown", "budget": 250 }
+    ]
+  }
+]
+
+

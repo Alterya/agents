@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Conversation" ADD COLUMN     "totalCostUsd" DECIMAL(10,5) NOT NULL DEFAULT 0,
+ADD COLUMN     "totalTokensIn" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "totalTokensOut" INTEGER NOT NULL DEFAULT 0;

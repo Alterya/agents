@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { chat, type ChatMessage } from "@/lib/llm/provider";
-import { GuardrailsError } from "@/lib/llm/guards";
+import { GuardrailsError, rateLimit } from "@/lib/llm/guards";
 
 const bodySchema = z.object({
   provider: z.enum(["openai", "openrouter"]),
@@ -28,6 +28,40 @@ export async function POST(req: NextRequest) {
       );
     }
     const { provider, model, messages, maxTokens, temperature, stream } = parsed.data;
+    // Simple per-IP rate key to complement provider+model limiter
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+
+    // Basic per-IP limiter (e.g., 10-60 rpm via config)
+    try {
+      rateLimit(`ip:${ip}`);
+    } catch (e) {
+      if (e instanceof GuardrailsError) {
+        return new Response(JSON.stringify({ error: "rate_limited" }), {
+          status: 429,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      throw e;
+    }
+
+    // Optional daily cap for PromptBro assist calls, enforced when header is present
+    const isPromptBroAssist = req.headers.get("x-assist") === "promptbro";
+    if (isPromptBroAssist) {
+      const capRaw = process.env.PROMPTBRO_ASSIST_DAILY_CAP;
+      const cap = Math.max(1, Number(capRaw ?? 50));
+      const dayKey = new Date().toISOString().slice(0, 10);
+      // in-memory counter
+      (globalThis as any).__pb_daily = (globalThis as any).__pb_daily || new Map<string, number>();
+      const key = `${ip}:${dayKey}`;
+      const count = ((globalThis as any).__pb_daily.get(key) as number | undefined) ?? 0;
+      if (count >= cap) {
+        return new Response(JSON.stringify({ error: "daily_cap_reached" }), {
+          status: 429,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      (globalThis as any).__pb_daily.set(key, count + 1);
+    }
 
     if (stream) {
       // Preflight the chat call so we can return proper HTTP status on errors before starting SSE
@@ -35,7 +69,7 @@ export async function POST(req: NextRequest) {
         const res = await chat(messages as ChatMessage[], {
           provider,
           model,
-          maxTokens,
+          maxTokens: Math.min(typeof maxTokens === "number" ? maxTokens : 128, 128),
           temperature,
           stream: true,
         });
@@ -84,7 +118,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const res = await chat(messages as ChatMessage[], { provider, model, maxTokens, temperature });
+    const res = await chat(messages as ChatMessage[], {
+      provider,
+      model,
+      maxTokens: Math.min(typeof maxTokens === "number" ? maxTokens : 128, 128),
+      temperature,
+    });
     return new Response(JSON.stringify({ text: res.text, usage: res.usage }), {
       status: 200,
       headers: { "content-type": "application/json" },

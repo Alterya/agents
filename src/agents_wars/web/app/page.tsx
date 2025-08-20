@@ -1,4 +1,5 @@
-import Scene from "@/components/Scene.client";
+import FpsProbe from "@/components/FpsProbe";
+import HeroSection from "@/components/HeroSection.client";
 import CapabilitiesGraph from "@/components/CapabilitiesGraph.client";
 
 export default function Page() {
@@ -9,10 +10,8 @@ export default function Page() {
         Landing page with lightweight 3D preview and interactive node graph.
       </p>
       <div className="grid max-w-[900px] gap-4">
-        <section className="rounded-xl bg-slate-900/70 p-3">
-          <h2 className="mb-2 text-blue-400">3D Scene</h2>
-          <Scene />
-        </section>
+        <FpsProbe />
+        <HeroSection />
         <section className="rounded-xl bg-slate-900/70 p-3">
           <h2 className="mb-2 text-blue-400">Node Graph</h2>
           <CapabilitiesGraph />

@@ -19,7 +19,15 @@ jobs:
         run: |
           cd src/agents_wars/web
           npm ci
+      - name: Build
+        run: |
+          cd src/agents_wars/web
+          npm run build
       - name: Typecheck, lint and tests
         run: |
           make -C src/agents_wars check
+      - name: Lighthouse CI (budgets enforced)
+        run: |
+          cd src/agents_wars/web
+          npm run lhci
 

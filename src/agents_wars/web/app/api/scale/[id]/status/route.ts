@@ -1,13 +1,34 @@
 import { NextRequest } from "next/server";
 import { getJob, subscribeJob } from "@/lib/jobs";
+import { prisma } from "@/lib/prisma";
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const id = params.id;
   const encoder = new TextEncoder();
   const rs = new ReadableStream<Uint8Array>({
     start(controller) {
-      function emit() {
-        const j = getJob(id);
+      async function emit() {
+        let j = getJob(id);
+        // Fallback: read from DB if in-memory job evicted or server restarted
+        if (!j) {
+          const report = await prisma.runReport.findUnique({ where: { runId: id } });
+          if (report) {
+            j = {
+              id,
+              type: "scale",
+              status: "succeeded",
+              data: {
+                runId: report.runId,
+                total: report.runCount,
+                succeeded: (report.stats as any)?.succeeded ?? undefined,
+                failed: (report.stats as any)?.failed ?? undefined,
+                conversationIds: (report.stats as any)?.conversationIds ?? undefined,
+              },
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            } as any;
+          }
+        }
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(j)}\n\n`));
         if (!j || j.status === "succeeded" || j.status === "failed") {
           controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
@@ -16,8 +37,12 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
       }
       emit();
       const unsub = subscribeJob(id, () => emit());
-      // @ts-ignore
-      controller.signal?.addEventListener?.("abort", () => unsub());
+      req.signal.addEventListener("abort", () => {
+        unsub();
+        try {
+          controller.close();
+        } catch {}
+      });
     },
   });
   return new Response(rs, {

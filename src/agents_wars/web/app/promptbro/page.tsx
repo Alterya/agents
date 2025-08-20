@@ -2,6 +2,19 @@
 import { useEffect, useState } from "react";
 import { KeyStatusBanner } from "@/components/KeyStatusBanner";
 import { ProviderModelSelector } from "@/components/ProviderModelSelector";
+import {
+  buildPrompt,
+  extractVariables,
+  saveVersion,
+  listVersions,
+  getVersion,
+  removeVersion,
+  exportTemplateJson,
+  analyzeDraft,
+} from "@/lib/prompt";
+import type { TemplateSnapshot } from "@/lib/prompt";
+
+const DRAFT_KEY = "promptbro:lastDraft";
 
 type Msg = { role: "system" | "user" | "assistant" | "tool"; content: string };
 
@@ -17,6 +30,11 @@ export default function PromptBroPage() {
   );
   const [variables, setVariables] = useState<string>("");
   const [templates, setTemplates] = useState<any[]>([]);
+  const [varValues, setVarValues] = useState<Record<string, string>>({});
+  const [versions, setVersions] = useState<TemplateSnapshot[]>([]);
+  const [saveHint, setSaveHint] = useState<string>("");
+  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [toast, setToast] = useState<string>("");
 
   useEffect(() => {
     (async () => {
@@ -26,28 +44,85 @@ export default function PromptBroPage() {
         setTemplates(json.templates || []);
       }
     })();
+    setVersions(listVersions());
+    // Load last draft
+    try {
+      const raw = window.localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (
+          parsed &&
+          typeof parsed === "object" &&
+          typeof parsed.name === "string" &&
+          typeof parsed.description === "string" &&
+          typeof parsed.template === "string" &&
+          (!parsed.varValues || typeof parsed.varValues === "object")
+        ) {
+          setName(parsed.name);
+          setDescription(parsed.description);
+          setTemplate(parsed.template);
+          if (parsed.varValues && typeof parsed.varValues === "object")
+            setVarValues(parsed.varValues as Record<string, string>);
+        }
+      }
+    } catch {
+      // ignore corrupt drafts
+    }
   }, []);
+
+  // Derive variable names from template and keep the display string in sync
+  useEffect(() => {
+    const names = extractVariables(template);
+    setVariables(names.join(", "));
+    // ensure varValues has keys for all variables
+    setVarValues((prev) => {
+      const next: Record<string, string> = { ...prev };
+      for (const k of names) if (!(k in next)) next[k] = "";
+      // prune removed keys
+      for (const k of Object.keys(next)) if (!names.includes(k)) delete next[k];
+      return next;
+    });
+  }, [template]);
+
+  // Debounced autosave of draft
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      try {
+        const payload = { name, description, template, varValues };
+        window.localStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
+        setSaveHint(
+          `Autosaved at ${new Date().toLocaleTimeString(undefined, { hour12: false })}`,
+        );
+      } catch {
+        // ignore quota errors
+      }
+    }, 500);
+    return () => clearTimeout(handle);
+  }, [name, description, template, varValues]);
 
   const askAssist = async () => {
     setAssistant("");
+    setErrorMsg("");
     const messages: Msg[] = [
       { role: "system", content: "You help refine prompts by asking clarifying questions." },
       { role: "user", content: input },
     ];
     const res = await fetch("/api/llm/chat", {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ provider, model, messages }),
+      headers: { "content-type": "application/json", "x-assist": "promptbro" },
+      body: JSON.stringify({ provider, model, messages, maxTokens: 128, temperature: 0.2 }),
     });
+    if (!res.ok) {
+      setErrorMsg(res.status === 429 ? "Assist rate limited. Try again shortly." : "Assist failed. Please try again.");
+      return;
+    }
     const json = await res.json();
     setAssistant(json.text || "");
   };
 
   const saveTemplate = async () => {
-    const vars = variables
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    setErrorMsg("");
+    const vars = extractVariables(template);
     const res = await fetch("/api/prompt-templates", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -56,6 +131,52 @@ export default function PromptBroPage() {
     if (res.ok) {
       const next = await (await fetch("/api/prompt-templates")).json();
       setTemplates(next.templates || []);
+    } else {
+      setErrorMsg(res.status === 429 ? "Save rate limited. Try again later." : "Save failed. Check inputs and try again.");
+    }
+  };
+
+  const assembled = buildPrompt(template, varValues);
+  const missingVars = extractVariables(template).filter((k) => !(varValues[k] ?? "").trim());
+
+  const onSaveVersion = () => {
+    const snap = saveVersion({ name: name || "unnamed", description, template, variables: extractVariables(template) });
+    setVersions((prev) => [snap, ...prev]);
+    setToast("Version saved");
+    setTimeout(() => setToast(""), 1500);
+  };
+
+  const onRestoreVersion = (id: string) => {
+    const v = getVersion(id);
+    if (!v) return;
+    setName(v.name);
+    setDescription(v.description || "");
+    setTemplate(v.template);
+  };
+
+  const onDeleteVersion = (id: string) => {
+    removeVersion(id);
+    setVersions((prev) => prev.filter((v) => v.id !== id));
+  };
+
+  const onCopyAssembled = async () => {
+    try {
+      await navigator.clipboard.writeText(assembled);
+      setToast("Assembled prompt copied");
+      setTimeout(() => setToast(""), 1500);
+    } catch {
+      // ignore
+    }
+  };
+
+  const onExportJson = async () => {
+    const json = exportTemplateJson({ name: name || "unnamed", template, variables: extractVariables(template) });
+    try {
+      await navigator.clipboard.writeText(json);
+      setToast("Template JSON copied");
+      setTimeout(() => setToast(""), 1500);
+    } catch {
+      // ignore
     }
   };
 
@@ -75,11 +196,22 @@ export default function PromptBroPage() {
       </div>
       <section className="space-y-2">
         <h2 className="text-lg font-medium">Describe your task</h2>
+        {errorMsg && (
+          <div role="alert" className="rounded border border-red-600 bg-red-950/40 p-2 text-sm text-red-300">
+            {errorMsg}
+          </div>
+        )}
+        {toast && (
+          <div role="status" className="rounded border border-emerald-600 bg-emerald-950/40 p-2 text-sm text-emerald-300">
+            {toast}
+          </div>
+        )}
         <textarea
           className="w-full border p-2"
           rows={4}
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          aria-label="Describe your task"
         />
         <button className="border px-3 py-1" onClick={askAssist}>
           Ask clarifying question
@@ -106,22 +238,104 @@ export default function PromptBroPage() {
             />
           </label>
         </div>
-        <label className="block">
-          Variables (comma-separated)
-          <input
-            className="ml-2 border p-1"
-            value={variables}
-            onChange={(e) => setVariables(e.target.value)}
-          />
-        </label>
+        <div className="space-y-1">
+          <div className="text-sm text-gray-600">Derived variables</div>
+          <div className="flex flex-wrap gap-2">
+            {Object.keys(varValues).length === 0 && (
+              <span className="text-sm text-gray-500">No variables detected</span>
+            )}
+            {Object.entries(varValues).map(([k, v]) => (
+              <label key={k} className="text-sm">
+                <span className="mr-1 font-medium">{`{{${k}}}`}:</span>
+                <input
+                  className="border p-1"
+                  placeholder={`value for ${k}`}
+                  value={v}
+                  onChange={(e) => setVarValues((prev) => ({ ...prev, [k]: e.target.value }))}
+                />
+              </label>
+            ))}
+          </div>
+        </div>
         <textarea
           className="w-full border p-2"
           rows={10}
           value={template}
           onChange={(e) => setTemplate(e.target.value)}
+          aria-label="Draft Template"
         />
         <button className="border px-3 py-1" onClick={saveTemplate}>
           Save template
+        </button>
+        {missingVars.length > 0 && (
+          <div className="text-sm text-red-600">{`Missing values for: ${missingVars.join(", ")}`}</div>
+        )}
+        {saveHint && <div className="text-xs text-gray-500">{saveHint}</div>}
+        <div className="space-x-2">
+          <button className="border px-3 py-1" onClick={onSaveVersion}>
+            Save version
+          </button>
+          <button className="border px-3 py-1" onClick={onCopyAssembled}>
+            Copy assembled
+          </button>
+          <button className="border px-3 py-1" onClick={onExportJson}>
+            Export JSON
+          </button>
+          <button
+            className="border px-3 py-1"
+            onClick={() => {
+              setName("");
+              setDescription("");
+              setTemplate("### INSTRUCTION\n<write here>\n\n### CONTEXT\n<write here>\n\n### OUTPUT\n<write here>");
+              setVarValues({});
+              try {
+                window.localStorage.removeItem(DRAFT_KEY);
+              } catch {
+                // ignore
+              }
+            }}
+          >
+            Reset draft
+          </button>
+        </div>
+        <div>
+          <h3 className="mt-2 text-base font-medium">Assembled Preview</h3>
+          <pre className="min-h-24 whitespace-pre-wrap break-words border p-2">{assembled}</pre>
+        </div>
+      </section>
+      <section className="space-y-2">
+        <h2 className="text-lg font-medium">Versions</h2>
+        <ul className="list-disc pl-6">
+          {versions.length === 0 && <li className="text-sm text-gray-500">No versions saved</li>}
+          {versions.map((v) => (
+            <li key={v.id} className="flex items-center gap-2">
+              <span className="font-medium">{v.name}</span>
+              <span className="text-xs text-gray-500">{new Date(v.timestamp).toLocaleString()}</span>
+              <button className="border px-2 py-0.5" onClick={() => onRestoreVersion(v.id)}>
+                Restore
+              </button>
+              <button className="border px-2 py-0.5" onClick={() => onDeleteVersion(v.id)}>
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section className="space-y-2">
+        <h2 className="text-lg font-medium">Quick Checks</h2>
+        <button
+          className="border px-3 py-1"
+          onClick={() => {
+            const res = analyzeDraft(template);
+            if (res.issues.some((i) => i.severity === "high")) {
+              setToast(`Checks: ${res.issues.length} issues, score ${res.score}/100`);
+            } else {
+              setToast(`Checks passed with score ${res.score}/100`);
+            }
+            setTimeout(() => setToast(""), 2000);
+          }}
+        >
+          Run Quick Checks
         </button>
       </section>
       <section className="space-y-2">

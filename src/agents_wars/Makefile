@@ -3,6 +3,7 @@ SHELL := /bin/bash
 # Root-level orchestrator for the web app under ./web
 
 WEB_DIR := web
+PORT ?= 3000
 
 .PHONY: install dev build typecheck lint lint-fix format format-check test test-watch \
         e2e e2e-headed prisma-format prisma-validate prisma-migrate prisma-seed prisma-studio \
@@ -87,6 +88,17 @@ start:
 	$(MAKE) dev
 
 stop:
-	@echo "No docker in this setup."
+	@echo "Stopping dev server on port $(PORT) (if running)..."
+	-@PIDS=$$(lsof -t -i tcp:$(PORT) 2>/dev/null); \
+	 if [ -n "$$PIDS" ]; then \
+	   echo "Found process(es) on port $(PORT): $$PIDS"; \
+	   kill -TERM $$PIDS 2>/dev/null || true; \
+	   sleep 1; \
+	   kill -KILL $$PIDS 2>/dev/null || true; \
+	 fi
+	@echo "Killing any leftover Next.js dev processes for this project..."
+	-@pkill -f "[n]ext dev" 2>/dev/null || true
+	-@pkill -f "node .*next .*dev" 2>/dev/null || true
+	@echo "Stop complete."
 
 

@@ -38,20 +38,23 @@ model Agent {
 }
 
 model Conversation {
-  id           String     @id @default(cuid())
-  agentId      String
-  agent        Agent      @relation(fields: [agentId], references: [id])
-  model        String
-  systemPrompt String?
-  goal         String?
-  goalReached  Boolean    @default(false)
-  endedReason  EndReason?
-  messageLimit Int        @default(25)
-  messageCount Int        @default(0)
-  runId        String?
-  startedAt    DateTime   @default(now())
-  endedAt      DateTime?
-  messages     Message[]
+  id             String     @id @default(cuid())
+  agentId        String
+  agent          Agent      @relation(fields: [agentId], references: [id])
+  model          String
+  systemPrompt   String?
+  goal           String?
+  goalReached    Boolean    @default(false)
+  endedReason    EndReason?
+  messageLimit   Int        @default(25)
+  messageCount   Int        @default(0)
+  totalTokensIn  Int        @default(0)
+  totalTokensOut Int        @default(0)
+  totalCostUsd   Decimal    @default(0) @db.Decimal(10, 5)
+  runId          String?
+  startedAt      DateTime   @default(now())
+  endedAt        DateTime?
+  messages       Message[]
 
   @@index([agentId])
 }

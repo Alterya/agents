@@ -1,0 +1,61 @@
+# Task ID: 13
+# Title: Add Playwright E2E for Scale page with axe a11y checks
+# Status: review
+# Dependencies: 6, 10
+# Priority: medium
+# Description: Implement end-to-end tests for the Scale page using Playwright, including accessibility checks with axe-core.
+# Details:
+1. Set up Playwright in the project if not already done. 2. Create a new test file for the Scale page. 3. Write a test that opens the /scale page, selects an active agent, sets the provider/model, and sets runs=3. 4. Trigger the batch start and observe the progress via SSE. 5. Fetch the final report summary and assert that the revised prompt is rendered correctly. 6. Implement axe-core accessibility checks to scan the Scale page and ensure no violations above minor are present. 7. Integrate the Playwright tests into the CI pipeline by creating a 'ci' target in the build configuration. 8. Document the command to run these tests in the README file.
+
+# Test Strategy:
+1. Run the Playwright tests to ensure they pass without errors. 2. Verify that the accessibility checks do not report any violations above minor. 3. Confirm that the CI pipeline runs the Playwright tests successfully and that the documentation in the README is clear and accurate.
+
+# Subtasks:
+## 1. Set up Playwright [done]
+### Dependencies: None
+### Description: Install and configure Playwright in the project if it is not already set up.
+### Details:
+Run 'npm install -D playwright' to install Playwright. Ensure that the necessary browsers are installed by running 'npx playwright install'. Create a basic configuration file if needed.
+
+## 2. Create Scale E2E spec [done]
+### Dependencies: None
+### Description: Create a new test file specifically for the Scale page end-to-end tests.
+### Details:
+Create a new file named 'scale.spec.ts' in the tests directory. Ensure it follows the naming conventions used in the project.
+
+## 3. Write Scale happy-path spec [in-progress]
+### Dependencies: None
+### Description: Write a test that opens the /scale page, selects an active agent, sets the provider/model, and sets runs=3.
+### Details:
+In 'scale.spec.ts', use Playwright to navigate to the /scale page. Implement logic to select an active agent, set the provider/model, and input runs=3. Use Playwright's API for element selection and interaction.
+
+## 4. SSE progress/assertions [in-progress]
+### Dependencies: None
+### Description: Trigger the batch start and observe the progress via Server-Sent Events (SSE).
+### Details:
+Extend the test in 'scale.spec.ts' to trigger the batch start. Implement logic to listen for SSE updates and assert that the progress is reported correctly.
+
+## 5. Revised Prompt and summary assertions [in-progress]
+### Dependencies: None
+### Description: Fetch the final report summary and assert that the revised prompt is rendered correctly.
+### Details:
+After the batch completes, implement logic to fetch the final report summary. Use assertions to check that the revised prompt is displayed as expected.
+
+## 6. Axe-core a11y spec [done]
+### Dependencies: None
+### Description: Implement axe-core accessibility checks to scan the Scale page and ensure no violations above minor are present.
+### Details:
+Integrate axe-core into the test suite. Use the axe.run() method to perform accessibility checks on the Scale page and assert that no violations above minor are found.
+
+## 7. CI integration target [done]
+### Dependencies: None
+### Description: Integrate the Playwright tests into the CI pipeline by creating a 'ci' target in the build configuration.
+### Details:
+Modify the CI configuration file (e.g., .github/workflows/ci.yml) to include a step that runs the Playwright tests. Ensure that the tests are executed as part of the CI process.
+
+## 8. README documentation [done]
+### Dependencies: None
+### Description: Document the command to run these tests in the README file.
+### Details:
+Update the README.md file to include instructions on how to run the Playwright tests. Provide clear command examples and any prerequisites needed.
+

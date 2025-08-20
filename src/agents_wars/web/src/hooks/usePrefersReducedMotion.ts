@@ -17,12 +17,10 @@ export function usePrefersReducedMotion(): boolean {
       mq.addEventListener("change", onChange);
       return () => mq.removeEventListener("change", onChange);
     }
-    // Fallback for older browsers
-    // @ts-expect-error legacy API
-    mq.addListener?.(onChange);
+    // Fallback for older browsers (cast to any for legacy API)
+    (mq as any).addListener?.(onChange);
     return () => {
-      // @ts-expect-error legacy API
-      mq.removeListener?.(onChange);
+      (mq as any).removeListener?.(onChange);
     };
   }, []);
 

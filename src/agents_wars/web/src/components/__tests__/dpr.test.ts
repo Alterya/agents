@@ -14,9 +14,8 @@ describe("clampDpr", () => {
   });
 
   it("handles NaN/Infinity", () => {
-    // @ts-expect-error intentional NaN
-    expect(clampDpr(NaN)).toBe(1);
-    expect(clampDpr(Infinity)).toBe(1);
+    expect(clampDpr(Number.NaN as unknown as number)).toBe(1);
+    expect(clampDpr(Number.POSITIVE_INFINITY as unknown as number)).toBe(1);
   });
 });
 

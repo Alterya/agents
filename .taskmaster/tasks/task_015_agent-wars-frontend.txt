@@ -1,0 +1,11 @@
+# Task ID: 15
+# Title: Validate agentId existence in start routes and surface error in UI
+# Status: done
+# Dependencies: 6
+# Priority: high
+# Description: Implement validation for agentId in the start routes and enhance the UI to display friendly error messages when invalid agentId is encountered.
+# Details:
+1. Modify the backend routes for POST /api/scale/start and /api/battles/start to check for the existence of agentId. If agentId is not present, return a 400 status with the error message { error: 'invalid_agent' }. 2. Update the ScaleRunner and Hub components to handle this error response and display a user-friendly message in the UI when an invalid agentId is detected. 3. Create unit tests to ensure that the validation logic correctly identifies valid and invalid agentIds. 4. Develop integration tests to simulate API calls with both valid and invalid agentIds, verifying that the correct responses are returned and that the UI displays the appropriate error messages.
+
+# Test Strategy:
+1. Run unit tests to verify that the backend correctly returns a 400 error for invalid agentIds. 2. Execute integration tests to ensure that the API responds correctly and that the UI displays the friendly error message when an invalid agentId is used. 3. Manually test the UI to confirm that the error handling works as expected and that users receive clear feedback when they input an invalid agentId.
