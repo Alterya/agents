@@ -13,7 +13,7 @@ async def main():
     )
     result = await Runner.run(
         db_simple_query_agent,
-        input="tell me about everything that ran today in collection_tracking.telegram_collection_records",
+        input="tell me about everything that ran in the last week and a half in collection_tracking.telegram_collection_records, then summarize it for me based on the data you got from there status or fail reason",
     )
     print(f"DB Simple Query Agent: {result.final_output}")
 
