@@ -15,7 +15,7 @@ def get_input_content():
 async def main():
     print("Starting prompt creator")
     reasoning_agent = Agent(
-        name="ReasoningAgent",
+        name="Prompt Creator",
         model="gpt-5",
         model_settings=ModelSettings(reasoning=Reasoning(effort="high")),
         instructions=ENGINEER_PROMPT

@@ -96,12 +96,12 @@ async def main():
             logger.info("Connected to bright data mcp")
 
             domain_scam_finder = Agent(
-            name="domain scam finder",
-            model="gpt-5",
-            instructions=IS_DOMAIN_SCAM_PROMPT,
-            mcp_servers=[bright_data_mcp],
-            output_type=ScamAssessment,
-        )
+                name="domain scam finder",
+                model="gpt-5",
+                instructions=IS_DOMAIN_SCAM_PROMPT,
+                mcp_servers=[bright_data_mcp],
+                output_type=ScamAssessment,
+            )
 
             scam_run_result = await Runner.run(
                 domain_scam_finder,

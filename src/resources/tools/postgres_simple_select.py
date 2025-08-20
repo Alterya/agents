@@ -1,13 +1,6 @@
-"""Utilities for performing a simple, parameterized SELECT against Postgres.
-
-This module provides a single async entrypoint `postgres_simple_select` suitable for
-tooling integration. The function constructs a safe SELECT statement from a
-validated set of parameters, executes it in a background thread (to avoid
-blocking the event loop), and returns the results as a JSON string.
-"""
-
-import asyncio
+from enum import Enum
 import json
+import logging
 import os
 import re
 
@@ -17,6 +10,8 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from agents.tool import function_tool
 
+logger = logging.getLogger(__name__)
+
 SAFE_IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_\.]*$")
 
 QUERY_TEMPLATE = (
@@ -25,16 +20,23 @@ QUERY_TEMPLATE = (
 
 LIMIT_MAX = 1000
 
+ERROR_RECOVERY_MESSAGE = "try again with after fixing the error, if you think you are unable to fix the error, return the error and the why to the user"
+
+class DatabaseName(str, Enum):
+    ALTERYA_MAIN = "alterya_main"
+    COLLECTION_MANAGEMENT = "collection_management"
 
 class SmallQueryParams(BaseModel):
+    database_name: DatabaseName = Field(description="A reference to the name of the database to select from - like telegram_management", default=DatabaseName.ALTERYA_MAIN)
     schema_and_table_name: str = Field(description="the name of the schema and table to select from - like telegram_management.sessions")
 
 class QueryParams(BaseModel):
+    database_name: DatabaseName = Field(description="A reference to the name of the database to select from - like telegram_management", default=DatabaseName.ALTERYA_MAIN)
     schema_and_table_name: str = Field(description="the name of the schema and table to select from - like telegram_management.sessions")
     columns: list[str] = Field(description="the columns to select from the table - like ['*'] to select all columns", default=["*"])
     where: str | None = Field(description="the where clause to filter the data - like 'id = 1'", default=None)
     order_by: str | None = Field(description="the order by clause to sort the data - like 'id DESC'", default=None)
-    limit: int = Field(description="the limit of the data to return - like 10000", default=10000)
+    limit: int = Field(description="the limit of the data to return - like 1000", default=1000)
 
 
 def _is_safe_identifier(name: str) -> bool:
@@ -75,11 +77,7 @@ def _clamp_limit(limit: int) -> int:
 
 
 def _build_columns_sql(requested_columns: list[str]) -> str:
-    """Return a validated column list for SELECT.
-
-    Raises:
-        ValueError: if one or more column names are invalid.
-    """
+    """Return a validated column list for SELECT."""
     if requested_columns == ["*"]:
         return "*"
 
@@ -131,20 +129,35 @@ def _build_select_sql(params: QueryParams) -> str:
         limit=clamped_limit,
     )
 
+def _get_db_url(database_name: DatabaseName) -> str | None:
+    if database_name == DatabaseName.ALTERYA_MAIN:
+        return os.getenv("DATABASE_URL")
+    elif database_name == DatabaseName.COLLECTION_MANAGEMENT:
+        return os.getenv("DATABASE_URL_COLLECTION_MANAGEMENT")
+    else:
+        return None
 
-def _execute_query_sync(db_url: str, sql: str) -> list[dict]:
-    """Run the given SQL synchronously using SQLAlchemy and return rows as dicts.
 
-    This function is intended to be executed in a worker thread via asyncio.to_thread
-    to avoid blocking the event loop in the async entrypoint.
-    """
-    engine = create_engine(db_url, pool_pre_ping=True)
+def _query_database(db_url: str, sql: str) -> str:
+    engine = None
     try:
+        engine = create_engine(db_url, pool_pre_ping=True)
         with engine.connect() as conn:
             result = conn.execute(text(sql))
-            return [dict(row) for row in result.mappings().all()]
+            rows = [dict(row) for row in result.mappings().all()]
+            return json.dumps(rows, default=str)
+    except SQLAlchemyError as exc:
+        # Include the original DB error message to aid diagnosis without exposing secrets
+        detail = str(getattr(exc, "orig", exc)).splitlines()[0]
+        logger.error(f"error: database_operation_failed:{exc.__class__.__name__}:{detail} - {ERROR_RECOVERY_MESSAGE}")
+        return f"error: database_operation_failed:{exc.__class__.__name__}:{detail} - {ERROR_RECOVERY_MESSAGE}"
+    except Exception as exc:  # pragma: no cover
+        logger.error(f"error: unexpected_failure:{exc.__class__.__name__} - {ERROR_RECOVERY_MESSAGE}")
+        return f"error: unexpected_failure:{exc.__class__.__name__} - {ERROR_RECOVERY_MESSAGE}"
     finally:
-        engine.dispose()
+        if engine:
+            engine.dispose()
+
 
 @function_tool
 async def postgres_simple_select(query_params: QueryParams) -> str:
@@ -156,26 +169,20 @@ async def postgres_simple_select(query_params: QueryParams) -> str:
         QueryParams(schema_and_table_name="telegram_management.sessions", columns=["*"], where="id = 1", order_by="id DESC", limit=1000)
 
     """
-    db_url = os.getenv("DATABASE_URL")
+    logger.info(f"postgres_simple_select: {query_params}")
+    db_url = _get_db_url(query_params.database_name)
     if not db_url:
         return "error: missing_database_url"
 
     try:
         sql = _build_select_sql(query_params)
+        logger.info(f"sql: {sql}")
     except ValueError as exc:
         # Preserve existing error format strings
-        return f"error: {exc}"
+        logger.error(f"error: {exc} - {ERROR_RECOVERY_MESSAGE}")
+        return f"error: {exc} - {ERROR_RECOVERY_MESSAGE}"
 
-    try:
-        # Execute blocking DB work in a thread to avoid blocking the event loop
-        rows = await asyncio.to_thread(_execute_query_sync, db_url, sql)
-        return json.dumps(rows, default=str)
-    except SQLAlchemyError as exc:
-        # Include the original DB error message to aid diagnosis without exposing secrets
-        detail = str(getattr(exc, "orig", exc)).splitlines()[0]
-        return f"error: database_operation_failed:{exc.__class__.__name__}:{detail}"
-    except Exception as exc:  # pragma: no cover
-        return f"error: unexpected_failure:{exc.__class__.__name__}"
+    return _query_database(db_url, sql)
 
 
 
@@ -196,27 +203,12 @@ async def postgres_simple_select_example_run(small_query_params: SmallQueryParam
     try:
         table_name = small_query_params.schema_and_table_name
         if not _is_safe_identifier(table_name):
-            raise ValueError("invalid_table_name")
-        base_sql = f"SELECT * FROM {table_name}"
-        get_newest_row_sql = base_sql + " ORDER BY id DESC LIMIT 1"
-        fallback_sql = base_sql + " LIMIT 1"
+            logger.error(f"invalid_table_name: {table_name}")
+            return f"error: invalid_table_name: {table_name} - {ERROR_RECOVERY_MESSAGE}"
+        sql = f"SELECT * FROM {table_name} LIMIT 1"
     except ValueError as exc:
         # Preserve existing error format strings
-        return f"error: {exc}"
+        logger.error(f"error: {exc} - {ERROR_RECOVERY_MESSAGE}")
+        return f"error: {exc} - {ERROR_RECOVERY_MESSAGE}"
 
-    try:
-        if get_newest_row_sql:
-            try:
-                rows = await asyncio.to_thread(_execute_query_sync, db_url, get_newest_row_sql)
-                return json.dumps(rows, default=str)
-            except Exception as exc:
-                rows = await asyncio.to_thread(_execute_query_sync, db_url, fallback_sql)
-                return json.dumps(rows, default=str)
-    except SQLAlchemyError as exc:
-        # Include the original DB error message to aid diagnosis without exposing secrets
-        detail = str(getattr(exc, "orig", exc)).splitlines()[0]
-        return f"error: database_operation_failed:{exc.__class__.__name__}:{detail}"
-    except Exception as exc:  # pragma: no cover
-        return f"error: unexpected_failure:{exc.__class__.__name__}"
-
-    return "ERROR: something went wrong"
+    return _query_database(db_url, sql)
