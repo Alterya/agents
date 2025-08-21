@@ -5,7 +5,7 @@ import math
 from concurrent.futures import ProcessPoolExecutor
 
 from agents import Agent, Runner
-from app_agents.domain_scam_finder.custom_prompts import IS_DOMAIN_INVESTMENT_PROMPT, IS_DOMAIN_SCAM_PROMPT
+from app_agents.domain_scam_finder.custom_prompts import IS_DOMAIN_INVESTMENT_PROMPT_BRIGHTDATA, IS_DOMAIN_SCAM_PROMPT
 from pydantic import BaseModel
 
 import logging
@@ -13,7 +13,6 @@ import sys
 from pathlib import Path
 
 from src.resources.mcps.bright_data import MCP as bright_data_mcp
-from src.resources.mcps.playwright import MCP as playwright_mcp
 
 from pandas import DataFrame, concat
 import pandas as pds
@@ -72,7 +71,7 @@ async def _process_domains_chunk(domains_chunk):
         domain_investment_tagger = Agent(
                 name="domain type tagger",
                 model="gpt-5",
-                instructions=IS_DOMAIN_INVESTMENT_PROMPT,
+                instructions=IS_DOMAIN_INVESTMENT_PROMPT_BRIGHTDATA,
                 mcp_servers=[bright_data_mcp],
                 output_type=InvestmentAssessment,
             )

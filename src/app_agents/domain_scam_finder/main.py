@@ -2,7 +2,7 @@ import asyncio
 from enum import Enum
 
 from agents import Agent, Runner
-from app_agents.domain_scam_finder.custom_prompts import IS_DOMAIN_INVESTMENT_PROMPT, IS_DOMAIN_SCAM_PROMPT
+from app_agents.domain_scam_finder.custom_prompts import IS_DOMAIN_INVESTMENT_PROMPT_PLAYWRIGHT, IS_DOMAIN_SCAM_PROMPT
 from pydantic import BaseModel
 
 import logging
@@ -73,7 +73,7 @@ async def main():
         domain_type_tagger = Agent(
             name="domain type tagger",
             model="gpt-5",
-            instructions=IS_DOMAIN_INVESTMENT_PROMPT,
+            instructions=IS_DOMAIN_INVESTMENT_PROMPT_PLAYWRIGHT,
             mcp_servers=[playwright_mcp],
             output_type=InvestmentAssessment,
         )
