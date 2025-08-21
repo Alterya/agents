@@ -2,7 +2,7 @@ import asyncio
 import os
 
 from agents import Runner
-from app_agents.alert_agent_listener.active_agents.orchestrator import GENERAL_HELP_AGENT
+from app_agents.alert_agent_listener.active_agents.orchestrator_im import GENERAL_HELP_AGENT
 from app_agents.alert_agent_listener.const import ChannelType
 
 from app_agents.alert_agent_listener.slack_utils import channel_type_is, fetch_last_messages_in_im
@@ -10,7 +10,8 @@ from slack_bolt.async_app import AsyncApp
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 import logging
 
-from src.resources.mcps.bright_data import MCP as bright_data_mcp
+from resources.mcps.bright_data import MCP as bright_data_mcp
+from resources.mcps.grafana import MCP as grafana_mcp
 
 from slack_sdk import WebClient
 
@@ -41,23 +42,21 @@ async def on_im(body, client, say, logger):
     
     await bright_data_mcp.connect()
     logger.info("Connected to bright data mcp")
+
+    await grafana_mcp.connect()
+    logger.info("Connected to grafana mcp")
     
     result = await Runner.run(
             GENERAL_HELP_AGENT,
             input=history,
             max_turns=50,
         )
-
-    final_text = result.final_output or "(no output)"
-    if isinstance(final_text, (dict, list)):
-        import json as _json
-        final_text = _json.dumps(final_text)
-    final_text = str(final_text)[:3800]
     try:
-        await say(final_text)
+        await say(result.final_output or "(no output)")
     except Exception as exc:
         logger.exception("Failed to send Slack message", exc_info=exc)
 
+    await grafana_mcp.cleanup()
     await bright_data_mcp.cleanup()
     logger.info(f"[IM] {message['channel']} {message.get('user')}: {message.get('text','')}")
     logger.info(body)

@@ -1,6 +1,7 @@
 from agents import Agent, handoff
 from app_agents.alert_agent_listener.active_agents.avatars_manager import ELASTIC_QUERY_AGENT, ElasticQueryParams
 from app_agents.alert_agent_listener.active_agents.domains_manager import DOMAIN_SCAM_FINDER, DomainScamFinderInput
+from app_agents.alert_agent_listener.active_agents.grafana_logs_and_alerts import GRAFANA_LOGS_AND_ALERTS_AGENT, GrafanaLogsAndAlertsInput
 from app_agents.alert_agent_listener.active_agents.simple_select_sql_query import DB_SIMPLE_QUERY_AGENT, PostgresQueryParams
 
 GENERAL_HELP_PROMPT = """
@@ -11,11 +12,12 @@ You are a friendly, cheeky “human bastard” handoff-runner: candid, helpful, 
 - Main job: use the available handoff to check or perform what the user asks, then report back clearly.
 - If the user names a handoff, try that first; if it can’t do the job, explain why and (if possible) suggest a better handoff you actually have.
 - Be transparent: state which handoff(s) you used and what you did. Don’t fabricate handoffs or outputs.
-- If asked about your handoffs, list each available handoff with a one-line explanation and what it can/can’t do.
+- If asked about your handoffs or in general about your capabilities, list each available handoff and tool with a one-line explanation and what it can/can’t do, and explain that your an orchestrator agent that can use tools and handoffs / sub agents to help the user.
 - Ask minimal clarifying questions if the request is ambiguous or missing inputs.
 - If you are not sure about what to do or your missing information that could help you do the task better, you can and you should ask the user for more information.
 - If even after asking the user for more information, you lack a suitable handoff, permission, or a handoff call fails in a way that blocks completion, reply exactly:
   "I'm not capable of doing that right now. Ping Bar or Jonathan for more help. <reason why you cant do it>"
+- If you dont have enough information to fill the input of a handoff, you should and you must ask the user for more information.
 
 ### TOOLS
 - Tools are a simpler form of handoffs, and you can use them if there is no handoff for the task.
@@ -60,6 +62,12 @@ GENERAL_HELP_AGENT = Agent(
                         tool_name_override="elastic_query_expert",
                         on_handoff=lambda ctx, inp: None,
                         input_type=ElasticQueryParams,
+                    ),
+                    handoff(
+                        GRAFANA_LOGS_AND_ALERTS_AGENT,
+                        tool_name_override="grafana_services_logs_and_alerts_expert",
+                        on_handoff=lambda ctx, inp: None,
+                        input_type=GrafanaLogsAndAlertsInput,
                     ),
                 ],
             )
