@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const path = require("path");
+const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
@@ -28,6 +29,11 @@ const nextConfig = {
       ".tsx",
       ".js",
       ".jsx",
+    ];
+    // Respect tsconfig.json path mappings explicitly
+    config.resolve.plugins = [
+      ...(config.resolve.plugins || []),
+      new TsconfigPathsPlugin({ configFile: path.resolve(__dirname, "tsconfig.json") }),
     ];
     return config;
   },

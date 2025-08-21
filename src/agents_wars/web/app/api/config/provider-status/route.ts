@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getConfig } from "@/lib/config";
+import { getConfig } from "../../../src/lib/config";
 
 export async function GET(_req: NextRequest) {
   try {

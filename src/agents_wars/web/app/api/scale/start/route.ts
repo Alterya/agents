@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { createJob, getJob, updateJob, canStartJobForOwner } from "@/lib/jobs";
-import { enqueue, hasRedis } from "@/lib/queue/bull";
-import { runScaleTest } from "@/lib/runners";
-import { prisma } from "@/lib/prisma";
-import { estimateCostUsdFromUsage, getPricing } from "@/lib/pricing";
+import { createJob, getJob, updateJob, canStartJobForOwner } from "../../../src/lib/jobs";
+import { enqueue, hasRedis } from "../../../src/lib/queue/bull";
+import { runScaleTest } from "../../../src/lib/runners";
+import { prisma } from "../../../src/lib/prisma";
+import { estimateCostUsdFromUsage, getPricing } from "../../../src/lib/pricing";
 
 const bodySchema = z.object({
   runId: z.string().trim().optional(),

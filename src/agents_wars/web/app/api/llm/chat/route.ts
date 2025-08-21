@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { chat, type ChatMessage } from "@/lib/llm/provider";
-import { GuardrailsError, rateLimit } from "@/lib/llm/guards";
+import { chat, type ChatMessage } from "../../../../src/lib/llm/provider";
+import { GuardrailsError, rateLimit } from "../../../../src/lib/llm/guards";
 
 const bodySchema = z.object({
   provider: z.enum(["openai", "openrouter"]),
