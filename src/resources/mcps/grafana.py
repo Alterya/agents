@@ -2,6 +2,11 @@ from agents.mcp import MCPServerStdio
 
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 
 MCP = MCPServerStdio(                          # <-- our npx subprocess
         params={
