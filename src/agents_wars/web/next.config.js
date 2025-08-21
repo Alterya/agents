@@ -21,6 +21,14 @@ const nextConfig = {
       "@": path.resolve(__dirname, "src"),
       "@/": path.resolve(__dirname, "src/"),
     };
+    // Ensure .ts/.tsx resolution in some CI environments
+    config.resolve.extensions = [
+      ...(config.resolve.extensions || []),
+      ".ts",
+      ".tsx",
+      ".js",
+      ".jsx",
+    ];
     return config;
   },
 };
