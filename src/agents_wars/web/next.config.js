@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const path = require("path");
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
@@ -12,6 +13,14 @@ const nextConfig = {
         hostname: process.env.NEXT_PUBLIC_CDN_HOST || "*",
       },
     ],
+  },
+  webpack: (config) => {
+    // Ensure TS path alias "@/*" -> "src/*" resolves in webpack
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      "@": path.resolve(__dirname, "src"),
+    };
+    return config;
   },
 };
 module.exports = nextConfig;
