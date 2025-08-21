@@ -5,7 +5,7 @@ import math
 from concurrent.futures import ProcessPoolExecutor
 
 from agents import Agent, Runner
-from app_agents.domain_scam_finder.custom_prompts import IS_DOMAIN_INVESTMENT_PROMPT_BRIGHTDATA, IS_DOMAIN_SCAM_PROMPT
+from src.app_agents.domain_scam_finder.custom_prompts import IS_DOMAIN_INVESTMENT_PROMPT_BRIGHTDATA, IS_DOMAIN_SCAM_PROMPT
 from pydantic import BaseModel
 
 import logging
@@ -35,7 +35,7 @@ CSV_FILE_PATH = Path(__file__).parent / "domain_scam_finder.csv"
 
 
 ######################### you can change the domains here #########################
-DOMAINS = ["etratrust.com", "coreshellhq.com", "trustvaulltx.com", "agent-dataaxle.store", "major-fund-pro-ai.com", "selenera.com", "kuwealthinvestfunds.ltd", "agent-dataaxle.store", "gsbloans.com", "hadequipment.com", "gsvcapitalasset.com", "zenithoptavest.com", "codex-bank.com", "globalaccesss.com", "stake88au.com", "4156vrainst.info"]
+DOMAINS = ["truwestcredit.ch", "instant7000prolia.com", "etradeprofx.com", "wwwrd3.hyip.com", "auwombat.com", "ridezero.pro", "royallpulse.com", "solarprime.net", "goldclassroom.com", "ethereumolux5000-com.financecryptoworld.com", "instantabil-solution.com", "nextedgeai-engine-com.the-finance-world.com", "tezaris-veltarplatform.com", "apclogistics.company", "immediate-luxsoftware-com.the-finance-world.com", "expertminin.pro", "crestwavemarkets.com", "fidelitysectors.com", "pc.bayshore-pro.com", "blueskyinvestment.co.uk", "utahcfunion.org", "crystalfinancetradiings.com.finabrighthub.com", "aimining68.com", "stozahaiplatform.com", "vgfo.net", "mobile.dzdp.cyou", "setandforgetpro.com", "plinko-treasure.com", "auronixsolutions.com", "jaredthomasmayfield.com", "cptallianceinvst.com", "coremarketrades.live", "agentpremiumbanking.com", "trader9000lidex.com", "6407mendius.com", "stockspulseai-com.worldsoffinance.com", "favino-invest-platform.com", "mylesg.pro", "paxoninsights.com", "trademarkofficer.com", "capital.trustdiamondplc.com", "bitcoin-revolutionsoftware.worldofcryptofinance.com", "app.bitsvests.com", "tradehub.swiftpaytrade.xyz", "quantexart.com", "testing.royalinfinity.world", "expertextrading.live.morganchasebank.live", "ac6102sctr45upg247.online", "immediate9mentaxplatform-com.worldsoffinance.com", "arcanetradetech-com.the-finance-world.com", "fyntrae.xyz", "propfirmexploit.com", "nerdcryptochain.com", "thenewgoldenheightsfin.com", "growingauto.com", "morganft.com", "pinnaclerefp.com", "freebnbusdt.com", "faucetearner.homes", "loancaterbackoffice.info", "fxbrooks.com", "web3.xpdaspweodr.com", "royalpropertiez.com", "globalfx-hub.space", "sefqualityelectronics.com", "mcadamturnbull.com.au", "streamtvis.com", "transfer-24.pro", "paid-finance.live", "draventox.com.xenovacap.net", "52hertzcapital.com", "karvon.co", "hometownherolending.com", "web3chainnetworks.com", "canmark-flowdex-solution.com", "pathaopro.digital", "klinikfokus.app", "quantumtrust-ai.com", "invest-free.com", "frolex-trust-soft.com", "financialrangetreasureb.com", "tamshq.com", "wwwlt.hyip.com", "cryptoapponchain.cc", "phantomsgates.com", "fimak1imass.online", "primestandardmarkets.com", "winner.icu", "guaranteeunion.live", "moomoovip.com", "grokfin.org", "exvestcom.xyz", "the-bitlq-app-com-gent.worldofcryptofinance.com", "frequenciadomercado.com.br", "chainodogs.top", "primerisepartners.com", "powertradessoftware.com", "invest-edrive.com", "lonvexum-app-com.worldsoffinance.com", "horizonsverige.com"]
 ##################################################################################
 
 class InvestmentDecision(str, Enum):
@@ -63,9 +63,6 @@ class ScamAssessment(BaseModel):
 
 # --- Worker-side logic (runs in separate processes) ---
 async def _process_domains_chunk(domains_chunk):
-    await bright_data_mcp.connect()
-    logger.info("Connected to bright data mcp (worker)")
-
     rows = []
     for domain in domains_chunk:
         domain_investment_tagger = Agent(
@@ -127,9 +124,6 @@ async def _process_domains_chunk(domains_chunk):
                 "null",
             ])
 
-    await bright_data_mcp.cleanup()
-    logger.info("Cleared bright data mcp (worker)")
-    return rows
 
 
 def _worker_process(domains_chunk):
@@ -150,6 +144,9 @@ async def main():
         df.to_csv(CSV_FILE_PATH, index=False)
         return
 
+    await bright_data_mcp.connect()
+    logger.info("Connected to bright data mcp (worker)")
+
     chunk_size = math.ceil(len(DOMAINS) / num_workers)
     chunks = [DOMAINS[i:i + chunk_size] for i in range(0, len(DOMAINS), chunk_size)]
 
@@ -165,6 +162,9 @@ async def main():
     if rows_collected:
         rows_df = DataFrame(rows_collected, columns=CSV_COLUMNS)
         df = concat([df, rows_df], ignore_index=True)
+
+    await bright_data_mcp.cleanup()
+    logger.info("Cleared bright data mcp (worker)")
 
     df.to_csv(CSV_FILE_PATH, index=False)
 

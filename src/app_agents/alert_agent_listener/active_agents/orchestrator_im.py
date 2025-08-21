@@ -3,6 +3,7 @@ from app_agents.alert_agent_listener.active_agents.avatars_manager import ELASTI
 from app_agents.alert_agent_listener.active_agents.domains_manager import DOMAIN_SCAM_FINDER, DomainScamFinderInput
 from app_agents.alert_agent_listener.active_agents.grafana_logs_and_alerts import GRAFANA_LOGS_AND_ALERTS_AGENT, GrafanaLogsAndAlertsInput
 from app_agents.alert_agent_listener.active_agents.simple_select_sql_query import DB_SIMPLE_QUERY_AGENT, PostgresQueryParams
+from app_agents.alert_agent_listener.custom_tools.custom_tools import trigger_telegram_manual_collection
 
 GENERAL_HELP_PROMPT = """
 ### ROLE / PERSONA
@@ -69,6 +70,9 @@ GENERAL_HELP_AGENT = Agent(
                         on_handoff=lambda ctx, inp: None,
                         input_type=GrafanaLogsAndAlertsInput,
                     ),
+                ],
+                tools=[
+                    trigger_telegram_manual_collection,
                 ],
             )
 
