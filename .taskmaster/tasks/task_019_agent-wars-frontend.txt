@@ -1,6 +1,6 @@
 # Task ID: 19
 # Title: Summarizer Model Configuration Implementation
-# Status: review
+# Status: done
 # Dependencies: 6
 # Priority: low
 # Description: Implement a configuration option for the summarizer model that allows for a separate model to be used, with a safe default and the ability to override it.
@@ -11,25 +11,25 @@
 1. Create unit tests to verify that the configuration option is correctly parsed and that the default model is used when no override is provided. 2. Implement integration tests to ensure that the summarizer correctly utilizes the configured model for summarization tasks. 3. Validate that the system handles errors gracefully when an invalid model is specified in the configuration. 4. Conduct manual testing to confirm that the summarizer behaves as expected with both the default and overridden models.
 
 # Subtasks:
-## 1. Add SUMMARIZER_MODEL config with safe default [pending]
+## 1. Add SUMMARIZER_MODEL config with safe default [done]
 ### Dependencies: None
 ### Description: Expose summarizer model config via env and config.ts with safe default.
 ### Details:
 Ensure `getConfig()` reads `SUMMARIZER_MODEL`; default to a cheaper model.
 
-## 2. Route summarizer calls to configured model [pending]
+## 2. Route summarizer calls to configured model [done]
 ### Dependencies: None
 ### Description: Use configured summarizer model in backend summarizer without changing provider.
 ### Details:
 `summarizer.ts` should select model from config; provider stays as set or default.
 
-## 3. Error handling for invalid summarizer model [pending]
+## 3. Error handling for invalid summarizer model [done]
 ### Dependencies: None
 ### Description: Gracefully handle unavailable/invalid model in summarizer path.
 ### Details:
 Summarizer or caller must catch errors; system continues and persists report without crash.
 
-## 4. Tests and docs for summarizer model config [pending]
+## 4. Tests and docs for summarizer model config [done]
 ### Dependencies: None
 ### Description: Add tests for config parsing/usage; update docs.
 ### Details:

@@ -2,9 +2,7 @@ import * as React from "react";
 import clsx from "clsx";
 
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>): JSX.Element {
-  return (
-    <div className={clsx("rounded-xl bg-slate-900/70", className)} {...props} />
-  );
+  return <div className={clsx("rounded-xl bg-slate-900/70 shadow-subtle", className)} {...props} />;
 }
 
 export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>): JSX.Element {

@@ -9,7 +9,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       <select
         ref={ref}
         className={clsx(
-          "rounded bg-slate-800 px-3 py-2 text-sm outline-none ring-blue-500 focus:ring-2",
+          "rounded bg-slate-800 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary border border-slate-700",
           className,
         )}
         {...props}

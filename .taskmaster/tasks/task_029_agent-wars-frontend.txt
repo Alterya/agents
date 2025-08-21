@@ -1,0 +1,43 @@
+# Task ID: 29
+# Title: Frontend: PromptBRO Page Implementation
+# Status: pending
+# Dependencies: 7, 25
+# Priority: medium
+# Description: Develop the PromptBRO page, including components for header, prompt generator, optimizer, versions, and library components, ensuring functionality with mocked data.
+# Details:
+1. Create a new file `src/prompt-bro/page.tsx` for the PromptBRO component. 2. Implement a header that includes the title and navigation links. 3. Develop the prompt generator section that allows users to input prompts and see generated outputs. 4. Create an optimizer section that provides options for refining prompts. 5. Implement a versions section to manage different versions of prompts. 6. Add a library component that allows users to save and retrieve prompts. 7. Ensure all components are functional with mocked data to simulate user interactions and outputs. 8. Follow the design specifications provided in the zip file to ensure consistency in styling and layout.
+
+# Test Strategy:
+1. Verify that the PromptBRO page renders correctly at the `/prompt-bro` URL and matches the design specifications from the zip file. 2. Check that the header displays the title and navigation links accurately. 3. Test the functionality of the prompt generator to ensure it accepts input and displays generated outputs correctly. 4. Validate the optimizer section to ensure it provides options for prompt refinement and that these options work as intended. 5. Ensure the versions section allows users to manage different prompt versions effectively. 6. Test the library component to confirm that prompts can be saved and retrieved successfully. 7. Conduct user testing to ensure all interactive elements function as expected and perform accessibility checks.
+
+# Subtasks:
+## 1. PromptBRO header and layout [pending]
+### Dependencies: None
+### Description: Implement page header, layout shell, and section scaffolding per zip.
+### Details:
+
+
+## 2. Prompt generator UI [pending]
+### Dependencies: None
+### Description: Textarea with controls; generate action button; parameter sliders ready.
+### Details:
+
+
+## 3. Prompt optimizer UI [pending]
+### Dependencies: None
+### Description: Optimization panel with scoring and suggestions list; side-by-side compare.
+### Details:
+
+
+## 4. Versions list with restore [pending]
+### Dependencies: None
+### Description: List prompt versions with scores; restore button and diff preview placeholder.
+### Details:
+
+
+## 5. Prompt library grid and filters [pending]
+### Dependencies: None
+### Description: Library grid with rating/category filters and search; card layout.
+### Details:
+
+

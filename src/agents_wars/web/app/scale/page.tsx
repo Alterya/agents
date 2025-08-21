@@ -12,13 +12,15 @@ export default async function ScalePage() {
   const slimAgents = agents.map((a) => ({ id: a.id, name: a.name }));
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
-      <h1 className="mb-4 text-2xl font-semibold text-blue-300">Scale Testing</h1>
-      <p className="mb-6 text-slate-300">
-        Configure a batch run to execute multiple conversations concurrently and view aggregate
-        results.
+    <main className="mx-auto max-w-3xl p-6" style={{ backgroundColor: "#ECEADF" }}>
+      <h1 className="mb-2 text-2xl font-semibold" style={{ color: "#3F404C" }}>Scale Testing</h1>
+      <p className="mb-6" style={{ color: "#3F404C", opacity: 0.7 }}>
+        Configure a batch run to execute multiple conversations concurrently and view aggregate results.
       </p>
-      <section className="rounded-xl bg-slate-900/70 p-4">
+      <section
+        className="rounded-[12px]"
+        style={{ background: "#fff", border: "1px solid #DFD4CA", padding: "24px", boxShadow: "0 1px 3px rgba(63,64,76,0.1), 0 1px 2px rgba(63,64,76,0.06)" }}
+      >
         <ScaleRunner agents={slimAgents} />
       </section>
     </main>

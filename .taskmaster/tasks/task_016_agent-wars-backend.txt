@@ -1,0 +1,55 @@
+# Task ID: 16
+# Title: Model Wars API Implementation
+# Status: pending
+# Dependencies: 2, 12
+# Priority: high
+# Description: Develop the backend APIs for the Model Wars feature, including endpoints for models, battles, and leaderboard.
+# Details:
+1. Implement the GET /api/model-wars/models endpoint to return a list of available models along with their provider and status. Ensure the response format adheres to the API guide. 2. Create the POST /api/model-wars/battles endpoint to initiate a battle between two models, accepting parameters for model selection and battle type or custom prompt. Validate input data and ensure proper error handling. 3. Develop the GET /api/model-wars/battles endpoint to list all active and completed battles, returning relevant details in the specified format. 4. Implement the GET /api/model-wars/leaderboard endpoint to aggregate and return statistics related to battles, ensuring data is correctly formatted. 5. Set up a placeholder for SSE/WebSocket to facilitate live updates during battles. 6. Ensure all endpoints include validation, rate limiting, and are covered by unit and integration tests.
+
+# Test Strategy:
+1. Write unit tests for each endpoint to verify correct response formats and status codes. 2. Validate that input data for POST requests is correctly handled and that appropriate error messages are returned for invalid data. 3. Create integration tests to ensure that the endpoints interact correctly with the database and return expected results. 4. Test the SSE/WebSocket implementation to ensure it can handle live updates as intended. 5. Verify rate limiting is functioning as expected by simulating multiple requests.
+
+# Subtasks:
+## 1. Define zod schemas for models/battles/leaderboard [pending]
+### Dependencies: None
+### Description: Request/response/error schemas for models list, battle start, battles list, and leaderboard.
+### Details:
+
+
+## 2. GET /api/model-wars/models [pending]
+### Dependencies: None
+### Description: Return available models with provider and status; add caching headers.
+### Details:
+
+
+## 3. POST /api/model-wars/battles [pending]
+### Dependencies: None
+### Description: Validate input (two models + type/custom prompt); create battle; return id.
+### Details:
+
+
+## 4. GET /api/model-wars/battles (list/filter) [pending]
+### Dependencies: None
+### Description: List active/completed with filters (status/date); pagination support.
+### Details:
+
+
+## 5. GET /api/model-wars/leaderboard [pending]
+### Dependencies: None
+### Description: Aggregate battle results into rankings; return provider badges and metrics.
+### Details:
+
+
+## 6. Live updates channel placeholder [pending]
+### Dependencies: None
+### Description: SSE/WebSocket endpoint scaffold for battle progress; no-op backend for now with docs.
+### Details:
+
+
+## 7. Tests and rate limiting [pending]
+### Dependencies: None
+### Description: Add unit/integration tests; basic rate limit on POST start; structured errors.
+### Details:
+
+

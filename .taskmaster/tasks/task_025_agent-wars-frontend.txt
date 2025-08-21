@@ -1,0 +1,43 @@
+# Task ID: 25
+# Title: Implement Sidebar Navigation Shell and Routing
+# Status: pending
+# Dependencies: 21, 22
+# Priority: high
+# Description: Build a sidebar navigation component with routing for the application.
+# Details:
+1. Create a new file `components/sidebar-nav.tsx` and implement the sidebar navigation component. 2. Include the following items in the sidebar: Dashboard (/), Model Wars (/model-wars), Conversation Sim (/conversation-sim), PromptBRO (/prompt-bro), Jobs (/jobs), Analytics (/analytics). 3. Implement active-route detection to highlight the currently active item in the sidebar. 4. Add collapsible behavior for the sidebar to enhance usability on mobile devices. 5. Implement a mobile overlay that appears when the sidebar is toggled on mobile. 6. Ensure smooth transitions for opening and closing the sidebar. 7. Integrate the sidebar into the main layout of the application to ensure it appears on all target pages, matching the standard layout pattern.
+
+# Test Strategy:
+1. Verify that the sidebar renders correctly on all target pages. 2. Check that the active item is highlighted based on the current route. 3. Test the collapsible behavior of the sidebar on mobile devices to ensure it functions as expected. 4. Confirm that the mobile overlay appears when the sidebar is toggled and disappears when closed. 5. Ensure that transitions for opening and closing the sidebar are smooth and visually appealing.
+
+# Subtasks:
+## 1. Build SidebarNav with nav items and icons [pending]
+### Dependencies: None
+### Description: Create `components/sidebar-nav.tsx` with Dashboard, Model Wars, Conversation Sim, PromptBRO, Jobs, Analytics links and Lucide icons.
+### Details:
+
+
+## 2. Active route highlighting [pending]
+### Dependencies: None
+### Description: Use `usePathname()` to mark the active item; ensure correct aria-current and visual state.
+### Details:
+
+
+## 3. Mobile overlay + toggle [pending]
+### Dependencies: None
+### Description: Add mobile menu button; render sidebar as overlay on small screens; manage open/close state.
+### Details:
+
+
+## 4. Accessibility and keyboard nav [pending]
+### Dependencies: None
+### Description: Add aria roles/labels, focus management, and keyboard navigation for expand/collapse.
+### Details:
+
+
+## 5. Integrate sidebar in page layouts [pending]
+### Dependencies: None
+### Description: Wrap target pages with the standard layout shell using SidebarNav and header slots.
+### Details:
+
+

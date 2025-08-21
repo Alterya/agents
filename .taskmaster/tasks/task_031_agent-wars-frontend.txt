@@ -1,0 +1,43 @@
+# Task ID: 31
+# Title: Frontend: Analytics Dashboard Page Implementation
+# Status: pending
+# Dependencies: 26, 30
+# Priority: medium
+# Description: Develop the Analytics Dashboard page, including components for header, performance overview, model comparison, prompt effectiveness, and trend analysis, ensuring responsiveness and accessibility.
+# Details:
+1. Create a new file `src/analytics/page.tsx` for the Analytics Dashboard component. 2. Implement a header that includes the title and navigation links. 3. Develop a performance overview section that summarizes key metrics. 4. Create a model comparison section that allows users to compare different models side by side. 5. Implement a prompt effectiveness section that evaluates the performance of various prompts. 6. Add a trend analysis section that visualizes trends over time using Recharts. 7. Ensure all components are responsive and adhere to accessibility standards.
+
+# Test Strategy:
+1. Verify that the Analytics Dashboard page renders correctly at the `/analytics` URL and matches the design specifications from the zip file. 2. Check that the header displays the title and navigation links accurately. 3. Test the functionality of the performance overview, model comparison, prompt effectiveness, and trend analysis sections to ensure they display the correct data. 4. Ensure that all components are responsive across different screen sizes. 5. Conduct accessibility checks to ensure compliance with standards.
+
+# Subtasks:
+## 1. Analytics page header and layout [pending]
+### Dependencies: None
+### Description: Implement header and page shell; align with sidebar layout and zip.
+### Details:
+
+
+## 2. Performance overview KPIs [pending]
+### Dependencies: None
+### Description: KPI cards for performance overview; responsive grid and a11y.
+### Details:
+
+
+## 3. Model comparison charts [pending]
+### Dependencies: None
+### Description: Recharts scaffolding for model comparisons; interactive legends/tooltips.
+### Details:
+
+
+## 4. Prompt effectiveness charts [pending]
+### Dependencies: None
+### Description: Area/Bar charts for prompt effectiveness; time range controls.
+### Details:
+
+
+## 5. Trend analysis with forecasting [pending]
+### Dependencies: None
+### Description: Line charts for trends; placeholders for forecast overlays; responsive/a11y.
+### Details:
+
+

@@ -1,0 +1,43 @@
+# Task ID: 14
+# Title: Enable and Support Design System Rollout Across the App
+# Status: review
+# Dependencies: 1, 12
+# Priority: high
+# Description: Implement backend support for the design system rollout, including theme configuration, hero content delivery, asset optimization, and performance enhancements.
+# Details:
+1. Expose theme/config options through environment variables or API routes to allow frontend toggling of accent color, typography, and animation settings. 2. Ensure API routes provide necessary content and metadata for hero sections, including titles, subtitles, and CTA targets, along with SEO/open-graph metadata utilities. 3. Optimize the asset pipeline for image handling, CDN paths, icons, and static assets to align with the new design system. 4. Implement caching headers for API responses used in layout-level rendering to enhance performance. 5. Update existing tests and add basic logging for theme/config endpoints to ensure observability and reliability.
+
+# Test Strategy:
+1. Verify that the theme/config options are accessible and correctly toggleable from the frontend. 2. Test API routes to ensure they return the correct hero content and metadata, including SEO/open-graph data. 3. Validate that images are optimized and served correctly from the CDN. 4. Check caching headers on API responses to confirm they are set appropriately. 5. Run updated tests to ensure all theme/config endpoints function as expected and log relevant information correctly.
+
+# Subtasks:
+## 1. Theme/config surface for frontend [pending]
+### Dependencies: None
+### Description: Add a simple config endpoint or env-driven API to expose accent color choice, typography selection, animation enabled flag.
+### Details:
+
+
+## 2. Hero content API and SEO helpers [pending]
+### Dependencies: None
+### Description: Ensure API returns hero titles, subtitles, CTA URLs; add OpenGraph/SEO helpers/utilities as needed by frontend.
+### Details:
+
+
+## 3. Static assets and image optimization [pending]
+### Dependencies: None
+### Description: Organize icons/illustrations; verify Next/Image usage and CDN/base paths; ensure sizes for responsive hero and cards.
+### Details:
+
+
+## 4. Performance and caching [pending]
+### Dependencies: None
+### Description: Add appropriate caching headers/strategies for theme/config and hero content APIs; ensure fast TTFB.
+### Details:
+
+
+## 5. Tests and observability [pending]
+### Dependencies: None
+### Description: Add unit/integration tests for config/hero APIs; basic logging/metrics around requests and cache hits.
+### Details:
+
+

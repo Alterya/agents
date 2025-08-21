@@ -1,0 +1,43 @@
+# Task ID: 28
+# Title: Frontend: Conversation Simulation Page Implementation
+# Status: pending
+# Dependencies: 25, 27
+# Priority: high
+# Description: Develop the Conversation Simulation page, including components for header, simulation setup form, active simulations, templates, and results, ensuring responsiveness and accessibility.
+# Details:
+1. Create a new file `src/conversation-sim/page.tsx` for the Conversation Simulation component. 2. Implement a header that includes the title and navigation links. 3. Develop a simulation setup form that allows users to configure their simulations. 4. Create a section for active simulations that displays ongoing simulations with relevant details. 5. Implement a templates section where users can select or create templates for simulations. 6. Add a results section to display the outcomes of the simulations. 7. Ensure all components are responsive and accessible, adhering to best practices for usability. 8. Integrate placeholders for charts using Recharts, ensuring they are ready for future data integration.
+
+# Test Strategy:
+1. Verify that the Conversation Simulation page renders correctly at the `/conversation-sim` URL and matches the design specifications from the zip file. 2. Check that the header displays the title and navigation links accurately. 3. Test the functionality of the simulation setup form to ensure it captures user input correctly. 4. Validate that the active simulations section updates dynamically as simulations are started or stopped. 5. Ensure the templates section allows users to select and create templates without errors. 6. Confirm that the results section displays outcomes accurately after simulations are run. 7. Test the responsiveness of all components on various screen sizes. 8. Conduct accessibility checks to ensure compliance with standards.
+
+# Subtasks:
+## 1. Simulation page header [pending]
+### Dependencies: None
+### Description: Add header with title, subtitle, and actions per zip layout.
+### Details:
+
+
+## 2. Simulation setup form [pending]
+### Dependencies: None
+### Description: Form for batch size and parameters with validation; uses Select/Slider/Textarea as needed.
+### Details:
+
+
+## 3. Active simulations list [pending]
+### Dependencies: None
+### Description: List running simulations with status, progress bars, and timestamps; poll hook placeholder.
+### Details:
+
+
+## 4. Templates library [pending]
+### Dependencies: None
+### Description: Grid of conversation templates with search/filter; card layout with rating/usage.
+### Details:
+
+
+## 5. Results visualization scaffolding [pending]
+### Dependencies: None
+### Description: Charts placeholders with Recharts for success rate and metrics; responsive/a11y polish.
+### Details:
+
+

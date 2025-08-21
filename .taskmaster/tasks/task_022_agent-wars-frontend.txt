@@ -1,0 +1,67 @@
+# Task ID: 22
+# Title: Implement Brand-Wide Design System Rollout
+# Status: review
+# Dependencies: 21, 10
+# Priority: high
+# Description: Roll out a comprehensive design system across the Next.js application, including updates to color palette, typography, components, animations, and responsiveness.
+# Details:
+1. Define a centralized color palette with orange as the primary color, neutral gray scale, and optional teal/blue accents, and implement these as design tokens. 2. Choose a clean sans-serif font (Inter/Poppins/Roboto) and establish a typography hierarchy with large bold H1s, medium subheads, and readable body text. 3. Update UI components such as cards, buttons, and inputs to have rounded corners, subtle shadows, and clear orange CTAs with hover/active states. 4. Implement tasteful micro-interactions for animations, ensuring they respect user preferences for reduced motion. 5. Ensure all layouts are responsive, with mobile-friendly tap targets, and update pages and components as necessary. 6. Create a strong hero section for landing and hub views, featuring a big headline, supporting text, and an orange CTA, along with appropriate imagery/icons. 7. Update the theme/tokens, Tailwind CSS configurations, and component library to reflect these changes. 8. Ensure accessibility (a11y) standards are met and update tests accordingly.
+
+# Test Strategy:
+1. Verify that the new color palette and typography are applied consistently across the application. 2. Test all UI components to ensure they reflect the new design specifications, including hover and active states. 3. Conduct user testing to confirm that the new layouts are responsive and user-friendly on various devices. 4. Run accessibility checks to ensure compliance with a11y standards. 5. Validate that all updated components and pages pass existing unit and integration tests, and add new tests where necessary to cover the new design elements.
+
+# Subtasks:
+## 1. Define design tokens in Tailwind and globals [pending]
+### Dependencies: None
+### Description: Add color palette (orange primary, gray scale, optional accent), spacing, radius, shadows, typography scale to Tailwind config and globals.css; centralize as tokens.
+### Details:
+
+
+## 2. Install and configure font with typographic hierarchy [pending]
+### Dependencies: None
+### Description: Use next/font to add Inter/Poppins/Roboto; define H1/H2/body scale and utilities; ensure readable line-height and contrast.
+### Details:
+
+
+## 3. Update Button component to orange primary with states [pending]
+### Dependencies: None
+### Description: Revise `components/ui/button.tsx` for rounded corners, subtle shadow, clear hover/active/disabled/focus-ring; add tests.
+### Details:
+
+
+## 4. Refresh Card styles with radius and depth [pending]
+### Dependencies: None
+### Description: Update `components/ui/card.tsx` and card usages to use medium–large radius and subtle elevation; ensure dark-mode compatibility.
+### Details:
+
+
+## 5. Restyle inputs/selects/switches with focus visibility [pending]
+### Dependencies: None
+### Description: Revise `input.tsx`, `select.tsx`, `checkbox.tsx`, `switch.tsx`, `textarea.tsx` for radius, tokens, and accessible focus; add tests.
+### Details:
+
+
+## 6. Hero sections: landing and hub with strong CTA [pending]
+### Dependencies: None
+### Description: Implement bold hero with big headline, supporting copy, and orange CTA for `app/page.tsx` and `app/hub/page.tsx`; add imagery/icons.
+### Details:
+
+
+## 7. Micro-animations and motion safety [pending]
+### Dependencies: None
+### Description: Add hover/fade-in/press animations at 150–200ms; wrap with `prefers-reduced-motion` and existing `usePrefersReducedMotion` hook; test a11y.
+### Details:
+
+
+## 8. Responsive layout polish [pending]
+### Dependencies: None
+### Description: Audit pages/components for smooth breakpoints; ensure tap targets are large; refine spacing/stacking on small screens.
+### Details:
+
+
+## 9. a11y and visual tests [pending]
+### Dependencies: None
+### Description: Update/extend unit, integration, and Playwright e2e tests for color contrast, focus states, responsiveness, and hero CTAs.
+### Details:
+
+

@@ -9,3 +9,35 @@
 
 # Test Strategy:
 1. Create RTL snapshot tests for the badges to ensure they render correctly. 2. Implement tests for conditional rendering to verify that the UI behaves as expected when certain stats are missing. 3. Manually test the UI to confirm that badges and mini-cards display correctly under various scenarios (e.g., all stats present, some stats missing). 4. Validate that the layout remains consistent across different screen sizes and devices.
+
+# Subtasks:
+## 1. Render Badges for Succeeded/Failed Runs [pending]
+### Dependencies: None
+### Description: Implement the rendering of small badges that indicate whether the scale runs succeeded or failed based on the report.stats data.
+### Details:
+Check if report.stats is available after the scale run completion. If present, create badge components that visually represent success (e.g., green badge) or failure (e.g., red badge) and integrate them into the /scale completion page.
+
+## 2. Compute and Display Win Rate [pending]
+### Dependencies: 20.1
+### Description: Calculate the win rate from the report.stats data and display it alongside the badges on the /scale completion page.
+### Details:
+Extract the necessary data from report.stats to compute the win rate. Create a component to display the win rate percentage next to the badges, ensuring it updates dynamically based on the stats.
+
+## 3. Create Mini-Card Layout for Results Summary [pending]
+### Dependencies: 20.1, 20.2
+### Description: Design and implement a mini-card layout that summarizes the results of the scale run, ensuring it can handle missing fields gracefully.
+### Details:
+Develop a mini-card component that displays key metrics from report.stats. Ensure that the layout is responsive and visually appealing, and that it can adapt to missing data fields without breaking the UI.
+
+## 4. Implement Conditional Rendering for Stats [pending]
+### Dependencies: 20.3
+### Description: Add conditional rendering logic to handle cases where certain stats may not be available, ensuring the UI remains functional and informative.
+### Details:
+Incorporate conditional checks within the rendering logic of badges and the mini-card to display fallback content or hide elements when specific stats are not present.
+
+## 5. Testing for Badges, Win Rate, and Conditional Paths [pending]
+### Dependencies: 20.1, 20.2, 20.3, 20.4
+### Description: Develop comprehensive tests covering the rendering of badges, win rate display, and conditional rendering paths to ensure robustness.
+### Details:
+Utilize RTL to create unit tests for each component, focusing on rendering correctness and conditional logic. Ensure that all edge cases are covered, particularly for missing data scenarios.
+

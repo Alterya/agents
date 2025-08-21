@@ -1,6 +1,6 @@
 # Task ID: 13
 # Title: Add Playwright E2E for Scale page with axe a11y checks
-# Status: review
+# Status: done
 # Dependencies: 6, 10
 # Priority: medium
 # Description: Implement end-to-end tests for the Scale page using Playwright, including accessibility checks with axe-core.
@@ -23,19 +23,19 @@ Run 'npm install -D playwright' to install Playwright. Ensure that the necessary
 ### Details:
 Create a new file named 'scale.spec.ts' in the tests directory. Ensure it follows the naming conventions used in the project.
 
-## 3. Write Scale happy-path spec [in-progress]
+## 3. Write Scale happy-path spec [done]
 ### Dependencies: None
 ### Description: Write a test that opens the /scale page, selects an active agent, sets the provider/model, and sets runs=3.
 ### Details:
 In 'scale.spec.ts', use Playwright to navigate to the /scale page. Implement logic to select an active agent, set the provider/model, and input runs=3. Use Playwright's API for element selection and interaction.
 
-## 4. SSE progress/assertions [in-progress]
+## 4. SSE progress/assertions [done]
 ### Dependencies: None
 ### Description: Trigger the batch start and observe the progress via Server-Sent Events (SSE).
 ### Details:
 Extend the test in 'scale.spec.ts' to trigger the batch start. Implement logic to listen for SSE updates and assert that the progress is reported correctly.
 
-## 5. Revised Prompt and summary assertions [in-progress]
+## 5. Revised Prompt and summary assertions [done]
 ### Dependencies: None
 ### Description: Fetch the final report summary and assert that the revised prompt is rendered correctly.
 ### Details:

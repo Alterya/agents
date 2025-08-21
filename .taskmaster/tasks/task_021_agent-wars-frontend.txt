@@ -1,0 +1,11 @@
+# Task ID: 21
+# Title: Replace Landing Page with New Main Page for Agent Wars Frontend
+# Status: review
+# Dependencies: 4
+# Priority: high
+# Description: Revamp the current landing page to a new Main page that focuses on product entry points for Agent Wars.
+# Details:
+1. Remove the existing landing hero/graph page located at `src/agents_wars/web/app/page.tsx` and replace it with a new Main page. 2. The new Main page should utilize shadcn/ui primitives and maintain the existing header and footer. 3. Ensure that global navigation defaults to the Main page at `/` and that all links are consistent with the following routes: Hub `/hub`, Scale `/scale`, PromptBro `/promptbro`, and LLM Debug `/debug/llm`. 4. Consolidate useful elements from the old landing page, such as FPSProbe, into a small status card if they are still valuable; otherwise, remove them. 5. Update all relevant tests: unit tests, accessibility (a11y) tests, and end-to-end (E2E) tests to reflect the new Main page. This includes adjusting or removing landing-specific specs, ensuring zero serious a11y violations, and updating CTA tests to route correctly from the Main page. 6. Ensure compliance with accessibility standards (WCAG 2.2 AA), performance budgets, and strict TypeScript (TS) guidelines.
+
+# Test Strategy:
+1. Verify that the new Main page renders correctly at the root URL `/` with clear and accessible CTAs for Hub, Scale, and PromptBro. 2. Check that the header's active link state functions correctly across all pages and that the mobile menu operates as expected. 3. Run all unit tests and E2E tests to ensure they pass without serious a11y violations, and confirm that landing-specific tests are updated or removed as necessary. 4. Ensure there are no broken links and that type checking and linting are clean.

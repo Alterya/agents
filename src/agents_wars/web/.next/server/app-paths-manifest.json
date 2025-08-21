@@ -1,9 +1,9 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
+  "/hub/page": "app/hub/page.js",
   "/page": "app/page.js",
   "/api/config/provider-status/route": "app/api/config/provider-status/route.js",
-  "/hub/page": "app/hub/page.js",
   "/promptbro/page": "app/promptbro/page.js",
-  "/debug/llm/page": "app/debug/llm/page.js",
-  "/api/battles/start/route": "app/api/battles/start/route.js"
+  "/scale/page": "app/scale/page.js",
+  "/api/battles/start/route": "app/api/battles/start/route.js",
+  "/api/agents/route": "app/api/agents/route.js"
 }
