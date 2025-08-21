@@ -14,8 +14,8 @@ import {
   removeVersion,
   exportTemplateJson,
   analyzeDraft,
-} from "../../src/lib/prompt";
-import type { TemplateSnapshot } from "../../src/lib/prompt";
+} from "../src/lib/prompt";
+import type { TemplateSnapshot } from "../src/lib/prompt";
 
 const DRAFT_KEY = "promptbro:lastDraft";
 
