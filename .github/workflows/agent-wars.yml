@@ -1,9 +1,19 @@
 name: Agent Wars CI
 
 on:
-  pull_request:
   push:
     branches: [ main ]
+    paths:
+      - 'src/agents_wars/**'
+      - '.github/workflows/agent-wars.yml'
+  pull_request:
+    paths:
+      - 'src/agents_wars/**'
+      - '.github/workflows/agent-wars.yml'
+
+concurrency:
+  group: agent-wars-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -15,10 +25,23 @@ jobs:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: 'src/agents_wars/web/package-lock.json'
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('src/agents_wars/web/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
       - name: Install deps
         run: |
           cd src/agents_wars/web
           npm ci
+      - name: Install Playwright browsers
+        run: |
+          cd src/agents_wars/web
+          npx playwright install --with-deps
+      - name: Setup Chrome for Lighthouse
+        uses: browser-actions/setup-chrome@v1
       - name: Build
         run: |
           cd src/agents_wars/web
