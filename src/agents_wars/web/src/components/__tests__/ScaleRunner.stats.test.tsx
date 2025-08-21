@@ -27,10 +27,13 @@ describe("ScaleRunner stats badges & mini-cards", () => {
 
     // Stub EventSource
     esInstance = null;
-    vi.stubGlobal("EventSource", vi.fn((url: string) => {
-      esInstance = new MockEventSource(url);
-      return esInstance as unknown as EventSource;
-    }));
+    vi.stubGlobal(
+      "EventSource",
+      vi.fn((url: string) => {
+        esInstance = new MockEventSource(url);
+        return esInstance as unknown as EventSource;
+      }),
+    );
 
     // Stub fetch for start and report
     vi.stubGlobal(
@@ -38,11 +41,18 @@ describe("ScaleRunner stats badges & mini-cards", () => {
       vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = String(input);
         if (url.endsWith("/api/scale/start")) {
-          return new Response(JSON.stringify({ id: "run-1", status: "pending", estimatedUsd: 0.0123 }), { status: 202 });
+          return new Response(
+            JSON.stringify({ id: "run-1", status: "pending", estimatedUsd: 0.0123 }),
+            { status: 202 },
+          );
         }
         if (url.endsWith("/api/scale/run-1/report")) {
           return new Response(
-            JSON.stringify({ summary: "Batch complete", revisedPrompt: null, stats: { total: 5, succeeded: 4, failed: 1, rationale: "ok", actualUsd: 0.0123 } }),
+            JSON.stringify({
+              summary: "Batch complete",
+              revisedPrompt: null,
+              stats: { total: 5, succeeded: 4, failed: 1, rationale: "ok", actualUsd: 0.0123 },
+            }),
             { status: 200 },
           );
         }
@@ -56,7 +66,9 @@ describe("ScaleRunner stats badges & mini-cards", () => {
   });
 
   afterEach(() => {
-    try { vi.unstubAllGlobals(); } catch {}
+    try {
+      vi.unstubAllGlobals();
+    } catch {}
     vi.restoreAllMocks();
   });
 
@@ -106,5 +118,3 @@ describe("ScaleRunner stats badges & mini-cards", () => {
     });
   });
 });
-
-

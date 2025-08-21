@@ -32,5 +32,3 @@ describe("usePrefersReducedMotion", () => {
     expect(result.current).toBe(true);
   });
 });
-
-

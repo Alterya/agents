@@ -1,4 +1,6 @@
 import "./globals.css";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 export const metadata = {
   title: "Agent Wars",
@@ -9,7 +11,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head />
-      <body className="bg-slate-950 text-slate-100">{children}</body>
+      <body className="bg-slate-950 text-slate-100">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:rounded focus:bg-blue-700 focus:px-3 focus:py-2"
+        >
+          Skip to content
+        </a>
+        <Header />
+        <div id="main" className="min-h-[calc(100dvh-140px)]">
+          {children}
+        </div>
+        <Footer />
+      </body>
     </html>
   );
 }

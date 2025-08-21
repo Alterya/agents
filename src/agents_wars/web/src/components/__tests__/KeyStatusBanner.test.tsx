@@ -62,5 +62,3 @@ describe("KeyStatusBanner", () => {
     expect(banner).not.toHaveTextContent("OpenRouter");
   });
 });
-
-

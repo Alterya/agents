@@ -1,0 +1,11 @@
+# Task ID: 13
+# Title: Separate Summarizer Model Configuration from Main Model
+# Status: review
+# Dependencies: 2
+# Priority: low
+# Description: Implement a configuration option for the summarizer model in the backend, allowing for a default model and the ability to override it.
+# Details:
+1. Add a new configuration option in config.ts, named SUMMARIZER_MODEL, with a safe default value set to a cheaper summarizer model. 2. Modify the backend logic to route summarizer calls to the model specified in the SUMMARIZER_MODEL configuration, ensuring that the provider remains unchanged. 3. Ensure that the configuration parsing correctly reads the SUMMARIZER_MODEL value and applies it during summarizer calls. 4. Update any relevant documentation to reflect the new configuration option and its usage. 5. Review existing code to ensure compatibility with the new configuration and make necessary adjustments.
+
+# Test Strategy:
+1. Write unit tests to validate the parsing of the SUMMARIZER_MODEL configuration option, ensuring it defaults correctly and allows for overrides. 2. Create integration tests to verify that summarizer calls are routed to the correct model based on the configuration. 3. Test edge cases where the configuration might be invalid or missing, ensuring the system handles these gracefully.

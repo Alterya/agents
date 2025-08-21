@@ -1,14 +1,16 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getActiveAgents } from "@/repo/agents";
 
 export async function GET(_req: NextRequest) {
   try {
-    const agents = await prisma.agent.findMany({
-      where: { isActive: true },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, description: true },
-    });
-    return new Response(JSON.stringify({ items: agents }), {
+    const agents = await getActiveAgents();
+    // Ensure shape matches UI expectation when using in-memory fallback
+    const items = agents.map((a: any) => ({
+      id: a.id,
+      name: a.name,
+      description: (a as any).description ?? undefined,
+    }));
+    return new Response(JSON.stringify({ items }), {
       status: 200,
       headers: { "content-type": "application/json" },
     });
@@ -19,5 +21,3 @@ export async function GET(_req: NextRequest) {
     });
   }
 }
-
-

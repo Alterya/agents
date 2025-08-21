@@ -18,5 +18,3 @@ describe("clampDpr", () => {
     expect(clampDpr(Number.POSITIVE_INFINITY as unknown as number)).toBe(1);
   });
 });
-
-

@@ -25,5 +25,3 @@ export default function FpsProbe() {
   }, []);
   return null;
 }
-
-

@@ -40,6 +40,3 @@ describe("ScaleRunner budget card", () => {
     });
   });
 });
-
-
-

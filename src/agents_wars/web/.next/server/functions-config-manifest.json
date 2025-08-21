@@ -1,1 +1,1 @@
-{"version":1,"functions":{"/api/battles/[id]/status":{},"/api/battles/start":{}}}
+{"version":1,"functions":{"/api/battles/[id]/status":{},"/api/scale/[id]/status":{},"/api/battles/start":{}}}

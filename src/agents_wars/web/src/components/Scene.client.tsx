@@ -11,18 +11,14 @@ const DisabledScene: React.FC = () => (
   />
 );
 
-const ThreeScene = process.env.NEXT_PUBLIC_DISABLE_3D === "1"
-  ? DisabledScene
-  : dynamic(() => import("./ThreeScene"), {
-      ssr: false,
-      loading: () => (
-        <div
-          className="h-[280px] w-full animate-pulse rounded-xl bg-slate-800"
-          aria-hidden
-        />
-      ),
-    });
+const ThreeScene =
+  process.env.NEXT_PUBLIC_DISABLE_3D === "1"
+    ? DisabledScene
+    : dynamic(() => import("./ThreeScene"), {
+        ssr: false,
+        loading: () => (
+          <div className="h-[280px] w-full animate-pulse rounded-xl bg-slate-800" aria-hidden />
+        ),
+      });
 
 export default ThreeScene;
-
-

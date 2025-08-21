@@ -1,6 +1,7 @@
 import FpsProbe from "@/components/FpsProbe";
 import HeroSection from "@/components/HeroSection.client";
 import CapabilitiesGraph from "@/components/CapabilitiesGraph.client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Page() {
   return (
@@ -12,10 +13,14 @@ export default function Page() {
       <div className="grid max-w-[900px] gap-4">
         <FpsProbe />
         <HeroSection />
-        <section className="rounded-xl bg-slate-900/70 p-3">
-          <h2 className="mb-2 text-blue-400">Node Graph</h2>
-          <CapabilitiesGraph />
-        </section>
+        <Card className="p-0">
+          <CardHeader>
+            <CardTitle className="text-blue-400">Node Graph</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CapabilitiesGraph />
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

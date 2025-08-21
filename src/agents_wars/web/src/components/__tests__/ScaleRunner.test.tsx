@@ -26,5 +26,3 @@ describe("ScaleRunner", () => {
     expect(button).not.toBeDisabled();
   });
 });
-
-

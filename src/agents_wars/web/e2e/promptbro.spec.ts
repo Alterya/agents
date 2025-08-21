@@ -13,7 +13,10 @@ test.describe("PromptBro E2E", () => {
       return route.continue();
     });
     await page.route("**/api/llm/chat", async (route) => {
-      await route.fulfill({ status: 200, body: JSON.stringify({ text: "What is the target product category?" }) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ text: "What is the target product category?" }),
+      });
     });
     await page.goto("/promptbro");
 
@@ -47,7 +50,12 @@ test.describe("PromptBro E2E", () => {
     // List should show item eventually
     await page.route("**/api/prompt-templates", async (route) => {
       if (route.request().method() === "GET") {
-        return route.fulfill({ status: 200, body: JSON.stringify({ templates: [{ id: "t1", name: "E2E Template", description: "" }] }) });
+        return route.fulfill({
+          status: 200,
+          body: JSON.stringify({
+            templates: [{ id: "t1", name: "E2E Template", description: "" }],
+          }),
+        });
       }
       return route.continue();
     });
@@ -55,5 +63,3 @@ test.describe("PromptBro E2E", () => {
     await expect(page.getByText("E2E Template")).toBeVisible({ timeout: 10000 });
   });
 });
-
-

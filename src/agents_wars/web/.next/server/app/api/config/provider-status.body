@@ -1,1 +1,1 @@
-{"providers":{"openaiConfigured":false,"openrouterConfigured":false},"allowedModels":["gpt-4o-mini"]}
+{"openaiConfigured":false,"openrouterConfigured":false,"allowedModels":["gpt-4o-mini"],"rateLimitEnabled":true,"rateLimitRpm":60,"providers":{"openaiConfigured":false,"openrouterConfigured":false}}

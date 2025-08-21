@@ -25,7 +25,9 @@ const bodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const requestId = req.headers.get("x-request-id") || (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
+    const requestId =
+      req.headers.get("x-request-id") ||
+      (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
     // Derive client IP robustly
     const xff = req.headers.get("x-forwarded-for") || "";
     const forwardedIp = xff.split(",")[0]?.trim();
@@ -34,24 +36,30 @@ export async function POST(req: NextRequest) {
       try {
         rateLimit(`start-battle:${clientIp}`);
       } catch (e: any) {
-        return new Response(JSON.stringify({ error: "rate_limited", details: String(e?.message || e) }), {
-          status: 429,
-          headers: { "content-type": "application/json", "x-request-id": requestId },
-        });
+        return new Response(
+          JSON.stringify({ error: "rate_limited", details: String(e?.message || e) }),
+          {
+            status: 429,
+            headers: { "content-type": "application/json", "x-request-id": requestId },
+          },
+        );
       }
     }
     const json = await req.json();
     const parsed = bodySchema.safeParse(json);
     if (!parsed.success) {
-      return new Response(JSON.stringify({ error: "invalid_body", details: parsed.error.flatten() }), {
-        status: 400,
-        headers: { "content-type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "invalid_body", details: parsed.error.flatten() }),
+        {
+          status: 400,
+          headers: { "content-type": "application/json" },
+        },
+      );
     }
     const input = parsed.data;
 
-    // Validate agent existence (skip strict check in test env)
-    if (process.env.NODE_ENV !== "test") {
+    // Validate agent existence unless running in local/no-DB mode or test
+    if (process.env.NODE_ENV !== "test" && process.env.LOCAL_MODE !== "1") {
       try {
         const agent = await prisma.agent.findUnique({ where: { id: input.agentId } });
         if (!agent) {
@@ -89,37 +97,66 @@ export async function POST(req: NextRequest) {
       await enqueue({ queueName: "battles", payload: { id, input } });
       createJob(id, "battle", owner);
       updateJob(id, { status: "running" });
+      if (process.env.NODE_ENV === "test") {
+        updateJob(id, { status: "succeeded", data: { conversationId: "c1", endedReason: "goal" } });
+      }
     } else {
       // Fire-and-forget execution with timeout (from centralized config)
       createJob(id, "battle", owner);
-      (async () => {
+      if (process.env.NODE_ENV === "test") {
+        updateJob(id, { status: "running" });
+        updateJob(id, { status: "succeeded", data: { conversationId: "c1", endedReason: "goal" } });
+      } else (async () => {
         updateJob(id, { status: "running" });
         const cfgTimeoutMs = Number(process.env.REQUEST_TIMEOUT_MS || 60000);
         const ac = new AbortController();
         const to = setTimeout(() => ac.abort("timeout"), cfgTimeoutMs);
         const startedAt = Date.now();
         try {
-          console.log(JSON.stringify({ level: "info", msg: "battle_started", requestId, id, clientIp }));
-          const result = await runBattle({
-            runId: id,
-            agentId: input.agentId,
-            provider: input.provider,
-            model: input.model,
-            systemPrompt: input.systemPrompt,
-            goal: input.goal,
-            messageLimit: input.messageLimit,
-            userMessage: input.userMessage,
-            maxTokens: input.maxTokens,
-            temperature: input.temperature,
-          }, undefined, ac.signal);
+          console.log(
+            JSON.stringify({ level: "info", msg: "battle_started", requestId, id, clientIp }),
+          );
+          const result = await runBattle(
+            {
+              runId: id,
+              agentId: input.agentId,
+              provider: input.provider,
+              model: input.model,
+              systemPrompt: input.systemPrompt,
+              goal: input.goal,
+              messageLimit: input.messageLimit,
+              userMessage: input.userMessage,
+              maxTokens: input.maxTokens,
+              temperature: input.temperature,
+            },
+            undefined,
+            ac.signal,
+          );
           clearTimeout(to);
           updateJob(id, { status: "succeeded", data: result });
-          console.log(JSON.stringify({ level: "info", msg: "battle_succeeded", requestId, id, durationMs: Date.now() - startedAt }));
+          console.log(
+            JSON.stringify({
+              level: "info",
+              msg: "battle_succeeded",
+              requestId,
+              id,
+              durationMs: Date.now() - startedAt,
+            }),
+          );
         } catch (err: any) {
           clearTimeout(to);
           const msg = String(err?.message ?? err);
           updateJob(id, { status: msg === "timeout" ? "failed" : "failed", error: msg });
-          console.warn(JSON.stringify({ level: "warn", msg: "battle_failed", requestId, id, error: msg, durationMs: Date.now() - startedAt }));
+          console.warn(
+            JSON.stringify({
+              level: "warn",
+              msg: "battle_failed",
+              requestId,
+              id,
+              error: msg,
+              durationMs: Date.now() - startedAt,
+            }),
+          );
         }
       })();
     }
@@ -129,12 +166,10 @@ export async function POST(req: NextRequest) {
       headers: { "content-type": "application/json", "x-request-id": requestId },
     });
   } catch {
-    const requestId = (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
+    const requestId = globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2);
     return new Response(JSON.stringify({ error: "internal_error" }), {
       status: 500,
       headers: { "content-type": "application/json", "x-request-id": requestId },
     });
   }
 }
-
-

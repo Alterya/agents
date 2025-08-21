@@ -4,7 +4,9 @@ import ScaleRunner from "@/components/features/scale/ScaleRunner";
 
 describe("ScaleRunner invalid agent handling", () => {
   afterEach(() => {
-    try { vi.unstubAllGlobals(); } catch {}
+    try {
+      vi.unstubAllGlobals();
+    } catch {}
     vi.restoreAllMocks();
   });
 
@@ -15,7 +17,10 @@ describe("ScaleRunner invalid agent handling", () => {
       vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = String(input);
         if (url.endsWith("/api/scale/start") && init?.method === "POST") {
-          return new Response(JSON.stringify({ error: "invalid_agent" }), { status: 400, headers: { "content-type": "application/json" } });
+          return new Response(JSON.stringify({ error: "invalid_agent" }), {
+            status: 400,
+            headers: { "content-type": "application/json" },
+          });
         }
         return new Response(JSON.stringify({}), { status: 200 });
       }) as unknown as typeof fetch,
@@ -37,6 +42,3 @@ describe("ScaleRunner invalid agent handling", () => {
     expect(alert).toHaveTextContent(/Selected agent is invalid or not found/i);
   });
 });
-
-
-

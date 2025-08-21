@@ -7,5 +7,3 @@ test("landing page has no serious a11y violations", async ({ page }) => {
   const serious = res.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   expect(serious, JSON.stringify(serious, null, 2)).toHaveLength(0);
 });
-
-

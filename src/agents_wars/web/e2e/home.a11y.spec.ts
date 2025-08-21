@@ -7,11 +7,11 @@ test("a11y: home page has no serious violations", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /agent wars/i })).toBeVisible();
 
   const accessibilityScanResults = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa"]) 
+    .withTags(["wcag2a", "wcag2aa"])
     .analyze();
 
-  const serious = accessibilityScanResults.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+  const serious = accessibilityScanResults.violations.filter(
+    (v) => v.impact === "serious" || v.impact === "critical",
+  );
   expect(serious, JSON.stringify(serious, null, 2)).toHaveLength(0);
 });
-
-

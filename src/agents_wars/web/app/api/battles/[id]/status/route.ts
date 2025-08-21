@@ -5,7 +5,9 @@ export const runtime = "nodejs";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const requestId = req.headers.get("x-request-id") || (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
+    const requestId =
+      req.headers.get("x-request-id") ||
+      (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
     const id = params.id;
     const job = getJob(id);
     if (!job) {
@@ -17,7 +19,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     // Support JSON polling when requested via query (?format=json) or Accept header
     const url = new URL(req.url);
-    const wantsJson = url.searchParams.get("format") === "json" ||
+    const wantsJson =
+      url.searchParams.get("format") === "json" ||
       (req.headers.get("accept") || "").includes("application/json");
     if (wantsJson) {
       return new Response(JSON.stringify(job), {
@@ -58,12 +61,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       },
     });
   } catch {
-    const requestId = (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
+    const requestId = globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2);
     return new Response(JSON.stringify({ error: "internal_error" }), {
       status: 500,
       headers: { "content-type": "application/json", "x-request-id": requestId },
     });
   }
 }
-
-

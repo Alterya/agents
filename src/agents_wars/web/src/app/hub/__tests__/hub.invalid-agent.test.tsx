@@ -4,7 +4,9 @@ import HubPage from "app/hub/page";
 
 describe("Hub invalid agent handling", () => {
   afterEach(() => {
-    try { vi.unstubAllGlobals(); } catch {}
+    try {
+      vi.unstubAllGlobals();
+    } catch {}
     vi.restoreAllMocks();
   });
 
@@ -15,16 +17,32 @@ describe("Hub invalid agent handling", () => {
       vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = String(input);
         if (url.endsWith("/api/agents")) {
-          return new Response(JSON.stringify({ items: [{ id: "ghost", name: "Ghost" }] }), { status: 200, headers: { "content-type": "application/json" } });
+          return new Response(JSON.stringify({ items: [{ id: "ghost", name: "Ghost" }] }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          });
         }
         if (url.endsWith("/api/config/provider-status")) {
-          return new Response(JSON.stringify({ openaiConfigured: true, openrouterConfigured: false, allowedModels: [] }), { status: 200, headers: { "content-type": "application/json" } });
+          return new Response(
+            JSON.stringify({
+              openaiConfigured: true,
+              openrouterConfigured: false,
+              allowedModels: [],
+            }),
+            { status: 200, headers: { "content-type": "application/json" } },
+          );
         }
         if (url.endsWith("/api/battles/start") && init?.method === "POST") {
-          return new Response(JSON.stringify({ error: "invalid_agent" }), { status: 400, headers: { "content-type": "application/json" } });
+          return new Response(JSON.stringify({ error: "invalid_agent" }), {
+            status: 400,
+            headers: { "content-type": "application/json" },
+          });
         }
         if (url.includes("/api/battles/") && url.includes("/status")) {
-          return new Response(JSON.stringify({ id: "x", type: "battle", status: "failed" }), { status: 200, headers: { "content-type": "application/json" } });
+          return new Response(JSON.stringify({ id: "x", type: "battle", status: "failed" }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          });
         }
         return new Response(JSON.stringify({}), { status: 200 });
       }) as unknown as typeof fetch,
@@ -52,5 +70,3 @@ describe("Hub invalid agent handling", () => {
     });
   });
 });
-
-

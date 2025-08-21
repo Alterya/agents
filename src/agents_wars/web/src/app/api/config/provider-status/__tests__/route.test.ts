@@ -14,8 +14,9 @@ describe("GET /api/config/provider-status", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("application/json");
     const json = await res.json();
-    expect(json.providers.openaiConfigured).toBe(false);
-    expect(json.providers.openrouterConfigured).toBe(false);
+    // API returns a flat shape consumed by frontend components
+    expect(json.openaiConfigured).toBe(false);
+    expect(json.openrouterConfigured).toBe(false);
     expect(Array.isArray(json.allowedModels)).toBe(true);
   });
 });

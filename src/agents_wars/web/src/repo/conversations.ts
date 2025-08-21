@@ -50,7 +50,8 @@ export async function appendMessage(
         messageCount: { increment: 1 },
         totalTokensIn: data.tokensIn ? { increment: data.tokensIn } : undefined,
         totalTokensOut: data.tokensOut ? { increment: data.tokensOut } : undefined,
-        totalCostUsd: data.costUsd != null ? { increment: new Prisma.Decimal(data.costUsd) } : undefined,
+        totalCostUsd:
+          data.costUsd != null ? { increment: new Prisma.Decimal(data.costUsd) } : undefined,
       },
     });
     return msg;

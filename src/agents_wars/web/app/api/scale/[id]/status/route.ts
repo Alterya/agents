@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { getJob, subscribeJob } from "@/lib/jobs";
 import { prisma } from "@/lib/prisma";
 
+export const runtime = "nodejs";
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const id = params.id;
   const encoder = new TextEncoder();
@@ -11,7 +13,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         let j = getJob(id);
         // Fallback: read from DB if in-memory job evicted or server restarted
         if (!j) {
-          const report = await prisma.runReport.findUnique({ where: { runId: id } });
+          let report: any = null;
+          if (process.env.E2E_MODE === "1" || process.env.LOCAL_MODE === "1") {
+            report = (globalThis as any).__run_reports?.get?.(id) ?? null;
+          } else {
+            report = await prisma.runReport.findUnique({ where: { runId: id } });
+          }
           if (report) {
             j = {
               id,
@@ -54,5 +61,3 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     },
   });
 }
-
-

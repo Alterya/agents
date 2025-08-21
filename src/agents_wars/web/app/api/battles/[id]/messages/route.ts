@@ -9,6 +9,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const skip = (page - 1) * limit;
     const conversationId = params.id;
 
+    if (process.env.E2E_MODE === "1" || process.env.LOCAL_MODE === "1") {
+      return new Response(JSON.stringify({ page, limit, total: 0, items: [] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
     const [items, total] = await Promise.all([
       prisma.message.findMany({
         where: { conversationId },
@@ -44,5 +51,3 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     });
   }
 }
-
-

@@ -31,12 +31,12 @@ declare module "react-force-graph-2d" {
     nodePointerAreaPaint?: (
       node: ForceGraphNode,
       color: string,
-      ctx: CanvasRenderingContext2D
+      ctx: CanvasRenderingContext2D,
     ) => void;
     nodeCanvasObject?: (
       node: ForceGraphNode,
       ctx: CanvasRenderingContext2D,
-      globalScale: number
+      globalScale: number,
     ) => void;
     onNodeHover?: (node: ForceGraphNode | null, prev?: ForceGraphNode | null) => void;
     onNodeClick?: (node: ForceGraphNode, event?: MouseEvent) => void;
@@ -52,7 +52,7 @@ declare module "react-force-graph-2d" {
     zoomToFit: (
       ms?: number,
       padding?: number,
-      nodeFilter?: (node: ForceGraphNode) => boolean
+      nodeFilter?: (node: ForceGraphNode) => boolean,
     ) => void;
   }
 
@@ -60,5 +60,3 @@ declare module "react-force-graph-2d" {
   const ForceGraph2D: ComponentType<ForceGraph2DProps & { ref?: Ref<ForceGraph2DInstance | null> }>;
   export default ForceGraph2D;
 }
-
-

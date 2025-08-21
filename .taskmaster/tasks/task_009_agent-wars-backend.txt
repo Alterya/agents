@@ -1,0 +1,25 @@
+# Task ID: 9
+# Title: API: LLM chat route handler (provider smoke test)
+# Status: done
+# Dependencies: None
+# Priority: medium
+# Description: Add Next.js Route Handler to call unified LLM provider (POST /api/llm/chat). Connected to agent-wars Task 2. Type: backend
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. Implement POST /api/llm/chat [done]
+### Dependencies: None
+### Description: Zod-validate input; call provider.chat; non-stream JSON, stream SSE
+### Details:
+
+
+## 2. Add minimal integration test or manual script [done]
+### Dependencies: None
+### Description: Ensure both providers work with mock keys; document usage
+### Details:
+
+

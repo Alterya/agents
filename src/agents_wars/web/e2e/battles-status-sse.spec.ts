@@ -40,5 +40,3 @@ test("status SSE streams DONE marker", async ({}, testInfo) => {
   }
   expect(buf).toContain("[DONE]");
 });
-
-

@@ -1,14 +1,1 @@
-{
-  "src/components/CapabilitiesGraph.client.tsx -> ./NodeGraph": {
-    "id": 4203,
-    "files": [
-      "static/chunks/203.0ba7cac8c97646a0.js"
-    ]
-  },
-  "src/components/NodeGraph.tsx -> react-force-graph-2d": {
-    "id": 1502,
-    "files": [
-      "static/chunks/502.ebff73a8492b1435.js"
-    ]
-  }
-}
+{}

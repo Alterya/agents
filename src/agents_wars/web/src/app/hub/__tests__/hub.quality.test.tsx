@@ -55,5 +55,3 @@ describe("HubPage quality checks", () => {
     expect(await screen.findByText(/Failed to load agents/i)).toBeInTheDocument();
   });
 });
-
-

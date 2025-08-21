@@ -42,5 +42,3 @@ test.describe("Landing page", () => {
     }
   });
 });
-
-

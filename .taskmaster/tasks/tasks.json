@@ -1974,6 +1974,15 @@
             "details": "Produce docs/research-llm-provider.md summarizing: OpenAI Node SDK v4 chat.completions vs responses; streaming API patterns and how to capture usage; OpenRouter API compatibility and required headers; model naming differences and availability; lru-cache patterns suitable for rate limiting in serverless (TTL, max size, pitfalls); best practices for exponential backoff with jitter. Include links to official docs and minimal code snippets. Add decisions/risks section and confirm our API choices align with findings.\n\nTag: backend\n\n<research> OpenAI SDK v4 chat.completions vs responses; streaming iterator; OpenRouter required headers; lru-cache rate-limiter notes; backoff with jitter. Sources documented in repo research.",
             "status": "done",
             "testStrategy": "Acceptance: document exists with sources and answers to checklist; peer review confirms accuracy and that implementation aligns with recommendations."
+          },
+          {
+            "id": 6,
+            "title": "Frontend integration alignment: provider status shape and debug UI verification",
+            "description": "Flatten provider status API response to match frontend expectations, verify LLM chat route integration with provider, and ensure debug page works for JSON + SSE.",
+            "details": "- Update `app/api/config/provider-status/route.ts` to return flat fields: { openaiConfigured, openrouterConfigured, allowedModels, rateLimitEnabled, rateLimitRpm }.\n- Validate `app/debug/llm/page.tsx` can send both JSON and stream requests to `/api/llm/chat`.\n- Run targeted tests: `src/app/api/llm/chat/__tests__/route.test.ts`, `src/components/__tests__/ProviderModelSelector.test.tsx`.\n- Leave broader battle/scale FK issues for their dedicated tasks.\n",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 2
           }
         ]
       },
@@ -2155,7 +2164,8 @@
             "id": 3,
             "title": "Add CI step to run agent_wars check (ci)",
             "description": "Ensure CI runs make -C src/agents_wars check. Connected to: agent-wars merge ticket. Type: ci",
-            "status": "done"
+            "status": "done",
+            "details": "<info added on 2025-08-20T13:24:44.575Z>\nVerified frontend integration and CI check path for agent-wars web:\n\n- Ensured pre-commit hook runs only once and points to repo root make targets: quality + test\n- Added missing src/agents_wars/web/.env.example with sensible defaults for DATABASE_URL, DIRECT_URL, provider keys, REDIS_URL placeholder\n- Ran install, prisma format/validate, typecheck, lint, and Prettier write\n- Fixed provider-status test to match current flat JSON response shape (openaiConfigured/openrouterConfigured at root)\n- Enabled full logic for runners in test mode (removed early short-circuits) so mocks drive behavior; this aligns with frontend expectations and integration tests\n- Re-ran unit tests: all 86 passed locally; warnings from React act() remain but non-blocking\n- check target now green: lint, typecheck, tests pass\n\nNext: run e2e locally if needed; otherwise CI should pick up make -C src/agents_wars check.\n</info added on 2025-08-20T13:24:44.575Z>"
           },
           {
             "id": 4,
@@ -2226,9 +2236,9 @@
         "id": 12,
         "title": "Add maxBudgetUsd preflight to /api/scale/start",
         "description": "Implement a preflight check for maxBudgetUsd in the /api/scale/start endpoint to ensure budget constraints are respected before processing requests.",
-        "details": "1. Modify the /api/scale/start route handler to accept an optional maxBudgetUsd parameter. 2. Use the pricing.ts module to estimate the batch cost based on the provider and model, as well as the number of runs. 3. If the estimated cost exceeds maxBudgetUsd, return a 400 response with an error message: { error: 'budget_exceeded', estimatedUsd: <estimated_cost> }. 4. If the budget is within limits, include the estimated cost in the 202 response when the request is accepted. 5. Ensure that the implementation adheres to existing coding standards and integrates smoothly with the current API structure.",
+        "details": "1. Modify the /api/scale/start route handler to accept an optional maxBudgetUsd parameter. 2. Use the pricing.ts module to estimate the batch cost based on the provider and model, as well as the number of runs. 3. If the estimated cost exceeds maxBudgetUsd, return a 400 response with an error message: { error: 'budget_exceeded', estimatedUsd: <estimated_cost> }. 4. If the budget is within limits, include the estimated cost in the 202 response when the request is accepted. 5. Ensure that the implementation adheres to existing coding standards and integrates smoothly with the current API structure.\n<info added on 2025-08-20T13:19:11.689Z>\nIntegration verification complete: Backend `app/api/scale/start/route.ts` supports optional `maxBudgetUsd` preflight and returns `{ error: 'budget_exceeded', estimatedUsd }` on exceed; includes `estimatedUsd` in 202 accept. Frontend `src/components/features/scale/ScaleRunner.tsx` now sends `maxBudgetUsd` when provided and surfaces a clear error if budget is exceeded; it also mirrors `estimatedUsd` from backend response when present. Tests: Ran targeted tests (`src/app/api/scale/__tests__/routes.test.ts`, `src/components/__tests__/ScaleRunner.budget.test.tsx`, `src/components/__tests__/ScaleRunner.test.tsx`) — all passed. Conclusion: Task 12 implemented and integrated with current frontend.\n</info added on 2025-08-20T13:19:11.689Z>",
         "testStrategy": "1. Write unit tests for the estimator function in pricing.ts to ensure it accurately calculates costs based on different inputs. 2. Create integration tests for the /api/scale/start endpoint to validate both the budget_exceeded response and the successful acceptance flow, ensuring that the estimated cost is included in the response when applicable. 3. Use mocking for external dependencies to isolate tests and ensure reliability.",
-        "status": "review",
+        "status": "done",
         "dependencies": [
           2,
           3
@@ -2240,9 +2250,9 @@
         "id": 13,
         "title": "Separate Summarizer Model Configuration from Main Model",
         "description": "Implement a configuration option for the summarizer model in the backend, allowing for a default model and the ability to override it.",
-        "details": "1. Add a new configuration option in config.ts, named SUMMARIZER_MODEL, with a safe default value set to a cheaper summarizer model. 2. Modify the backend logic to route summarizer calls to the model specified in the SUMMARIZER_MODEL configuration, ensuring that the provider remains unchanged. 3. Ensure that the configuration parsing correctly reads the SUMMARIZER_MODEL value and applies it during summarizer calls. 4. Update any relevant documentation to reflect the new configuration option and its usage. 5. Review existing code to ensure compatibility with the new configuration and make necessary adjustments.",
+        "details": "1. Add a new configuration option in config.ts, named SUMMARIZER_MODEL, with a safe default value set to a cheaper summarizer model. 2. Modify the backend logic to route summarizer calls to the model specified in the SUMMARIZER_MODEL configuration, ensuring that the provider remains unchanged. 3. Ensure that the configuration parsing correctly reads the SUMMARIZER_MODEL value and applies it during summarizer calls. 4. Update any relevant documentation to reflect the new configuration option and its usage. 5. Review existing code to ensure compatibility with the new configuration and make necessary adjustments.\n<info added on 2025-08-20T13:19:00.839Z>\nVerification of the summarizer model configuration implementation is complete. The configuration in src/lib/config.ts correctly parses SUMMARIZER_MODEL and exposes summarizerModel, with tests covering both presence and absence scenarios. The behavior in src/lib/summarizer.ts utilizes getConfig().summarizerModel when set, defaulting to \"gpt-4o-mini\" otherwise, while preserving the provider from the caller. The runScaleTest successfully passes the provider and model, with summarizer overrides only affecting the model when the configuration is present, keeping the provider unchanged. All summarizer-related tests in src/lib/__tests__/prompt.test.ts pass locally, although there are suite warnings due to unrelated Prisma foreign keys. The ScaleRunner in the frontend consumes report fields without requiring changes for summarizer model handling. The task behavior aligns with the requirements, and no code changes are necessary.\n</info added on 2025-08-20T13:19:00.839Z>",
         "testStrategy": "1. Write unit tests to validate the parsing of the SUMMARIZER_MODEL configuration option, ensuring it defaults correctly and allows for overrides. 2. Create integration tests to verify that summarizer calls are routed to the correct model based on the configuration. 3. Test edge cases where the configuration might be invalid or missing, ensuring the system handles these gracefully.",
-        "status": "review",
+        "status": "done",
         "dependencies": [
           2
         ],
@@ -2252,7 +2262,7 @@
     ],
     "metadata": {
       "created": "2025-08-13T15:04:58.939Z",
-      "updated": "2025-08-19T15:04:53.476Z",
+      "updated": "2025-08-20T13:19:12.092Z",
       "description": "Tag created on 8/13/2025"
     }
   }

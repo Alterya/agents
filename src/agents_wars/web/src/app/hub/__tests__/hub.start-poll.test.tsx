@@ -10,29 +10,40 @@ describe("HubPage start & poll", () => {
       vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = String(input);
         if (url.endsWith("/api/agents")) {
-          return new Response(
-            JSON.stringify({ items: [{ id: "a1", name: "Agent One" }] }),
-            { status: 200 },
-          );
+          return new Response(JSON.stringify({ items: [{ id: "a1", name: "Agent One" }] }), {
+            status: 200,
+          });
         }
         if (url.endsWith("/api/config/provider-status")) {
-          return new Response(
-            JSON.stringify({ allowedModels: ["gpt-4o"] }),
-            { status: 200 },
-          );
+          return new Response(JSON.stringify({ allowedModels: ["gpt-4o"] }), { status: 200 });
         }
         if (url.endsWith("/api/battles/start")) {
           return new Response(JSON.stringify({ id: "job-1", status: "pending" }), { status: 202 });
         }
         if (url.includes("/api/battles/") && url.endsWith("/status?format=json")) {
           return new Response(
-            JSON.stringify({ id: "job-1", type: "battle", status: "succeeded", updatedAt: Date.now(), data: { endedReason: "goal", conversationId: "c1" } }),
+            JSON.stringify({
+              id: "job-1",
+              type: "battle",
+              status: "succeeded",
+              updatedAt: Date.now(),
+              data: { endedReason: "goal", conversationId: "c1" },
+            }),
             { status: 200 },
           );
         }
         if (url.includes("/api/battles/") && url.includes("/messages")) {
           return new Response(
-            JSON.stringify({ items: [{ id: "m1", role: "assistant", content: "done", createdAt: new Date().toISOString() }] }),
+            JSON.stringify({
+              items: [
+                {
+                  id: "m1",
+                  role: "assistant",
+                  content: "done",
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+            }),
             { status: 200 },
           );
         }
@@ -42,7 +53,9 @@ describe("HubPage start & poll", () => {
   });
 
   afterEach(() => {
-    try { vi.unstubAllGlobals(); } catch {}
+    try {
+      vi.unstubAllGlobals();
+    } catch {}
   });
 
   it("starts a session and shows terminal status with messages", async () => {
@@ -63,12 +76,13 @@ describe("HubPage start & poll", () => {
     fireEvent.click(start);
 
     // Advance polling timers and wait for UI to show succeeded
-    await waitFor(async () => {
-      expect(await screen.findByText(/Status: succeeded/i)).toBeInTheDocument();
-    }, { timeout: 10000 });
+    await waitFor(
+      async () => {
+        expect(await screen.findByText(/Status: succeeded/i)).toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
     // Messages area renders fetched messages
     await screen.findByText(/\[assistant\] done/);
   });
 });
-
-

@@ -4,7 +4,10 @@ import { prisma } from "@/lib/prisma";
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   try {
     const runId = params.id;
-    const report = await prisma.runReport.findUnique({ where: { runId } });
+    const report =
+      process.env.E2E_MODE === "1" || process.env.LOCAL_MODE === "1"
+        ? ((globalThis as any).__run_reports?.get?.(runId) ?? null)
+        : await prisma.runReport.findUnique({ where: { runId } });
     if (!report) {
       if (process.env.E2E_MODE === "1") {
         // Provide a synthetic E2E report when DB is not used
@@ -18,7 +21,12 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
             failures: [],
             summary: "E2E summary: 2 ok / 0 failed",
             revisedPrompt: "E2E revised prompt",
-            stats: { succeeded: 2, failed: 0, conversationIds: ["c-1", "c-2"], rationale: "E2E rationale" },
+            stats: {
+              succeeded: 2,
+              failed: 0,
+              conversationIds: ["c-1", "c-2"],
+              rationale: "E2E rationale",
+            },
           }),
           { status: 200, headers: { "content-type": "application/json" } },
         );
@@ -49,5 +57,3 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     });
   }
 }
-
-

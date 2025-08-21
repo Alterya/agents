@@ -2,10 +2,7 @@
 import dynamic from "next/dynamic";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type {
-  ForceGraph2DInstance,
-  ForceGraphNode,
-} from "react-force-graph-2d";
+import type { ForceGraph2DInstance, ForceGraphNode } from "react-force-graph-2d";
 import { graphRouteMap } from "@/lib/graphRoutes";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
@@ -79,7 +76,8 @@ export default function NodeGraph() {
         onNodeHover={(n) => {
           const node = (n as Node) || null;
           setHovered(node);
-          if (typeof document !== "undefined") document.body.style.cursor = node?.route ? "pointer" : "default";
+          if (typeof document !== "undefined")
+            document.body.style.cursor = node?.route ? "pointer" : "default";
         }}
         onNodeClick={(n) => {
           const node = n as Node;
@@ -88,7 +86,14 @@ export default function NodeGraph() {
         nodePointerAreaPaint={(node, color, ctx) => {
           ctx.fillStyle = color;
           ctx.beginPath();
-          ctx.arc((node as ForceGraphNode).x!, (node as ForceGraphNode).y!, 8, 0, 2 * Math.PI, false);
+          ctx.arc(
+            (node as ForceGraphNode).x!,
+            (node as ForceGraphNode).y!,
+            8,
+            0,
+            2 * Math.PI,
+            false,
+          );
           ctx.fill();
         }}
         nodeCanvasObject={(node, ctx, globalScale) => {
@@ -98,7 +103,14 @@ export default function NodeGraph() {
           // color is added by library; keep fallback
           ctx.fillStyle = (node as any).color || "#60a5fa";
           ctx.beginPath();
-          ctx.arc((node as ForceGraphNode).x!, (node as ForceGraphNode).y!, 3, 0, 2 * Math.PI, false);
+          ctx.arc(
+            (node as ForceGraphNode).x!,
+            (node as ForceGraphNode).y!,
+            3,
+            0,
+            2 * Math.PI,
+            false,
+          );
           ctx.fill();
           ctx.fillStyle = "#e5e7eb";
           ctx.fillText(label, (node as ForceGraphNode).x! + 4, (node as ForceGraphNode).y! + 2);

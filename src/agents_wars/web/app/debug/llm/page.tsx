@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { KeyStatusBanner } from "@/components/KeyStatusBanner";
 import { ProviderModelSelector } from "@/components/ProviderModelSelector";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type Msg = { role: "system" | "user" | "assistant" | "tool"; content: string };
 
@@ -61,11 +63,7 @@ export default function LlmDebugPage() {
         <div>
           <label>
             Prompt
-            <input
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              className="ml-2 w-80 border p-1"
-            />
+            <Input value={text} onChange={(e) => setText(e.target.value)} className="ml-2 w-80 border" />
           </label>
         </div>
         <div>
@@ -74,9 +72,9 @@ export default function LlmDebugPage() {
             <span>Stream</span>
           </label>
         </div>
-        <button type="submit" className="border px-3 py-1">
+        <Button type="submit" className="border" variant="secondary">
           Send
-        </button>
+        </Button>
       </form>
       <pre className="min-h-24 whitespace-pre-wrap break-words border p-2">{result}</pre>
     </main>

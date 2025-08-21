@@ -27,30 +27,38 @@ export async function POST(req: NextRequest) {
     const json = await req.json();
     const parsed = bodySchema.safeParse(json);
     if (!parsed.success) {
-      return new Response(JSON.stringify({ error: "invalid_body", details: parsed.error.flatten() }), {
-        status: 400,
-        headers: { "content-type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "invalid_body", details: parsed.error.flatten() }),
+        {
+          status: 400,
+          headers: { "content-type": "application/json" },
+        },
+      );
     }
     const input = parsed.data;
     // Preflight: optional maxBudgetUsd check using pricing.ts estimate
     let estimatedUsd: number | undefined;
     if (typeof input.maxBudgetUsd === "number") {
-      try { await getPricing(input.provider, input.model); } catch {}
+      try {
+        await getPricing(input.provider, input.model);
+      } catch {}
       // naive per-run tokens assumption, consistent with ScaleRunner estimate
       const perRunIn = 150;
       const perRunOut = 300;
-      const { usdIn, usdOut } = estimateCostUsdFromUsage(input.provider, input.model, { inputTokens: perRunIn * input.runs, outputTokens: perRunOut * input.runs });
+      const { usdIn, usdOut } = estimateCostUsdFromUsage(input.provider, input.model, {
+        inputTokens: perRunIn * input.runs,
+        outputTokens: perRunOut * input.runs,
+      });
       estimatedUsd = parseFloat((usdIn + usdOut).toFixed(4));
       if (estimatedUsd > input.maxBudgetUsd) {
-        return new Response(
-          JSON.stringify({ error: "budget_exceeded", estimatedUsd }),
-          { status: 400, headers: { "content-type": "application/json" } },
-        );
+        return new Response(JSON.stringify({ error: "budget_exceeded", estimatedUsd }), {
+          status: 400,
+          headers: { "content-type": "application/json" },
+        });
       }
     }
-    // Validate agent existence (skip strict check in test env)
-    if (process.env.NODE_ENV !== "test") {
+    // Validate agent existence unless running locally without DB
+    if (process.env.NODE_ENV !== "test" && process.env.LOCAL_MODE !== "1") {
       try {
         const agent = await prisma.agent.findUnique({ where: { id: input.agentId } });
         if (!agent) {
@@ -115,5 +123,3 @@ export async function POST(req: NextRequest) {
     });
   }
 }
-
-

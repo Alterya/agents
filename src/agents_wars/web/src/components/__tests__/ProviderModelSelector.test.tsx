@@ -16,9 +16,7 @@ describe("ProviderModelSelector", () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false } as any);
 
     const handleChange = vi.fn();
-    render(
-      <ProviderModelSelector provider="openai" model="gpt-4o" onChange={handleChange} />
-    );
+    render(<ProviderModelSelector provider="openai" model="gpt-4o" onChange={handleChange} />);
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
 
@@ -41,9 +39,7 @@ describe("ProviderModelSelector", () => {
     } as any);
 
     const handleChange = vi.fn();
-    render(
-      <ProviderModelSelector provider="openai" model="gpt-4o" onChange={handleChange} />
-    );
+    render(<ProviderModelSelector provider="openai" model="gpt-4o" onChange={handleChange} />);
 
     // Wait for select (combobox role) to appear after fetch resolves
     const modelSelect = await screen.findByRole("combobox", { name: /model/i });
@@ -55,14 +51,10 @@ describe("ProviderModelSelector", () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false } as any);
 
     const handleChange = vi.fn();
-    render(
-      <ProviderModelSelector provider="openai" model="gpt-4o" onChange={handleChange} />
-    );
+    render(<ProviderModelSelector provider="openai" model="gpt-4o" onChange={handleChange} />);
 
     const providerSelect = screen.getByLabelText(/provider/i);
     await userEvent.selectOptions(providerSelect, "openrouter");
     expect(handleChange).toHaveBeenLastCalledWith({ provider: "openrouter", model: "gpt-4o" });
   });
 });
-
-

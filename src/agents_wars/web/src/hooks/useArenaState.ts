@@ -76,5 +76,3 @@ export function useArenaState(args: {
 
   return state;
 }
-
-

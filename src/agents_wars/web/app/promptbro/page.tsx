@@ -2,6 +2,9 @@
 import { useEffect, useState } from "react";
 import { KeyStatusBanner } from "@/components/KeyStatusBanner";
 import { ProviderModelSelector } from "@/components/ProviderModelSelector";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   buildPrompt,
   extractVariables,
@@ -90,9 +93,7 @@ export default function PromptBroPage() {
       try {
         const payload = { name, description, template, varValues };
         window.localStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
-        setSaveHint(
-          `Autosaved at ${new Date().toLocaleTimeString(undefined, { hour12: false })}`,
-        );
+        setSaveHint(`Autosaved at ${new Date().toLocaleTimeString(undefined, { hour12: false })}`);
       } catch {
         // ignore quota errors
       }
@@ -113,7 +114,11 @@ export default function PromptBroPage() {
       body: JSON.stringify({ provider, model, messages, maxTokens: 128, temperature: 0.2 }),
     });
     if (!res.ok) {
-      setErrorMsg(res.status === 429 ? "Assist rate limited. Try again shortly." : "Assist failed. Please try again.");
+      setErrorMsg(
+        res.status === 429
+          ? "Assist rate limited. Try again shortly."
+          : "Assist failed. Please try again.",
+      );
       return;
     }
     const json = await res.json();
@@ -132,7 +137,11 @@ export default function PromptBroPage() {
       const next = await (await fetch("/api/prompt-templates")).json();
       setTemplates(next.templates || []);
     } else {
-      setErrorMsg(res.status === 429 ? "Save rate limited. Try again later." : "Save failed. Check inputs and try again.");
+      setErrorMsg(
+        res.status === 429
+          ? "Save rate limited. Try again later."
+          : "Save failed. Check inputs and try again.",
+      );
     }
   };
 
@@ -140,7 +149,12 @@ export default function PromptBroPage() {
   const missingVars = extractVariables(template).filter((k) => !(varValues[k] ?? "").trim());
 
   const onSaveVersion = () => {
-    const snap = saveVersion({ name: name || "unnamed", description, template, variables: extractVariables(template) });
+    const snap = saveVersion({
+      name: name || "unnamed",
+      description,
+      template,
+      variables: extractVariables(template),
+    });
     setVersions((prev) => [snap, ...prev]);
     setToast("Version saved");
     setTimeout(() => setToast(""), 1500);
@@ -170,7 +184,11 @@ export default function PromptBroPage() {
   };
 
   const onExportJson = async () => {
-    const json = exportTemplateJson({ name: name || "unnamed", template, variables: extractVariables(template) });
+    const json = exportTemplateJson({
+      name: name || "unnamed",
+      template,
+      variables: extractVariables(template),
+    });
     try {
       await navigator.clipboard.writeText(json);
       setToast("Template JSON copied");
@@ -197,25 +215,31 @@ export default function PromptBroPage() {
       <section className="space-y-2">
         <h2 className="text-lg font-medium">Describe your task</h2>
         {errorMsg && (
-          <div role="alert" className="rounded border border-red-600 bg-red-950/40 p-2 text-sm text-red-300">
+          <div
+            role="alert"
+            className="rounded border border-red-600 bg-red-950/40 p-2 text-sm text-red-300"
+          >
             {errorMsg}
           </div>
         )}
         {toast && (
-          <div role="status" className="rounded border border-emerald-600 bg-emerald-950/40 p-2 text-sm text-emerald-300">
+          <div
+            role="status"
+            className="rounded border border-emerald-600 bg-emerald-950/40 p-2 text-sm text-emerald-300"
+          >
             {toast}
           </div>
         )}
-        <textarea
-          className="w-full border p-2"
+        <Textarea
+          className="border"
           rows={4}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           aria-label="Describe your task"
         />
-        <button className="border px-3 py-1" onClick={askAssist}>
+        <Button className="border" variant="secondary" onClick={askAssist}>
           Ask clarifying question
-        </button>
+        </Button>
         <pre className="min-h-24 whitespace-pre-wrap break-words border p-2">{assistant}</pre>
       </section>
       <section className="space-y-2">
@@ -223,16 +247,16 @@ export default function PromptBroPage() {
         <div className="space-x-2">
           <label>
             Name
-            <input
-              className="ml-2 border p-1"
+            <Input
+              className="ml-2 border"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </label>
           <label>
             Description
-            <input
-              className="ml-2 border p-1"
+            <Input
+              className="ml-2 border"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -247,8 +271,8 @@ export default function PromptBroPage() {
             {Object.entries(varValues).map(([k, v]) => (
               <label key={k} className="text-sm">
                 <span className="mr-1 font-medium">{`{{${k}}}`}:</span>
-                <input
-                  className="border p-1"
+                <Input
+                  className="border"
                   placeholder={`value for ${k}`}
                   value={v}
                   onChange={(e) => setVarValues((prev) => ({ ...prev, [k]: e.target.value }))}
@@ -257,36 +281,39 @@ export default function PromptBroPage() {
             ))}
           </div>
         </div>
-        <textarea
-          className="w-full border p-2"
+        <Textarea
+          className="w-full border"
           rows={10}
           value={template}
           onChange={(e) => setTemplate(e.target.value)}
           aria-label="Draft Template"
         />
-        <button className="border px-3 py-1" onClick={saveTemplate}>
+        <Button className="border" variant="secondary" onClick={saveTemplate}>
           Save template
-        </button>
+        </Button>
         {missingVars.length > 0 && (
           <div className="text-sm text-red-600">{`Missing values for: ${missingVars.join(", ")}`}</div>
         )}
         {saveHint && <div className="text-xs text-gray-500">{saveHint}</div>}
         <div className="space-x-2">
-          <button className="border px-3 py-1" onClick={onSaveVersion}>
+          <Button className="border" variant="secondary" onClick={onSaveVersion}>
             Save version
-          </button>
-          <button className="border px-3 py-1" onClick={onCopyAssembled}>
+          </Button>
+          <Button className="border" variant="secondary" onClick={onCopyAssembled}>
             Copy assembled
-          </button>
-          <button className="border px-3 py-1" onClick={onExportJson}>
+          </Button>
+          <Button className="border" variant="secondary" onClick={onExportJson}>
             Export JSON
-          </button>
-          <button
-            className="border px-3 py-1"
+          </Button>
+          <Button
+            className="border"
+            variant="secondary"
             onClick={() => {
               setName("");
               setDescription("");
-              setTemplate("### INSTRUCTION\n<write here>\n\n### CONTEXT\n<write here>\n\n### OUTPUT\n<write here>");
+              setTemplate(
+                "### INSTRUCTION\n<write here>\n\n### CONTEXT\n<write here>\n\n### OUTPUT\n<write here>",
+              );
               setVarValues({});
               try {
                 window.localStorage.removeItem(DRAFT_KEY);
@@ -296,7 +323,7 @@ export default function PromptBroPage() {
             }}
           >
             Reset draft
-          </button>
+          </Button>
         </div>
         <div>
           <h3 className="mt-2 text-base font-medium">Assembled Preview</h3>
@@ -310,21 +337,24 @@ export default function PromptBroPage() {
           {versions.map((v) => (
             <li key={v.id} className="flex items-center gap-2">
               <span className="font-medium">{v.name}</span>
-              <span className="text-xs text-gray-500">{new Date(v.timestamp).toLocaleString()}</span>
-              <button className="border px-2 py-0.5" onClick={() => onRestoreVersion(v.id)}>
+              <span className="text-xs text-gray-500">
+                {new Date(v.timestamp).toLocaleString()}
+              </span>
+              <Button className="border" size="sm" variant="secondary" onClick={() => onRestoreVersion(v.id)}>
                 Restore
-              </button>
-              <button className="border px-2 py-0.5" onClick={() => onDeleteVersion(v.id)}>
+              </Button>
+              <Button className="border" size="sm" variant="secondary" onClick={() => onDeleteVersion(v.id)}>
                 Delete
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
       </section>
       <section className="space-y-2">
         <h2 className="text-lg font-medium">Quick Checks</h2>
-        <button
-          className="border px-3 py-1"
+        <Button
+          className="border"
+          variant="secondary"
           onClick={() => {
             const res = analyzeDraft(template);
             if (res.issues.some((i) => i.severity === "high")) {
@@ -336,7 +366,7 @@ export default function PromptBroPage() {
           }}
         >
           Run Quick Checks
-        </button>
+        </Button>
       </section>
       <section className="space-y-2">
         <h2 className="text-lg font-medium">Saved Templates</h2>

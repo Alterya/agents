@@ -92,6 +92,7 @@ make -C src/agents_wars ci
 ```
 
 Notes:
+
 - Ensure `.env.local` contains a valid `DATABASE_URL` and either `OPENAI_API_KEY` or `OPENROUTER_API_KEY` for full end‑to‑end behavior.
 - When running locally without API keys, tests may still pass due to graceful fallbacks, but summary/revised prompt content may be "information unavailable".
 

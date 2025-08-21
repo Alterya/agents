@@ -13,5 +13,3 @@ test.describe("Landing page", () => {
     expect(typeof fps).toBe("number");
   });
 });
-
-

@@ -11,6 +11,23 @@ export async function saveRunReport(input: {
   revisedPrompt?: string;
   stats?: unknown;
 }) {
+  // In local/no-DB mode, keep an in-memory object per runId
+  if (process.env.E2E_MODE === "1" || process.env.LOCAL_MODE === "1") {
+    (globalThis as any).__run_reports = (globalThis as any).__run_reports || new Map<string, any>();
+    const value = {
+      runId: input.runId,
+      agentId: input.agentId,
+      model: input.model,
+      systemPrompt: input.systemPrompt,
+      runCount: input.runCount,
+      failures: input.failures as any,
+      summary: input.summary,
+      revisedPrompt: input.revisedPrompt,
+      stats: input.stats as any,
+    };
+    (globalThis as any).__run_reports.set(input.runId, value);
+    return value as any;
+  }
   try {
     return await prisma.runReport.upsert({
       where: { runId: input.runId },

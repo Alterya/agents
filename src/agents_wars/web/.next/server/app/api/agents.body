@@ -1,1 +1,1 @@
-{"items":[{"id":"cme9q0bn40002jrd6p4tb34x6","name":"Evaluator","description":"Evaluates outputs"},{"id":"cme9q0bmy0000jrd69ejbbwb3","name":"Generalist","description":"Versatile helper"},{"id":"cme9q0bn30001jrd60hdnx32l","name":"Prompt Tuner","description":"Improves prompts"}]}
+{"items":[{"id":"agent-1","name":"Agent One"},{"id":"agent-2","name":"Agent Two"}]}

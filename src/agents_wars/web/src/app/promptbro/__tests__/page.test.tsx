@@ -63,7 +63,13 @@ describe("PromptBroPage", () => {
     const template = await screen.findByRole("textbox", { name: /draft template/i });
     fireEvent.change(template, { target: { value: "Task: {{goal}}" } });
     fireEvent.click(screen.getByRole("button", { name: /Save template/i }));
-    await waitFor(() => expect((fetch as unknown as ReturnType<typeof vi.fn>).mock.calls.some((c: any[]) => String(c[0]).endsWith("/api/prompt-templates") && c[1]?.method === "POST")).toBe(true));
+    await waitFor(() =>
+      expect(
+        (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls.some(
+          (c: any[]) => String(c[0]).endsWith("/api/prompt-templates") && c[1]?.method === "POST",
+        ),
+      ).toBe(true),
+    );
   });
 
   it("runs quick checks and shows toast", async () => {
@@ -73,5 +79,3 @@ describe("PromptBroPage", () => {
     await screen.findByRole("status");
   });
 });
-
-

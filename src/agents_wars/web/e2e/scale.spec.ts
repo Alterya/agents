@@ -4,24 +4,44 @@ test.describe("Scale page", () => {
   test("runs a small batch and renders final report", async ({ page }) => {
     // Intercepts to avoid DB and make deterministic
     await page.route("**/api/agents", async (route) => {
-      await route.fulfill({ status: 200, body: JSON.stringify({ items: [{ id: "a1", name: "Agent One" }] }) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ items: [{ id: "a1", name: "Agent One" }] }),
+      });
     });
     await page.route("**/api/config/provider-status", async (route) => {
-      await route.fulfill({ status: 200, body: JSON.stringify({ allowedModels: ["gpt-4o-mini"] }) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ allowedModels: ["gpt-4o-mini"] }),
+      });
     });
     await page.route("**/api/scale/start", async (route) => {
-      await route.fulfill({ status: 202, body: JSON.stringify({ id: "run-1", status: "pending" }) });
+      await route.fulfill({
+        status: 202,
+        body: JSON.stringify({ id: "run-1", status: "pending" }),
+      });
     });
     await page.route("**/api/scale/run-1/status", async (route) => {
       // Emit a terminal SSE and then [DONE]
       const sse = [
-        "data: {\"id\":\"run-1\",\"type\":\"scale\",\"status\":\"succeeded\",\"data\":{\"total\":2,\"succeeded\":2,\"failed\":0}}\n\n",
+        'data: {"id":"run-1","type":"scale","status":"succeeded","data":{"total":2,"succeeded":2,"failed":0}}\n\n',
         "data: [DONE]\n\n",
       ].join("");
-      await route.fulfill({ status: 200, headers: { "content-type": "text/event-stream" }, body: sse });
+      await route.fulfill({
+        status: 200,
+        headers: { "content-type": "text/event-stream" },
+        body: sse,
+      });
     });
     await page.route("**/api/scale/run-1/report", async (route) => {
-      await route.fulfill({ status: 200, body: JSON.stringify({ summary: "Batch complete", revisedPrompt: "do X better", stats: { total: 2, succeeded: 2, failed: 0, actualUsd: 0.001 } }) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({
+          summary: "Batch complete",
+          revisedPrompt: "do X better",
+          stats: { total: 2, succeeded: 2, failed: 0, actualUsd: 0.001 },
+        }),
+      });
     });
     // Navigate to /scale
     await page.goto("/scale");
@@ -39,5 +59,3 @@ test.describe("Scale page", () => {
     await expect(copyButtons.first()).toBeVisible();
   });
 });
-
-

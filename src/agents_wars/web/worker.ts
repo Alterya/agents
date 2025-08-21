@@ -11,5 +11,3 @@ console.log("BullMQ workers initialized. Waiting for jobs...");
 
 // Keep the process alive
 setInterval(() => {}, 1 << 30);
-
-

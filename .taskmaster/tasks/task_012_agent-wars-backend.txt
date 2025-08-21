@@ -1,0 +1,11 @@
+# Task ID: 12
+# Title: Add maxBudgetUsd preflight to /api/scale/start
+# Status: review
+# Dependencies: 2, 3
+# Priority: medium
+# Description: Implement a preflight check for maxBudgetUsd in the /api/scale/start endpoint to ensure budget constraints are respected before processing requests.
+# Details:
+1. Modify the /api/scale/start route handler to accept an optional maxBudgetUsd parameter. 2. Use the pricing.ts module to estimate the batch cost based on the provider and model, as well as the number of runs. 3. If the estimated cost exceeds maxBudgetUsd, return a 400 response with an error message: { error: 'budget_exceeded', estimatedUsd: <estimated_cost> }. 4. If the budget is within limits, include the estimated cost in the 202 response when the request is accepted. 5. Ensure that the implementation adheres to existing coding standards and integrates smoothly with the current API structure.
+
+# Test Strategy:
+1. Write unit tests for the estimator function in pricing.ts to ensure it accurately calculates costs based on different inputs. 2. Create integration tests for the /api/scale/start endpoint to validate both the budget_exceeded response and the successful acceptance flow, ensuring that the estimated cost is included in the response when applicable. 3. Use mocking for external dependencies to isolate tests and ensure reliability.

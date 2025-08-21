@@ -6,8 +6,8 @@ test("landing page has no serious a11y violations", async ({ page }) => {
   const accessibilityScanResults = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa"])
     .analyze();
-  const serious = accessibilityScanResults.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+  const serious = accessibilityScanResults.violations.filter(
+    (v) => v.impact === "serious" || v.impact === "critical",
+  );
   expect(serious, JSON.stringify(serious, null, 2)).toHaveLength(0);
 });
-
-

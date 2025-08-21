@@ -2,6 +2,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useArenaState } from "@/hooks/useArenaState";
 import { ProviderModelSelector } from "@/components/ProviderModelSelector";
+import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 
 type StartResponse = { id: string; status: string } | { error: string };
 
@@ -84,7 +91,7 @@ export default function HubPage() {
     try {
       localStorage.setItem(
         "hub.form",
-        JSON.stringify({ agentId, provider, model, goal, systemPrompt, userMessage })
+        JSON.stringify({ agentId, provider, model, goal, systemPrompt, userMessage }),
       );
     } catch {}
   }, [agentId, provider, model, goal, systemPrompt, userMessage]);
@@ -156,7 +163,7 @@ export default function HubPage() {
     function computeJitterMs(key: string): number {
       let sum = 0;
       for (let i = 0; i < key.length; i++) sum = (sum + key.charCodeAt(i)) % 9973;
-      return (sum % 400); // up to 400ms jitter
+      return sum % 400; // up to 400ms jitter
     }
     async function tick(delayOverride?: number) {
       if (cancelled) return;
@@ -171,7 +178,11 @@ export default function HubPage() {
         if (!res.ok) throw new Error("status_failed");
         const job = (await res.json()) as JobPayload;
         if (typeof job.updatedAt === "number") {
-          if (job.updatedAt === lastUpdatedAt) stableCount += 1; else { stableCount = 0; lastUpdatedAt = job.updatedAt; }
+          if (job.updatedAt === lastUpdatedAt) stableCount += 1;
+          else {
+            stableCount = 0;
+            lastUpdatedAt = job.updatedAt;
+          }
         }
         setSessions((s) =>
           s.map((sess) =>
@@ -228,7 +239,10 @@ export default function HubPage() {
       });
       const json = (await res.json()) as StartResponse;
       if (!res.ok || "error" in json) {
-        const msg = (json as any)?.error === "invalid_agent" ? "Selected agent is invalid or not found" : "Failed to start";
+        const msg =
+          (json as any)?.error === "invalid_agent"
+            ? "Selected agent is invalid or not found"
+            : "Failed to start";
         // Surface error via a synthetic session entry
         const errId = `err-${Date.now()}`;
         setSessions((s) => [
@@ -298,11 +312,17 @@ export default function HubPage() {
       }
       if (!isMeta && (e.key === "s" || e.key === "S")) {
         // Stop the most recent running session
-        const running = [...sessions].reverse().find((x) => x.status !== "succeeded" && x.status !== "failed");
+        const running = [...sessions]
+          .reverse()
+          .find((x) => x.status !== "succeeded" && x.status !== "failed");
         if (running) {
           e.preventDefault();
           fetch(`/api/battles/${running.id}/cancel`, { method: "POST" }).catch(() => {
-            setSessions((prev) => prev.map((x) => (x.id === running.id ? { ...x, status: "failed", endedReason: "manual" } : x)));
+            setSessions((prev) =>
+              prev.map((x) =>
+                x.id === running.id ? { ...x, status: "failed", endedReason: "manual" } : x,
+              ),
+            );
           });
         }
       }
@@ -326,7 +346,10 @@ export default function HubPage() {
   const [arenaRunning, setArenaRunning] = useState<boolean>(false);
   const [arenaJobAId, setArenaJobAId] = useState<string | null>(null);
   const [arenaJobBId, setArenaJobBId] = useState<string | null>(null);
-  const [judgeResult, setJudgeResult] = useState<{ winner: "A" | "B" | "tie"; reasoning: string } | null>(null);
+  const [judgeResult, setJudgeResult] = useState<{
+    winner: "A" | "B" | "tie";
+    reasoning: string;
+  } | null>(null);
 
   const startArenaReal = useCallback(async () => {
     if (arenaStarting) return;
@@ -427,7 +450,18 @@ export default function HubPage() {
     } finally {
       setArenaStarting(false);
     }
-  }, [arenaStarting, agentId, provider, model, allowedModels, arena.broadcast, arena.promptA, arena.promptB, agents, pollSession]);
+  }, [
+    arenaStarting,
+    agentId,
+    provider,
+    model,
+    allowedModels,
+    arena.broadcast,
+    arena.promptA,
+    arena.promptB,
+    agents,
+    pollSession,
+  ]);
 
   const arenaSummary = useMemo(() => {
     if (!arenaJobAId || !arenaJobBId) return null;
@@ -536,189 +570,187 @@ export default function HubPage() {
   }, [arenaSummary]);
 
   return (
-    <main className="p-6 grid gap-4 max-w-5xl mx-auto">
+    <main className="mx-auto grid max-w-5xl gap-4 p-6">
       <h1 className="text-2xl text-blue-300">Agent Wars Hub</h1>
-      <div className="flex gap-2 text-sm">
-        <button
-          className={`px-3 py-1 rounded ${activeTab === "hub" ? "bg-blue-600" : "bg-slate-700"}`}
-          onClick={() => setActiveTab("hub")}
-        >
-          Hub
-        </button>
-        <button
-          className={`px-3 py-1 rounded ${activeTab === "arena" ? "bg-blue-600" : "bg-slate-700"}`}
-          onClick={() => setActiveTab("arena")}
-        >
-          Arena (A/B)
-        </button>
-      </div>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "hub" | "arena")}>
+        <TabsList>
+          <TabsTrigger value="hub">Hub</TabsTrigger>
+          <TabsTrigger value="arena">Arena (A/B)</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {activeTab === "hub" ? (
-      <>
-      <section className="bg-slate-900/70 rounded-xl p-4 grid gap-3">
-        {agentsError ? (
-          <div className="text-sm text-yellow-300">Failed to load agents</div>
-        ) : null}
-        <div className="grid gap-1">
-          <label className="text-sm text-slate-300">Agent</label>
-          <select
-            className="rounded bg-slate-800 px-3 py-2 outline-none focus:ring-2 ring-blue-500"
-            value={agentId}
-            onChange={(e) => setAgentId(e.target.value)}
-            data-testid="agent-id"
-          >
-            <option value="">Select an agent…</option>
-            {agentsLoading ? (
-              <option disabled>Loading…</option>
-            ) : Array.isArray(agents) ? (
-              agents.map((a) => (
-                <option key={a.id} value={a.id}>{a.name}</option>
-              ))
+        <>
+          <section className="grid gap-3 rounded-xl bg-slate-900/70 p-4">
+            {agentsError ? (
+              <div className="text-sm text-yellow-300">Failed to load agents</div>
             ) : null}
-          </select>
-          {errors.agentId && <div className="text-xs text-red-400">{errors.agentId}</div>}
-        </div>
-        <div className="grid gap-1">
-          <ProviderModelSelector
-            provider={provider}
-            model={model}
-            onChange={(next) => {
-              setProvider(next.provider);
-              setModel(next.model);
-            }}
-          />
-          {/* Hidden test hook */}
-          <input type="hidden" data-testid="model-input" value={model} onChange={() => {}} />
-          {errors.model && <div className="text-xs text-red-400">{errors.model}</div>}
-        </div>
-        <div className="grid gap-1">
-          <label className="text-sm text-slate-300">System prompt (optional)</label>
-          <textarea
-            className="w-full rounded bg-slate-800 p-2 outline-none focus:ring-2 ring-blue-500 text-sm"
-            rows={3}
-            value={systemPrompt}
-            onChange={(e) => setSystemPrompt(e.target.value)}
-            data-testid="system-prompt"
-          />
-        </div>
-        <div className="grid gap-1">
-          <label className="text-sm text-slate-300">Goal (optional)</label>
-          <input
-            className="rounded bg-slate-800 px-3 py-2 outline-none focus:ring-2 ring-blue-500"
-            value={goal}
-            onChange={(e) => setGoal(e.target.value)}
-            data-testid="goal"
-          />
-        </div>
-        <div className="grid gap-1">
-          <label className="text-sm text-slate-300">User message (optional)</label>
-          <input
-            className="rounded bg-slate-800 px-3 py-2 outline-none focus:ring-2 ring-blue-500"
-            value={userMessage}
-            onChange={(e) => setUserMessage(e.target.value)}
-            data-testid="user-message"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            className="inline-flex items-center justify-center rounded bg-blue-600 px-4 py-2 hover:bg-blue-500 disabled:opacity-50"
-            onClick={start}
-            disabled={
-              isStarting ||
-              !agentId.trim() ||
-              !model.trim() ||
-              (allowedModels.length > 0 && !allowedModels.includes(model.trim()))
-            }
-            aria-busy={isStarting}
-            data-testid="start"
-          >
-            {isStarting ? "Starting..." : "Start battle"}
-          </button>
-          <div className="ml-auto text-xs text-slate-400">
-            ~Tokens: {estimateTokens(userMessage, goal)} | Est. cost: {estimateCostUSD(userMessage, goal, provider, model)}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <label className="inline-flex items-center gap-1">
-            <input
-              type="checkbox"
-              defaultChecked
-              onChange={(e) => (autoScrollRef.current = e.target.checked)}
-            />
-            Auto-scroll
-          </label>
-        </div>
-      </section>
-
-      <section className="grid gap-4">
-        {sessions.length === 0 ? (
-          <div className="text-sm text-slate-400">No sessions started yet.</div>
-        ) : (
-          sessions
-            .filter((v, i, arr) => arr.findIndex((x) => x.id === v.id) === i)
-            .map((s) => (
-            <div key={s.id} className="bg-slate-900/70 rounded-xl p-4 grid gap-2">
-              <div className="flex items-center justify-between">
-                <h2 className="text-blue-400">Session {s.id}</h2>
-                <div className="text-xs text-slate-400">
-                  {s.agent ? `${s.agent.name} · ${s.provider}/${s.model}` : `${s.provider}/${s.model}`}
-                </div>
-              </div>
-              <div className="text-xs text-slate-400" data-testid={`status-${s.id}`}>
-                Status: {s.status}
-                {s.endedReason ? ` · ended: ${s.endedReason}` : ""}
-                {s.error ? ` · ${s.error}` : ""}
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  className="inline-flex items-center justify-center rounded bg-slate-700 px-3 py-2 hover:bg-slate-600 disabled:opacity-50"
-                  onClick={async () => {
-                    try {
-                      const r = await fetch(`/api/battles/${s.id}/cancel`, { method: "POST" });
-                      if (!r.ok) throw new Error("cancel_failed");
-                    } catch {
-                      // local fallback: mark as manually ended
-                      setSessions((prev) =>
-                        prev.map((x) =>
-                          x.id === s.id
-                            ? { ...x, status: "failed", endedReason: "manual" }
-                            : x,
-                        ),
-                      );
-                    }
-                  }}
-                  disabled={s.status === "succeeded" || s.status === "failed"}
-                  data-testid={`stop-${s.id}`}
-                >
-                  Stop
-                </button>
-                <div className="ml-auto text-[10px] text-slate-400">
-                  messages: {s.messages.length} / 25
-                </div>
-              </div>
-              <pre
-                ref={(el) => {
-                  preRefs.current[s.id] = el;
-                }}
-                className="min-h-[140px] whitespace-pre-wrap rounded bg-slate-950 p-3 text-xs text-slate-200"
+            <div className="grid gap-1">
+              <Label className="text-sm text-slate-300">Agent</Label>
+              <Select
+                value={agentId}
+                onChange={(e) => setAgentId(e.target.value)}
+                data-testid="agent-id"
               >
-{s.messages.map((m) => `[${m.role}] ${m.content}`).join("\n") || "messages will appear here..."}
-              </pre>
+                <option value="">Select an agent…</option>
+                {agentsLoading ? (
+                  <option disabled>Loading…</option>
+                ) : Array.isArray(agents) ? (
+                  agents.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}
+                    </option>
+                  ))
+                ) : null}
+              </Select>
+              {errors.agentId && <div className="text-xs text-red-400">{errors.agentId}</div>}
             </div>
-          ))
-        )}
-      </section>
-      </>
+            <div className="grid gap-1">
+              <ProviderModelSelector
+                provider={provider}
+                model={model}
+                onChange={(next) => {
+                  setProvider(next.provider);
+                  setModel(next.model);
+                }}
+              />
+              {/* Hidden test hook */}
+              <input
+                type="hidden"
+                data-testid="model-input"
+                value={model}
+                onChange={(e) => setModel((e.target as HTMLInputElement).value)}
+              />
+              {errors.model && <div className="text-xs text-red-400">{errors.model}</div>}
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-sm text-slate-300">System prompt (optional)</Label>
+              <Textarea
+                rows={3}
+                value={systemPrompt}
+                onChange={(e) => setSystemPrompt(e.target.value)}
+                data-testid="system-prompt"
+              />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-sm text-slate-300">Goal (optional)</Label>
+              <Input
+                value={goal}
+                onChange={(e) => setGoal(e.target.value)}
+                data-testid="goal"
+              />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-sm text-slate-300">User message (optional)</Label>
+              <Input
+                value={userMessage}
+                onChange={(e) => setUserMessage(e.target.value)}
+                data-testid="user-message"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={start}
+                disabled={
+                  isStarting ||
+                  !agentId.trim() ||
+                  !model.trim() ||
+                  (allowedModels.length > 0 && !allowedModels.includes(model.trim()))
+                }
+                aria-busy={isStarting}
+                data-testid="start"
+              >
+                {isStarting ? "Starting..." : "Start battle"}
+              </Button>
+              <div className="ml-auto text-xs text-slate-400">
+                ~Tokens: {estimateTokens(userMessage, goal)} | Est. cost:{" "}
+                {estimateCostUSD(userMessage, goal, provider, model)}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <label className="inline-flex items-center gap-2">
+                <Switch
+                  checked={autoScrollRef.current}
+                  onChange={(e) => (autoScrollRef.current = (e.target as HTMLInputElement).checked)}
+                />
+                <span>Auto-scroll</span>
+              </label>
+            </div>
+          </section>
+
+          <section className="grid gap-4">
+            {sessions.length === 0 ? (
+              <div className="text-sm text-slate-400">No sessions started yet.</div>
+            ) : (
+              sessions
+                .filter((v, i, arr) => arr.findIndex((x) => x.id === v.id) === i)
+                .map((s) => (
+                  <div key={s.id} className="grid gap-2 rounded-xl bg-slate-900/70 p-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-blue-400">Session {s.id}</h2>
+                      <div className="text-xs text-slate-400">
+                        {s.agent
+                          ? `${s.agent.name} · ${s.provider}/${s.model}`
+                          : `${s.provider}/${s.model}`}
+                      </div>
+                    </div>
+                    <div className="text-xs text-slate-400" data-testid={`status-${s.id}`}>
+                      Status: {s.status}
+                      {s.endedReason ? ` · ended: ${s.endedReason}` : ""}
+                      {s.error ? ` · ${s.error}` : ""}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="secondary"
+                        onClick={async () => {
+                          try {
+                            const r = await fetch(`/api/battles/${s.id}/cancel`, {
+                              method: "POST",
+                            });
+                            if (!r.ok) throw new Error("cancel_failed");
+                          } catch {
+                            // local fallback: mark as manually ended
+                            setSessions((prev) =>
+                              prev.map((x) =>
+                                x.id === s.id
+                                  ? { ...x, status: "failed", endedReason: "manual" }
+                                  : x,
+                              ),
+                            );
+                          }
+                        }}
+                        disabled={s.status === "succeeded" || s.status === "failed"}
+                        data-testid={`stop-${s.id}`}
+                      >
+                        Stop
+                      </Button>
+                      <div className="ml-auto text-[10px] text-slate-400">
+                        messages: {s.messages.length} / 25
+                      </div>
+                    </div>
+                    <pre
+                      ref={(el) => {
+                        preRefs.current[s.id] = el;
+                      }}
+                      className="min-h-[140px] whitespace-pre-wrap rounded bg-slate-950 p-3 text-xs text-slate-200"
+                    >
+                      {s.messages.map((m) => `[${m.role}] ${m.content}`).join("\n") ||
+                        "messages will appear here..."}
+                    </pre>
+                  </div>
+                ))
+            )}
+          </section>
+        </>
       ) : (
         // Arena tab content
-        <section className="bg-slate-900/70 rounded-xl p-4 grid gap-3">
+        <section className="grid gap-3 rounded-xl bg-slate-900/70 p-4">
           {agentsError ? (
             <div className="text-sm text-yellow-300">Failed to load agents</div>
           ) : null}
           <div className="grid gap-1">
-            <label className="text-sm text-slate-300">Agent</label>
-            <select
-              className="rounded bg-slate-800 px-3 py-2 outline-none focus:ring-2 ring-blue-500"
+            <Label className="text-sm text-slate-300">Agent</Label>
+            <Select
               value={agentId}
               onChange={(e) => setAgentId(e.target.value)}
               data-testid="arena-agent-id"
@@ -728,10 +760,12 @@ export default function HubPage() {
                 <option disabled>Loading…</option>
               ) : Array.isArray(agents) ? (
                 agents.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name}</option>
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
                 ))
               ) : null}
-            </select>
+            </Select>
           </div>
           <div className="grid gap-1">
             <ProviderModelSelector
@@ -744,9 +778,8 @@ export default function HubPage() {
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm text-slate-300">Broadcast input</label>
-            <input
-              className="rounded bg-slate-800 px-3 py-2 outline-none focus:ring-2 ring-blue-500"
+            <Label className="text-sm text-slate-300">Broadcast input</Label>
+            <Input
               value={arena.broadcast}
               onChange={(e) => arena.setBroadcast(e.target.value)}
               placeholder="Type once to send to both A and B"
@@ -755,59 +788,73 @@ export default function HubPage() {
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="rounded-xl bg-slate-950 p-3">
-              <div className="text-slate-300 mb-2">Side A</div>
-              <label className="text-xs text-slate-400">System Prompt (A)</label>
-              <textarea
-                className="w-full rounded bg-slate-900 p-2 text-sm"
+              <div className="mb-2 text-slate-300">Side A</div>
+              <Label className="text-xs text-slate-400">System Prompt (A)</Label>
+              <Textarea
                 rows={4}
                 value={arena.promptA}
                 onChange={(e) => arena.setPromptA(e.target.value)}
                 placeholder="Hidden identity; identical styling"
                 data-testid="arena-prompt-a"
               />
-              <div className="mt-2 h-24 rounded bg-slate-900 p-2 text-xs text-slate-400">Messages (A) will appear here…</div>
+              <div className="mt-2 h-24 rounded bg-slate-900 p-2 text-xs text-slate-400">
+                Messages (A) will appear here…
+              </div>
             </div>
             <div className="rounded-xl bg-slate-950 p-3">
-              <div className="text-slate-300 mb-2">Side B</div>
-              <label className="text-xs text-slate-400">System Prompt (B)</label>
-              <textarea
-                className="w-full rounded bg-slate-900 p-2 text-sm"
+              <div className="mb-2 text-slate-300">Side B</div>
+              <Label className="text-xs text-slate-400">System Prompt (B)</Label>
+              <Textarea
                 rows={4}
                 value={arena.promptB}
                 onChange={(e) => arena.setPromptB(e.target.value)}
                 placeholder="Hidden identity; identical styling"
                 data-testid="arena-prompt-b"
               />
-              <div className="mt-2 h-24 rounded bg-slate-900 p-2 text-xs text-slate-400">Messages (B) will appear here…</div>
+              <div className="mt-2 h-24 rounded bg-slate-900 p-2 text-xs text-slate-400">
+                Messages (B) will appear here…
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              className="inline-flex items-center justify-center rounded bg-purple-600 px-4 py-2 hover:bg-purple-500 disabled:opacity-50"
+            <Button
+              className="bg-purple-600 hover:bg-purple-500"
               onClick={startArenaReal}
               disabled={arenaStarting || !arena.canStart}
               aria-busy={arenaStarting}
               data-testid="arena-start"
             >
               {arenaStarting ? "Starting…" : "Start Arena"}
-            </button>
-            <button
-              className="ml-auto inline-flex items-center justify-center rounded bg-slate-700 px-3 py-2 disabled:opacity-50"
+            </Button>
+            <Button
+              variant="secondary"
+              className="ml-auto"
               onClick={() => arena.setReveal(!arena.reveal)}
               disabled={!arenaRunning}
               data-testid="arena-reveal"
             >
               {arena.reveal ? "Hide Participants" : "Reveal Participants"}
-            </button>
+            </Button>
           </div>
           <div className="text-xs text-slate-400">
-            Outcome: {arenaSummary ? (
+            Outcome:{" "}
+            {arenaSummary ? (
               <>
-                <span className={"inline-flex items-center gap-1 rounded px-2 py-0.5 " + (arenaSummary.winner === "A" ? "bg-green-900/40 text-green-300" : arenaSummary.winner === "B" ? "bg-blue-900/40 text-blue-300" : "bg-slate-800 text-slate-300") }>
+                <span
+                  className={
+                    "inline-flex items-center gap-1 rounded px-2 py-0.5 " +
+                    (arenaSummary.winner === "A"
+                      ? "bg-green-900/40 text-green-300"
+                      : arenaSummary.winner === "B"
+                        ? "bg-blue-900/40 text-blue-300"
+                        : "bg-slate-800 text-slate-300")
+                  }
+                >
                   {arenaSummary.winner === "tie" ? "Tie" : `Winner: ${arenaSummary.winner}`}
-                </span>
-                {" "}· A: {arenaSummary.a.turns} turns, {arenaSummary.a.tokens} tokens, {arenaSummary.a.latency}ms median latency
-                {" "}· B: {arenaSummary.b.turns} turns, {arenaSummary.b.tokens} tokens, {arenaSummary.b.latency}ms median latency
+                </span>{" "}
+                · A: {arenaSummary.a.turns} turns, {arenaSummary.a.tokens} tokens,{" "}
+                {arenaSummary.a.latency}ms median latency · B: {arenaSummary.b.turns} turns,{" "}
+                {arenaSummary.b.tokens} tokens, {arenaSummary.b.latency}ms median latency
                 {judgeResult?.reasoning ? (
                   <span className="ml-2 text-slate-300">· Rationale: {judgeResult.reasoning}</span>
                 ) : null}
@@ -817,16 +864,20 @@ export default function HubPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button
-              className="inline-flex items-center justify-center rounded bg-slate-700 px-3 py-2 disabled:opacity-50"
-              onClick={() => setJudgeResult({ winner: "tie", reasoning: "Mocked judge: insufficient signal." })}
+            <Button
+              variant="secondary"
+              onClick={() =>
+                setJudgeResult({ winner: "tie", reasoning: "Mocked judge: insufficient signal." })
+              }
               disabled={!arenaRunning}
               data-testid="arena-judge"
             >
               Judge (mock)
-            </button>
+            </Button>
             {judgeResult ? (
-              <div className="text-[11px] text-slate-400">Judge: {judgeResult.winner} · {judgeResult.reasoning}</div>
+              <div className="text-[11px] text-slate-400">
+                Judge: {judgeResult.winner} · {judgeResult.reasoning}
+              </div>
             ) : null}
           </div>
         </section>
@@ -846,7 +897,7 @@ function estimateCostUSD(
   userMessage: string,
   goal: string,
   provider: Provider,
-  _model: string
+  _model: string,
 ): string {
   const tokens = estimateTokens(userMessage, goal);
   // Heuristic flat rate per 1k tokens
@@ -854,5 +905,3 @@ function estimateCostUSD(
   const cost = (tokens / 1000) * ratePerK;
   return `$${cost.toFixed(4)}`;
 }
-
-
