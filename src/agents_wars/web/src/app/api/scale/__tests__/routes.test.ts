@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { POST as start } from "app/api/scale/start/route";
 import { GET as status } from "app/api/scale/[id]/status/route";
 import { GET as report } from "app/api/scale/[id]/report/route";
+import { prisma } from "@/lib/prisma";
 
 async function readStream(body: ReadableStream<Uint8Array> | null): Promise<string> {
   if (!body) return "";
@@ -18,6 +19,27 @@ async function readStream(body: ReadableStream<Uint8Array> | null): Promise<stri
 }
 
 describe("scale start/status/report routes", () => {
+  beforeAll(async () => {
+    // Create test agents that the tests expect
+    await prisma.agent.upsert({
+      where: { id: "agent-1" },
+      update: {},
+      create: {
+        id: "agent-1",
+        name: "Test Agent 1",
+        description: "Test agent for scale routes",
+        systemPrompt: "You are a test agent.",
+      },
+    });
+  });
+
+  afterAll(async () => {
+    // Clean up test data
+    await prisma.conversation.deleteMany({ where: { agentId: "agent-1" } });
+    await prisma.runReport.deleteMany({ where: { agentId: "agent-1" } });
+    await prisma.agent.deleteMany({ where: { id: "agent-1" } });
+    await prisma.$disconnect();
+  });
   it("starts a scale run and streams status to completion", async () => {
     const reqStart = new Request("http://localhost/api/scale/start", {
       method: "POST",

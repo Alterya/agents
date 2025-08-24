@@ -1,9 +1,31 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { extractVariables, buildPrompt, exportTemplateJson, analyzeDraft } from "@/lib/prompt";
 import { summarizeRuns, type RunsLite } from "@/lib/summarizer";
 import { __clearConfigCache } from "@/lib/config";
+import { prisma } from "@/lib/prisma";
 
 describe("prompt utils", () => {
+  beforeAll(async () => {
+    // Create test agent that the runScaleTest expects
+    await prisma.agent.upsert({
+      where: { id: "a" },
+      update: {},
+      create: {
+        id: "a",
+        name: "Test Agent A",
+        description: "Test agent for prompt tests",
+        systemPrompt: "You are a test agent.",
+      },
+    });
+  });
+
+  afterAll(async () => {
+    // Clean up test data
+    await prisma.conversation.deleteMany({ where: { agentId: "a" } });
+    await prisma.runReport.deleteMany({ where: { agentId: "a" } });
+    await prisma.agent.deleteMany({ where: { id: "a" } });
+    await prisma.$disconnect();
+  });
   it("extracts unique variables", () => {
     const tpl = "Hello {{ name }} and {{name}}. {{_id}} {{bad-Var}} {{ missing }";
     const vars = extractVariables(tpl);
