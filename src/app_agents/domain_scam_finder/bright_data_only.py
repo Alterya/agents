@@ -63,68 +63,85 @@ class ScamAssessment(BaseModel):
 
 # --- Worker-side logic (runs in separate processes) ---
 async def _process_domains_chunk(domains_chunk):
+    await bright_data_mcp.connect()
+    logger.info("Connected to bright data mcp (worker)")
+
     rows = []
-    for domain in domains_chunk:
-        domain_investment_tagger = Agent(
-                name="domain type tagger",
-                model="gpt-5",
-                instructions=IS_DOMAIN_INVESTMENT_PROMPT_BRIGHTDATA,
-                mcp_servers=[bright_data_mcp],
-                output_type=InvestmentAssessment,
-            )
-        investment_run_result = await Runner.run(
-            domain_investment_tagger,
-            input=f"is the following domain an investment type domain? - {domain}",
-        )
+    try:
+        for domain in domains_chunk:
+            try:
+                domain_investment_tagger = Agent(
+                        name="domain type tagger",
+                        model="gpt-5",
+                        instructions=IS_DOMAIN_INVESTMENT_PROMPT_BRIGHTDATA,
+                        mcp_servers=[bright_data_mcp],
+                        output_type=InvestmentAssessment,
+                    )
+                investment_run_result = await Runner.run(
+                    domain_investment_tagger,
+                    input=f"is the following domain an investment type domain? - {domain}",
+                )
 
-        investment_assessment: InvestmentAssessment = investment_run_result.final_output
-        logger.info("########################################")
-        logger.info(f"is investment website: {investment_assessment.decision.value}")
-        logger.info(f"reasoning: {investment_assessment.reasoning}")
-        logger.info("########################################")
+                investment_assessment: InvestmentAssessment = investment_run_result.final_output
+                logger.info("########################################")
+                logger.info(f"is investment website: {investment_assessment.decision.value}")
+                logger.info(f"reasoning: {investment_assessment.reasoning}")
+                logger.info("########################################")
 
-        if investment_assessment.decision == InvestmentDecision.TRUE:
-            domain_scam_finder = Agent(
-                name="domain scam finder",
-                model="gpt-5",
-                instructions=IS_DOMAIN_SCAM_PROMPT,
-                mcp_servers=[bright_data_mcp],
-                output_type=ScamAssessment,
-            )
+                if investment_assessment.decision == InvestmentDecision.TRUE:
+                    domain_scam_finder = Agent(
+                        name="domain scam finder",
+                        model="gpt-5",
+                        instructions=IS_DOMAIN_SCAM_PROMPT,
+                        mcp_servers=[bright_data_mcp],
+                        output_type=ScamAssessment,
+                    )
 
-            scam_run_result = await Runner.run(
-                domain_scam_finder,
-                input=f"is the following domain a scam? - {domain}",
-                max_turns=25,
-            )
+                    scam_run_result = await Runner.run(
+                        domain_scam_finder,
+                        input=f"is the following domain a scam? - {domain}",
+                        max_turns=25,
+                    )
 
-            scam_assessment: ScamAssessment = scam_run_result.final_output
+                    scam_assessment: ScamAssessment = scam_run_result.final_output
 
-            logger.info("########################################")
-            logger.info(f"is scam: {scam_assessment.classification.value}")
-            logger.info(f"risk score: {scam_assessment.risk_score}")
-            logger.info(f"reasoning: {scam_assessment.reasoning}")
-            logger.info("########################################")
+                    logger.info("########################################")
+                    logger.info(f"is scam: {scam_assessment.classification.value}")
+                    logger.info(f"risk score: {scam_assessment.risk_score}")
+                    logger.info(f"reasoning: {scam_assessment.reasoning}")
+                    logger.info("########################################")
 
-            rows.append([
-                domain,
-                investment_assessment.decision.value,
-                investment_assessment.reasoning,
-                scam_assessment.classification.value,
-                scam_assessment.risk_score,
-                scam_assessment.reasoning,
-            ])
-        else:
-            rows.append([
-                domain,
-                investment_assessment.decision.value,
-                investment_assessment.reasoning,
-                "null",
-                "null",
-                "null",
-            ])
-
-
+                    rows.append([
+                        domain,
+                        investment_assessment.decision.value,
+                        investment_assessment.reasoning,
+                        scam_assessment.classification.value,
+                        scam_assessment.risk_score,
+                        scam_assessment.reasoning,
+                    ])
+                else:
+                    rows.append([
+                        domain,
+                        investment_assessment.decision.value,
+                        investment_assessment.reasoning,
+                        "null",
+                        "null",
+                        "null",
+                    ])
+            except Exception as e:
+                logger.error(f"Error processing domain {domain}: {e}")
+                rows.append([
+                    domain,
+                    "null",
+                    "null",
+                    "null",
+                    "null",
+                    "null",
+                ])
+        return rows
+    finally:
+        await bright_data_mcp.cleanup()
+        logger.info("Cleared bright data mcp (worker)")
 
 def _worker_process(domains_chunk):
     return asyncio.run(_process_domains_chunk(domains_chunk))
@@ -138,14 +155,10 @@ async def main():
 
     df = pds.read_csv(CSV_FILE_PATH)
 
-    # Split domains into chunks, one per CPU/core (process count)
-    num_workers = os.cpu_count() or 1
+    num_workers = (os.cpu_count() or 1) * 2
     if len(DOMAINS) == 0:
         df.to_csv(CSV_FILE_PATH, index=False)
         return
-
-    await bright_data_mcp.connect()
-    logger.info("Connected to bright data mcp (worker)")
 
     chunk_size = math.ceil(len(DOMAINS) / num_workers)
     chunks = [DOMAINS[i:i + chunk_size] for i in range(0, len(DOMAINS), chunk_size)]
@@ -162,9 +175,6 @@ async def main():
     if rows_collected:
         rows_df = DataFrame(rows_collected, columns=CSV_COLUMNS)
         df = concat([df, rows_df], ignore_index=True)
-
-    await bright_data_mcp.cleanup()
-    logger.info("Cleared bright data mcp (worker)")
 
     df.to_csv(CSV_FILE_PATH, index=False)
 
