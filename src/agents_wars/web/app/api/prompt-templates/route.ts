@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { upsertPromptTemplate, listPromptTemplates } from "@/repo/promptTemplates";
-import { GuardrailsError, rateLimit } from "../../src/lib/llm/guards";
+import { GuardrailsError, rateLimit } from "@/lib/llm/guards";
 
 export async function GET() {
   const items = await listPromptTemplates();

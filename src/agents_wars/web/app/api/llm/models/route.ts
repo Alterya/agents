@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getModelCatalog } from "../../../../src/lib/llm/models";
+import { getModelCatalog } from "@/lib/llm/models";
 
 export async function GET(_req: NextRequest) {
   try {

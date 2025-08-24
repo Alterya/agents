@@ -1,0 +1,129 @@
+name: Agent Wars Web CI
+
+on:
+  push:
+    branches: [ main, feat/agent_wars_frontend ]
+    paths:
+      - 'src/agents_wars/**'
+      - '.github/workflows/agent-wars-web.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/agents_wars/**'
+      - '.github/workflows/agent-wars-web.yml'
+
+concurrency:
+  group: agent-wars-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: src/agents_wars/web
+
+jobs:
+  build-test:
+    name: Lint, Typecheck, Unit/Integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        ports: [ '5432:5432' ]
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agents
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agents?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/agents?schema=public
+      NODE_ENV: test
+      # Keep unit tests deterministic / config-valid
+      OPENAI_API_KEY: test
+      ALLOWED_MODELS: gpt-4o
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: src/agents_wars/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            nc -z localhost 5432 && echo "Postgres up" && exit 0
+            echo "Waiting for Postgres..." && sleep 2
+          done
+          echo "Postgres not available" && exit 1
+
+      - name: Apply DB migrations
+        run: npx prisma migrate deploy
+
+      - name: Seed database
+        run: npm run prisma:seed
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit/Integration tests
+        run: npm test -- --reporter=basic
+
+  e2e:
+    name: Playwright E2E
+    needs: build-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: src/agents_wars/web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: src/agents_wars/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright (Chromium)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        env:
+          ALLOWED_MODELS: gpt-4o
+          OPENAI_API_KEY: test
+        run: npm run e2e
+
+      - name: Upload Playwright report (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: src/agents_wars/web/playwright-report
+          if-no-files-found: ignore
+
+

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { buildOpenGraphTags, buildTwitterTags } from "../../src/lib/seo";
+import { buildOpenGraphTags, buildTwitterTags } from "@/lib/seo";
 
 type HeroContent = {
   title: string;

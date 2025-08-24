@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { createJob, getJob, updateJob, canStartJobForOwner } from "../../../src/lib/jobs";
-import { enqueue, hasRedis } from "../../../src/lib/queue/bull";
-import { runBattle } from "../../../src/lib/runners";
+import { createJob, getJob, updateJob, canStartJobForOwner } from "@/lib/jobs";
+import { enqueue, hasRedis } from "@/lib/queue/bull";
+import { runBattle } from "@/lib/runners";
 // import { getConfig } from "@/lib/config";
-import { rateLimit } from "../../../src/lib/llm/guards";
-import { prisma } from "../../../src/lib/prisma";
+import { rateLimit } from "@/lib/llm/guards";
+import { prisma } from "@/lib/prisma";
 
 // Rate limiting now centralized via guards.rateLimit
 export const runtime = "nodejs";

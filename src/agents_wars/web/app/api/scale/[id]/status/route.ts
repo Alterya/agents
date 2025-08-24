@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { getJob, subscribeJob } from "../../../../src/lib/jobs";
-import { prisma } from "../../../../src/lib/prisma";
+import { getJob, subscribeJob } from "@/lib/jobs";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 

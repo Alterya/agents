@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getJob, updateJob } from "../../../../src/lib/jobs";
+import { getJob, updateJob } from "@/lib/jobs";
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {

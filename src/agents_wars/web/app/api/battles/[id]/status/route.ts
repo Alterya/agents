@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getJob, subscribeJob } from "../../../../src/lib/jobs";
+import { getJob, subscribeJob } from "@/lib/jobs";
 
 export const runtime = "nodejs";
 
