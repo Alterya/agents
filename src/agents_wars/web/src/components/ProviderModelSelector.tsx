@@ -35,12 +35,12 @@ export function ProviderModelSelector(props: {
   return (
     <div className="space-y-2">
       <div className="space-x-2">
-        <label>
+        <label className="text-slate-700">
           Provider
           <select
             value={provider}
             onChange={(e) => onChange({ provider: e.target.value as Provider, model })}
-            className="ml-2 border p-1"
+            className="ml-2 border border-slate-300 bg-white p-1 text-slate-900"
             data-testid="pms-provider"
           >
             <option value="openai">openai</option>
@@ -49,14 +49,14 @@ export function ProviderModelSelector(props: {
         </label>
       </div>
       <div>
-        <label>
+        <label className="text-slate-700">
           Model
           {models.length > 0 ? (
             <>
               <select
                 value={model}
                 onChange={(e) => onChange({ provider, model: e.target.value })}
-                className="ml-2 border p-1"
+                className="ml-2 border border-slate-300 bg-white p-1 text-slate-900"
                 data-testid="pms-model"
               >
                 {models.map((m) => (
@@ -72,7 +72,7 @@ export function ProviderModelSelector(props: {
             <input
               value={model}
               onChange={(e) => onChange({ provider, model: e.target.value })}
-              className="ml-2 border p-1"
+              className="ml-2 border border-slate-300 bg-white p-1 text-slate-900"
               data-testid="pms-model-input"
             />
           )}

@@ -1,35 +1,56 @@
 {
   "pages": {
-    "/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
+    "/_not-found/page": [
+      "static/chunks/webpack-214a36d78bc6fb6c.js",
+      "static/chunks/fd9d1056-fea828ed5f97abdf.js",
+      "static/chunks/23-899a20c6533dcde5.js",
+      "static/chunks/main-app-32228f65c63aeb67.js",
+      "static/chunks/app/_not-found/page-9c1ae91e26f9ff63.js"
     ],
     "/layout": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/layout.css",
-      "static/chunks/app/layout.js"
-    ],
-    "/hub/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/hub/page.js"
-    ],
-    "/scale/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/scale/page.js"
-    ],
-    "/promptbro/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/promptbro/page.js"
+      "static/chunks/webpack-214a36d78bc6fb6c.js",
+      "static/chunks/fd9d1056-fea828ed5f97abdf.js",
+      "static/chunks/23-899a20c6533dcde5.js",
+      "static/chunks/main-app-32228f65c63aeb67.js",
+      "static/css/90ca34f512065764.css",
+      "static/chunks/231-ff847038c4dd9367.js",
+      "static/chunks/app/layout-afe4a74114c2b247.js"
     ],
     "/debug/llm/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/debug/llm/page.js"
+      "static/chunks/webpack-214a36d78bc6fb6c.js",
+      "static/chunks/fd9d1056-fea828ed5f97abdf.js",
+      "static/chunks/23-899a20c6533dcde5.js",
+      "static/chunks/main-app-32228f65c63aeb67.js",
+      "static/chunks/app/debug/llm/page-08220b748d043416.js"
+    ],
+    "/hub/page": [
+      "static/chunks/webpack-214a36d78bc6fb6c.js",
+      "static/chunks/fd9d1056-fea828ed5f97abdf.js",
+      "static/chunks/23-899a20c6533dcde5.js",
+      "static/chunks/main-app-32228f65c63aeb67.js",
+      "static/chunks/app/hub/page-d66bd710f20cc6b6.js"
+    ],
+    "/page": [
+      "static/chunks/webpack-214a36d78bc6fb6c.js",
+      "static/chunks/fd9d1056-fea828ed5f97abdf.js",
+      "static/chunks/23-899a20c6533dcde5.js",
+      "static/chunks/main-app-32228f65c63aeb67.js",
+      "static/chunks/231-ff847038c4dd9367.js",
+      "static/chunks/app/page-d49002edc7af2198.js"
+    ],
+    "/promptbro/page": [
+      "static/chunks/webpack-214a36d78bc6fb6c.js",
+      "static/chunks/fd9d1056-fea828ed5f97abdf.js",
+      "static/chunks/23-899a20c6533dcde5.js",
+      "static/chunks/main-app-32228f65c63aeb67.js",
+      "static/chunks/app/promptbro/page-df594a4845f45e1b.js"
+    ],
+    "/scale/page": [
+      "static/chunks/webpack-214a36d78bc6fb6c.js",
+      "static/chunks/fd9d1056-fea828ed5f97abdf.js",
+      "static/chunks/23-899a20c6533dcde5.js",
+      "static/chunks/main-app-32228f65c63aeb67.js",
+      "static/chunks/app/scale/page-e524afdb3656b2f0.js"
     ]
   }
 }

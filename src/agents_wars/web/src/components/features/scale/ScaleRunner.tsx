@@ -364,12 +364,12 @@ export default function ScaleRunner({ agents }: Props) {
   return (
     <form onSubmit={onStart} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <label className="block text-sm text-slate-200">
+        <label className="block text-sm text-slate-700">
           Agent
           <select
             value={agentId}
             onChange={(e) => setAgentId(e.target.value)}
-            className="mt-1 w-full rounded border border-slate-600 bg-slate-800 p-2 text-slate-100"
+            className="mt-1 w-full rounded border border-slate-300 bg-white p-2 text-slate-900"
           >
             {agentOptions.map((a) => (
               <option key={a.id} value={a.id}>
@@ -390,27 +390,27 @@ export default function ScaleRunner({ agents }: Props) {
         </div>
       </div>
 
-      <label className="block text-sm text-slate-200">
+      <label className="block text-sm text-slate-700">
         System prompt (optional)
         <textarea
           value={systemPrompt}
           onChange={(e) => setSystemPrompt(e.target.value)}
-          className="mt-1 w-full rounded border border-slate-600 bg-slate-800 p-2 text-slate-100"
+          className="mt-1 w-full rounded border border-slate-300 bg-white p-2 text-slate-900"
           rows={3}
         />
       </label>
 
-      <label className="block text-sm text-slate-200">
+      <label className="block text-sm text-slate-700">
         User message (optional)
         <textarea
           value={userMessage}
           onChange={(e) => setUserMessage(e.target.value)}
-          className="mt-1 w-full rounded border border-slate-600 bg-slate-800 p-2 text-slate-100"
+          className="mt-1 w-full rounded border border-slate-300 bg-white p-2 text-slate-900"
           rows={2}
         />
       </label>
 
-      <label className="block text-sm text-slate-200">
+      <label className="block text-sm text-slate-700">
         Runs (1–10)
         <input
           type="number"
@@ -418,12 +418,12 @@ export default function ScaleRunner({ agents }: Props) {
           max={10}
           value={runs}
           onChange={(e) => setRuns(Number(e.target.value))}
-          className="mt-1 w-32 rounded border border-slate-600 bg-slate-800 p-2 text-slate-100"
+          className="mt-1 w-32 rounded border border-slate-300 bg-white p-2 text-slate-900"
         />
       </label>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <label className="block text-sm text-slate-200">
+        <label className="block text-sm text-slate-700">
           Max budget USD (optional)
           <input
             type="number"
@@ -431,7 +431,7 @@ export default function ScaleRunner({ agents }: Props) {
             step="0.01"
             value={maxBudgetUsd}
             onChange={(e) => setMaxBudgetUsd(e.target.value)}
-            className="mt-1 w-full rounded border border-slate-600 bg-slate-800 p-2 text-slate-100"
+            className="mt-1 w-full rounded border border-slate-300 bg-white p-2 text-slate-900"
             placeholder="e.g. 0.50"
           />
         </label>
@@ -474,7 +474,7 @@ export default function ScaleRunner({ agents }: Props) {
         >
           {submitting ? "Running…" : "Start batch"}
         </button>
-        <span aria-live="polite" className="text-sm text-slate-300">
+        <span aria-live="polite" className="text-sm text-slate-700">
           {job ? `Status: ${job.status}` : submitting ? "pending…" : ""}
         </span>
       </div>

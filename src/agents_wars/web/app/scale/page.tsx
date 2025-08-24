@@ -14,7 +14,7 @@ export default async function ScalePage() {
   return (
     <main className="mx-auto max-w-3xl p-6" style={{ backgroundColor: "#ECEADF" }}>
       <h1 className="mb-2 text-2xl font-semibold" style={{ color: "#3F404C" }}>Scale Testing</h1>
-      <p className="mb-6" style={{ color: "#3F404C", opacity: 0.7 }}>
+      <p className="mb-6" style={{ color: "#2D2E36" }}>
         Configure a batch run to execute multiple conversations concurrently and view aggregate results.
       </p>
       <section

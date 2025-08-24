@@ -11,9 +11,9 @@ export default function Page() {
       >
         <header className="mb-2" style={{ fontFamily: "var(--font-head)" }}>
           <h1 className="text-[32px] font-bold" style={{ color: "#3F404C" }}>
-            LLM Prompt Optimization Platform
+            Agent Wars
           </h1>
-          <p className="text-[14px]" style={{ color: "#3F404C", opacity: 0.7 }}>
+          <p className="text-[14px]" style={{ color: "#2D2E36" }}>
             Design, simulate, and optimize mission-driven prompts.
           </p>
         </header>
@@ -42,7 +42,7 @@ export default function Page() {
                 <div className="text-[28px] font-bold" style={{ color: "#3F404C" }}>
                   {s.value}
                 </div>
-                <div className="text-[14px]" style={{ color: "#3F404C", opacity: 0.6 }}>
+                <div className="text-[14px]" style={{ color: "#2D2E36" }}>
                   {s.label}
                 </div>
               </div>
@@ -68,14 +68,14 @@ export default function Page() {
               <h3 className="text-[18px] font-semibold" style={{ color: "#3F404C", fontFamily: "var(--font-head)" }}>
                 {c.title}
               </h3>
-              <p className="mt-1 text-[14px]" style={{ color: "#3F404C", opacity: 0.7, fontFamily: "var(--font-body)" }}>
+              <p className="mt-1 text-[14px]" style={{ color: "#2D2E36", fontFamily: "var(--font-body)" }}>
                 {c.desc}
               </p>
               <div className="mt-3">
                 <Link
                   href={c.href}
                   className="inline-flex items-center rounded-[8px] px-6 py-3 font-medium"
-                  style={{ backgroundColor: "#FE6726", color: "#fff" }}
+                  style={{ backgroundColor: "#C54A1F", color: "#fff" }}
                 >
                   {c.cta}
                 </Link>
