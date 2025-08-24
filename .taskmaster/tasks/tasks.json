@@ -1827,11 +1827,805 @@
             "testStrategy": "Implement RTL tests that cover all aspects of the new UI elements, including snapshot tests for badges and mini-cards, and tests for conditional rendering paths."
           }
         ]
+      },
+      {
+        "id": 21,
+        "title": "Replace Landing Page with New Main Page for Agent Wars Frontend",
+        "description": "Revamp the current landing page to a new Main page that focuses on product entry points for Agent Wars.",
+        "details": "1. Remove the existing landing hero/graph page located at `src/agents_wars/web/app/page.tsx` and replace it with a new Main page. 2. The new Main page should utilize shadcn/ui primitives and maintain the existing header and footer. 3. Ensure that global navigation defaults to the Main page at `/` and that all links are consistent with the following routes: Hub `/hub`, Scale `/scale`, PromptBro `/promptbro`, and LLM Debug `/debug/llm`. 4. Consolidate useful elements from the old landing page, such as FPSProbe, into a small status card if they are still valuable; otherwise, remove them. 5. Update all relevant tests: unit tests, accessibility (a11y) tests, and end-to-end (E2E) tests to reflect the new Main page. This includes adjusting or removing landing-specific specs, ensuring zero serious a11y violations, and updating CTA tests to route correctly from the Main page. 6. Ensure compliance with accessibility standards (WCAG 2.2 AA), performance budgets, and strict TypeScript (TS) guidelines.",
+        "testStrategy": "1. Verify that the new Main page renders correctly at the root URL `/` with clear and accessible CTAs for Hub, Scale, and PromptBro. 2. Check that the header's active link state functions correctly across all pages and that the mobile menu operates as expected. 3. Run all unit tests and E2E tests to ensure they pass without serious a11y violations, and confirm that landing-specific tests are updated or removed as necessary. 4. Ensure there are no broken links and that type checking and linting are clean.",
+        "status": "review",
+        "dependencies": [
+          4
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 22,
+        "title": "Implement Brand-Wide Design System Rollout",
+        "description": "Roll out a comprehensive design system across the Next.js application, including updates to color palette, typography, components, animations, and responsiveness.",
+        "details": "1. Define a centralized color palette with orange as the primary color, neutral gray scale, and optional teal/blue accents, and implement these as design tokens. 2. Choose a clean sans-serif font (Inter/Poppins/Roboto) and establish a typography hierarchy with large bold H1s, medium subheads, and readable body text. 3. Update UI components such as cards, buttons, and inputs to have rounded corners, subtle shadows, and clear orange CTAs with hover/active states. 4. Implement tasteful micro-interactions for animations, ensuring they respect user preferences for reduced motion. 5. Ensure all layouts are responsive, with mobile-friendly tap targets, and update pages and components as necessary. 6. Create a strong hero section for landing and hub views, featuring a big headline, supporting text, and an orange CTA, along with appropriate imagery/icons. 7. Update the theme/tokens, Tailwind CSS configurations, and component library to reflect these changes. 8. Ensure accessibility (a11y) standards are met and update tests accordingly.",
+        "testStrategy": "1. Verify that the new color palette and typography are applied consistently across the application. 2. Test all UI components to ensure they reflect the new design specifications, including hover and active states. 3. Conduct user testing to confirm that the new layouts are responsive and user-friendly on various devices. 4. Run accessibility checks to ensure compliance with a11y standards. 5. Validate that all updated components and pages pass existing unit and integration tests, and add new tests where necessary to cover the new design elements.",
+        "status": "review",
+        "dependencies": [
+          21,
+          10
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define design tokens in Tailwind and globals",
+            "description": "Add color palette (orange primary, gray scale, optional accent), spacing, radius, shadows, typography scale to Tailwind config and globals.css; centralize as tokens.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 22
+          },
+          {
+            "id": 2,
+            "title": "Install and configure font with typographic hierarchy",
+            "description": "Use next/font to add Inter/Poppins/Roboto; define H1/H2/body scale and utilities; ensure readable line-height and contrast.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 22
+          },
+          {
+            "id": 3,
+            "title": "Update Button component to orange primary with states",
+            "description": "Revise `components/ui/button.tsx` for rounded corners, subtle shadow, clear hover/active/disabled/focus-ring; add tests.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 22
+          },
+          {
+            "id": 4,
+            "title": "Refresh Card styles with radius and depth",
+            "description": "Update `components/ui/card.tsx` and card usages to use medium–large radius and subtle elevation; ensure dark-mode compatibility.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 22
+          },
+          {
+            "id": 5,
+            "title": "Restyle inputs/selects/switches with focus visibility",
+            "description": "Revise `input.tsx`, `select.tsx`, `checkbox.tsx`, `switch.tsx`, `textarea.tsx` for radius, tokens, and accessible focus; add tests.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 22
+          },
+          {
+            "id": 6,
+            "title": "Hero sections: landing and hub with strong CTA",
+            "description": "Implement bold hero with big headline, supporting copy, and orange CTA for `app/page.tsx` and `app/hub/page.tsx`; add imagery/icons.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 22
+          },
+          {
+            "id": 7,
+            "title": "Micro-animations and motion safety",
+            "description": "Add hover/fade-in/press animations at 150–200ms; wrap with `prefers-reduced-motion` and existing `usePrefersReducedMotion` hook; test a11y.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 22
+          },
+          {
+            "id": 8,
+            "title": "Responsive layout polish",
+            "description": "Audit pages/components for smooth breakpoints; ensure tap targets are large; refine spacing/stacking on small screens.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 22
+          },
+          {
+            "id": 9,
+            "title": "a11y and visual tests",
+            "description": "Update/extend unit, integration, and Playwright e2e tests for color contrast, focus states, responsiveness, and hero CTAs.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 22
+          }
+        ]
+      },
+      {
+        "id": 23,
+        "title": "Apply 4-Color Design and Layout Spec to Main Landing Page",
+        "description": "Implement the exact 4-color design and layout specifications for the main landing page of the application.",
+        "details": "1. Apply the specified color palette using hex values: Dark Slate #3F404C for text and borders, Warm Beige #DFD4CA for secondary backgrounds and accents, Light Cream #ECEADF for the main page background and cards, and Bright Orange #FE6726 for primary links and accents. 2. Set the layout to have a full-viewport Light Cream background with a centered container that has a maximum width of 1280px and 24px horizontal padding. Use a CSS grid with 'repeat(auto-fit, minmax(300px, 1fr))' and a 24px gap. 3. Implement the typography system using the specified system stack and hierarchy. 4. Design cards with a white background, rounded corners, shadows, padding, and borders as specified. 5. Create buttons with the defined styles for primary and secondary actions. 6. Implement responsive design for mobile and tablet views as specified. 7. Ensure interactive states are applied correctly for hover, focus, and active states. 8. Conduct accessibility checks for contrast and focus visibility.",
+        "testStrategy": "1. Verify that the landing page matches the design specifications exactly, including colors, sizes, spacing, and interactive states. 2. Conduct accessibility tests to ensure compliance with contrast and focus visibility standards. 3. Perform end-to-end testing to confirm that all elements function as expected and that no other pages are affected by these changes. 4. Use visual regression testing to ensure that the layout remains consistent across different devices and screen sizes.",
+        "status": "pending",
+        "dependencies": [
+          21,
+          4
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Page container and grid layout",
+            "description": "Set Light Cream #ECEADF page bg, 100vh container, centered max-w-1280 with px-24, grid repeat(auto-fit, minmax(300px, 1fr)) gap-24.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 23
+          },
+          {
+            "id": 2,
+            "title": "Typography system (system stack + hierarchy)",
+            "description": "Apply system fonts and size/weight/colors: title 32/700, section 20/600, card title 18/600, body 14/400 with 70% opacity of #3F404C.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 23
+          },
+          {
+            "id": 3,
+            "title": "Card component styles (page-local)",
+            "description": "White bg, radius 12px, border 1px #DFD4CA, shadow (0 1px 3px rgba(63,64,76,0.1), 0 1px 2px rgba(63,64,76,0.06)), padding 24px.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 23
+          },
+          {
+            "id": 4,
+            "title": "Primary and secondary button variants (page-local)",
+            "description": "Primary: bg #FE6726, text white, px 24 py 12, radius 8, weight 500, hover #E55A1F. Secondary: bg #DFD4CA, text #3F404C, hover #D4C7BC.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 23
+          },
+          {
+            "id": 5,
+            "title": "Stats cards grid and content",
+            "description": "Responsive grid 4/2/1. Each card: 48x48 orange circle (#FE6726), number 28/700 #3F404C, label 14 at 60% opacity, trend 12.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 23
+          },
+          {
+            "id": 6,
+            "title": "Navigation header and links",
+            "description": "Header: white bg, bottom border 1px #DFD4CA, height 64px, flex space-between; logo 24/700 #3F404C; links 14/500 #3F404C, hover #FE6726.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 23
+          },
+          {
+            "id": 7,
+            "title": "Activity feed list styles",
+            "description": "Items: white bg, radius 8, border 1px #DFD4CA, 12px gap. Layout: flex with 32px avatar circle, text content, timestamp 12px at 50% opacity.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 23
+          },
+          {
+            "id": 8,
+            "title": "Responsive breakpoints and spacing system",
+            "description": "Mobile <=640 single column and px=16; Tablet 641–1024 two-column stats; Desktop 1025+ four columns; spacing scale 8/16/24/32; margins 24 mobile, 32 desktop.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 23
+          },
+          {
+            "id": 9,
+            "title": "Interactive states and focus rings",
+            "description": "Hover: scale(1.02) + shadow increase; Focus: 2px #FE6726 outline with 4px offset; Active: scale(0.98). Page-scoped only.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 23
+          }
+        ]
+      },
+      {
+        "id": 24,
+        "title": "Implement Prompt Wars Page Design Spec",
+        "description": "Develop the Prompt Wars page according to the provided design specifications, ensuring all elements are styled and functional as per the requirements.",
+        "details": "1. Create an outer container with a white background, 12px border radius, 1px #DFD4CA border, and subtle shadow. Implement a 12-column grid layout with a 24px gap for desktop and a single column for mobile. 2. Add a header with a title styled at 20px/600 weight in #3F404C and a subtitle at 14px with 70% opacity. 3. Implement a comparison mode toggle with specified colors and dimensions, ensuring smooth transitions. 4. Design prompt/model pairs as white cards with specific styling, including a header bar and action buttons. 5. Create form elements with defined styles for labels, selects, and textareas, ensuring focus states are implemented. 6. Set up a model selection grid with hover effects and selected states. 7. Add action buttons with specified styles and interactions. 8. Implement the opposing side configuration with radio buttons and labels. 9. Create a default scammer section with specified styles. 10. Ensure proper spacing between sections and interactive states for all elements. 11. Implement animations for transitions and interactive elements as specified.",
+        "testStrategy": "1. Verify that the page matches the design specifications exactly, including all styles, layouts, and responsive behaviors. 2. Conduct user testing to ensure all interactive elements function as expected, including the toggle and buttons. 3. Perform accessibility checks to ensure compliance with standards. 4. Use Playwright to run end-to-end tests to confirm that all elements are rendered correctly and that interactions work as intended.",
+        "status": "pending",
+        "dependencies": [
+          21,
+          22,
+          "25",
+          "32"
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Outer container card and 12-col grid",
+            "description": "White bg, radius 12px, 1px #DFD4CA border, subtle shadow; grid-cols-12 with 24px gap; mobile single column; lg:grid-cols-12.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 24
+          },
+          {
+            "id": 2,
+            "title": "Header: title/subtitle and spacing",
+            "description": "Title 20/600 #3F404C; subtitle 14 #3F404C at 70% opacity; 16px gap; place toggle to the right.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 24
+          },
+          {
+            "id": 3,
+            "title": "Comparison mode toggle switch",
+            "description": "Track: 44x24 radius 12; off #DFD4CA, on #FE6726; knob 20px white; smooth 0.2s; label 14/500; align top-right.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 24
+          },
+          {
+            "id": 4,
+            "title": "Prompt/Model pairs wrapper (lg:col-span-8)",
+            "description": "Each pair is a white card with 8px radius, 1px #DFD4CA; header bar #ECEADF, 12x16 padding, flex-between; 32x32 icon buttons radius 6.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 24
+          },
+          {
+            "id": 5,
+            "title": "Form elements: labels/selects/textarea styles",
+            "description": "Labels 14/500 #3F404C; selects border 1px #DFD4CA, radius 6, pad 8x12; textarea border 1px #DFD4CA, radius 6, pad 12, min-h 120, placeholder 50% opacity; focus border/orange outline.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 24
+          },
+          {
+            "id": 6,
+            "title": "Model selection grid and cards",
+            "description": "grid-cols-2 with 12px gap; model cards white, 1px #DFD4CA, radius 6, pad 12; hover border orange + scale(1.02); selected border orange + 5% orange bg.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 24
+          },
+          {
+            "id": 7,
+            "title": "Action buttons and icon buttons",
+            "description": "Add Comparison button: #FE6726, white text, 8x16 pad, radius 6, weight 500, 16px plus icon. Remove/Duplicate: transparent bg, 1px #DFD4CA, #3F404C text; hover bg #DFD4CA.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 24
+          },
+          {
+            "id": 8,
+            "title": "Opposing side config (lg:col-span-4)",
+            "description": "Custom 16px radio group; selected = orange fill #FE6726 with white dot; labels 14/500; 12px spacing.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 24
+          },
+          {
+            "id": 9,
+            "title": "Default scammer section block",
+            "description": "Light cream #ECEADF bg, radius 6, pad 16; preview text 12 #3F404C at 60% opacity.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 24
+          },
+          {
+            "id": 10,
+            "title": "Spacing, interactive states, and animations",
+            "description": "24px section gaps; form groups 16px; label-input 8px; card pad 20px, nested 16px; button gap 8px. Hover/active/focus per spec; transitions 0.2s ease-in-out; toggle transform 0.2s.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 24
+          }
+        ]
+      },
+      {
+        "id": 25,
+        "title": "Implement Sidebar Navigation Shell and Routing",
+        "description": "Build a sidebar navigation component with routing for the application.",
+        "details": "1. Create a new file `components/sidebar-nav.tsx` and implement the sidebar navigation component. 2. Include the following items in the sidebar: Dashboard (/), Model Wars (/model-wars), Conversation Sim (/conversation-sim), PromptBRO (/prompt-bro), Jobs (/jobs), Analytics (/analytics). 3. Implement active-route detection to highlight the currently active item in the sidebar. 4. Add collapsible behavior for the sidebar to enhance usability on mobile devices. 5. Implement a mobile overlay that appears when the sidebar is toggled on mobile. 6. Ensure smooth transitions for opening and closing the sidebar. 7. Integrate the sidebar into the main layout of the application to ensure it appears on all target pages, matching the standard layout pattern.",
+        "testStrategy": "1. Verify that the sidebar renders correctly on all target pages. 2. Check that the active item is highlighted based on the current route. 3. Test the collapsible behavior of the sidebar on mobile devices to ensure it functions as expected. 4. Confirm that the mobile overlay appears when the sidebar is toggled and disappears when closed. 5. Ensure that transitions for opening and closing the sidebar are smooth and visually appealing.",
+        "status": "pending",
+        "dependencies": [
+          21,
+          22
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Build SidebarNav with nav items and icons",
+            "description": "Create `components/sidebar-nav.tsx` with Dashboard, Model Wars, Conversation Sim, PromptBRO, Jobs, Analytics links and Lucide icons.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 25
+          },
+          {
+            "id": 2,
+            "title": "Active route highlighting",
+            "description": "Use `usePathname()` to mark the active item; ensure correct aria-current and visual state.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 25
+          },
+          {
+            "id": 3,
+            "title": "Mobile overlay + toggle",
+            "description": "Add mobile menu button; render sidebar as overlay on small screens; manage open/close state.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 25
+          },
+          {
+            "id": 4,
+            "title": "Accessibility and keyboard nav",
+            "description": "Add aria roles/labels, focus management, and keyboard navigation for expand/collapse.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 25
+          },
+          {
+            "id": 5,
+            "title": "Integrate sidebar in page layouts",
+            "description": "Wrap target pages with the standard layout shell using SidebarNav and header slots.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 25
+          }
+        ]
+      },
+      {
+        "id": 26,
+        "title": "Implement Dashboard Layout and Components",
+        "description": "Develop the main dashboard layout and components according to the specified zip design, including a header, stats grid, activity feed, and quick action buttons.",
+        "details": "1. Create a new file `src/dashboard/index.tsx` for the dashboard component. 2. Implement a header that welcomes the user and displays relevant stats. 3. Design a 4-card grid layout for displaying statistics using the Card component from the design system. 4. Integrate a recent activity feed that lists user activities, ensuring it is scrollable and responsive. 5. Add quick action buttons that allow users to perform common tasks directly from the dashboard. 6. Ensure all components are responsive and utilize the design tokens defined in the brand-wide design system. 7. Implement accessibility features to ensure compliance with a11y standards, including proper ARIA roles and keyboard navigation support.",
+        "testStrategy": "1. Verify that the dashboard renders correctly at the root URL `/` and matches the design specifications from the zip file. 2. Check that the header displays the welcome message and stats accurately. 3. Test the responsiveness of the 4-card grid and ensure it adapts to different screen sizes. 4. Validate that the recent activity feed updates correctly and is scrollable. 5. Ensure that all quick action buttons are functional and accessible. 6. Conduct accessibility testing to confirm compliance with a11y standards, including screen reader compatibility and keyboard navigation.",
+        "status": "pending",
+        "dependencies": [
+          22,
+          25,
+          21
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Dashboard header and welcome block",
+            "description": "Implement top header with title, subtitle, and actions per zip.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 26
+          },
+          {
+            "id": 2,
+            "title": "Stats 4-card grid",
+            "description": "Build KPI cards with labels, values, trend indicators, and icons; responsive grid.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 26
+          },
+          {
+            "id": 3,
+            "title": "Recent activity list",
+            "description": "Scrollable activity feed with status badges and timestamps; a11y roles.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 26
+          },
+          {
+            "id": 4,
+            "title": "Quick actions and developer tools",
+            "description": "Buttons linking to Model Wars, Conversation Sim, PromptBRO; outline Dev Tools button.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 26
+          },
+          {
+            "id": 5,
+            "title": "Responsive and accessibility polish",
+            "description": "Ensure grids collapse correctly; add aria labels; keyboard focus order.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 26
+          }
+        ]
+      },
+      {
+        "id": 27,
+        "title": "Model Wars Page Implementation",
+        "description": "Develop the Model Wars page excluding the Conversation Setup, implementing all specified sections and layout as per the design.",
+        "details": "1. Create a new file `src/model-wars/page.tsx` for the Model Wars component. 2. Implement the header section that includes the title and any relevant navigation. 3. Develop the active conversations section to display ongoing discussions. 4. Create the conversation analysis section to provide insights on the conversations. 5. Implement the agent hive reports section to show performance metrics of agents. 6. Add the prompt scoring section to evaluate the effectiveness of prompts used. 7. Ensure the layout includes a sidebar for navigation and a main content area, structured with two grid rows of paired cards for displaying information. 8. Style all components to match the design specifications provided in the zip file, ensuring responsiveness and accessibility.",
+        "testStrategy": "1. Verify that the Model Wars page renders correctly at the `/model-wars` URL and matches the design specifications from the zip file. 2. Check that all sections (header, active conversations, conversation analysis, agent hive reports, prompt scoring) are present and styled appropriately. 3. Test the responsiveness of the layout on different screen sizes to ensure usability. 4. Conduct accessibility checks to ensure compliance with standards.",
+        "status": "pending",
+        "dependencies": [
+          24,
+          25,
+          22
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Model Wars header",
+            "description": "Implement page header with title, subtitle, and actions matching zip.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 27
+          },
+          {
+            "id": 2,
+            "title": "Active conversations card",
+            "description": "List active conversations with status, progress bars, and timestamps.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 27
+          },
+          {
+            "id": 3,
+            "title": "Conversation analysis card",
+            "description": "Charts/table placeholders for analysis; sortable headers.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 27
+          },
+          {
+            "id": 4,
+            "title": "Agent Hive reports",
+            "description": "Section to display aggregated agent reports; card layout per zip.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 27
+          },
+          {
+            "id": 5,
+            "title": "Prompt scoring",
+            "description": "Scoring panel UI with badges and metrics; responsive grid.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 27
+          }
+        ]
+      },
+      {
+        "id": 28,
+        "title": "Frontend: Conversation Simulation Page Implementation",
+        "description": "Develop the Conversation Simulation page, including components for header, simulation setup form, active simulations, templates, and results, ensuring responsiveness and accessibility.",
+        "details": "1. Create a new file `src/conversation-sim/page.tsx` for the Conversation Simulation component. 2. Implement a header that includes the title and navigation links. 3. Develop a simulation setup form that allows users to configure their simulations. 4. Create a section for active simulations that displays ongoing simulations with relevant details. 5. Implement a templates section where users can select or create templates for simulations. 6. Add a results section to display the outcomes of the simulations. 7. Ensure all components are responsive and accessible, adhering to best practices for usability. 8. Integrate placeholders for charts using Recharts, ensuring they are ready for future data integration.",
+        "testStrategy": "1. Verify that the Conversation Simulation page renders correctly at the `/conversation-sim` URL and matches the design specifications from the zip file. 2. Check that the header displays the title and navigation links accurately. 3. Test the functionality of the simulation setup form to ensure it captures user input correctly. 4. Validate that the active simulations section updates dynamically as simulations are started or stopped. 5. Ensure the templates section allows users to select and create templates without errors. 6. Confirm that the results section displays outcomes accurately after simulations are run. 7. Test the responsiveness of all components on various screen sizes. 8. Conduct accessibility checks to ensure compliance with standards.",
+        "status": "pending",
+        "dependencies": [
+          25,
+          27
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Simulation page header",
+            "description": "Add header with title, subtitle, and actions per zip layout.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 28
+          },
+          {
+            "id": 2,
+            "title": "Simulation setup form",
+            "description": "Form for batch size and parameters with validation; uses Select/Slider/Textarea as needed.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 28
+          },
+          {
+            "id": 3,
+            "title": "Active simulations list",
+            "description": "List running simulations with status, progress bars, and timestamps; poll hook placeholder.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 28
+          },
+          {
+            "id": 4,
+            "title": "Templates library",
+            "description": "Grid of conversation templates with search/filter; card layout with rating/usage.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 28
+          },
+          {
+            "id": 5,
+            "title": "Results visualization scaffolding",
+            "description": "Charts placeholders with Recharts for success rate and metrics; responsive/a11y polish.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 28
+          }
+        ]
+      },
+      {
+        "id": 29,
+        "title": "Frontend: PromptBRO Page Implementation",
+        "description": "Develop the PromptBRO page, including components for header, prompt generator, optimizer, versions, and library components, ensuring functionality with mocked data.",
+        "details": "1. Create a new file `src/prompt-bro/page.tsx` for the PromptBRO component. 2. Implement a header that includes the title and navigation links. 3. Develop the prompt generator section that allows users to input prompts and see generated outputs. 4. Create an optimizer section that provides options for refining prompts. 5. Implement a versions section to manage different versions of prompts. 6. Add a library component that allows users to save and retrieve prompts. 7. Ensure all components are functional with mocked data to simulate user interactions and outputs. 8. Follow the design specifications provided in the zip file to ensure consistency in styling and layout.",
+        "testStrategy": "1. Verify that the PromptBRO page renders correctly at the `/prompt-bro` URL and matches the design specifications from the zip file. 2. Check that the header displays the title and navigation links accurately. 3. Test the functionality of the prompt generator to ensure it accepts input and displays generated outputs correctly. 4. Validate the optimizer section to ensure it provides options for prompt refinement and that these options work as intended. 5. Ensure the versions section allows users to manage different prompt versions effectively. 6. Test the library component to confirm that prompts can be saved and retrieved successfully. 7. Conduct user testing to ensure all interactive elements function as expected and perform accessibility checks.",
+        "status": "pending",
+        "dependencies": [
+          7,
+          25
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "PromptBRO header and layout",
+            "description": "Implement page header, layout shell, and section scaffolding per zip.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 29
+          },
+          {
+            "id": 2,
+            "title": "Prompt generator UI",
+            "description": "Textarea with controls; generate action button; parameter sliders ready.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 29
+          },
+          {
+            "id": 3,
+            "title": "Prompt optimizer UI",
+            "description": "Optimization panel with scoring and suggestions list; side-by-side compare.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 29
+          },
+          {
+            "id": 4,
+            "title": "Versions list with restore",
+            "description": "List prompt versions with scores; restore button and diff preview placeholder.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 29
+          },
+          {
+            "id": 5,
+            "title": "Prompt library grid and filters",
+            "description": "Library grid with rating/category filters and search; card layout.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 29
+          }
+        ]
+      },
+      {
+        "id": 30,
+        "title": "Frontend: Jobs Pipeline Page Implementation",
+        "description": "Develop the Jobs Pipeline page, including components for header, job scheduler, queue, system resources charts, and job history, ensuring functionality with Recharts for chart placeholders.",
+        "details": "1. Create a new file `src/jobs/page.tsx` for the Jobs Pipeline component. 2. Implement a header that includes the title and navigation links. 3. Develop a job scheduler section that allows users to schedule jobs. 4. Create a queue section to display queued jobs. 5. Implement system resources charts using Recharts to visualize CPU, memory, and disk usage. 6. Add a job history section to display past job executions and their statuses. 7. Ensure all components are responsive and styled according to the design specifications.",
+        "testStrategy": "1. Verify that the Jobs Pipeline page renders correctly at the `/jobs` URL and matches the design specifications from the zip file. 2. Check that the header displays the title and navigation links accurately. 3. Test the functionality of the job scheduler to ensure it allows users to schedule jobs. 4. Validate that the queue section displays queued jobs correctly. 5. Ensure that the system resources charts render data accurately using Recharts. 6. Confirm that the job history section displays past jobs and their statuses correctly.",
+        "status": "pending",
+        "dependencies": [
+          25,
+          22
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Jobs page header and layout",
+            "description": "Implement header and shell; align with sidebar layout and zip styling.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 30
+          },
+          {
+            "id": 2,
+            "title": "Job scheduler form",
+            "description": "Cron-like scheduler UI with validation and submit; disabled until valid.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 30
+          },
+          {
+            "id": 3,
+            "title": "Queue monitor",
+            "description": "Table/list of queued/running jobs with status and progress bars; polling hook placeholder.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 30
+          },
+          {
+            "id": 4,
+            "title": "System resources charts",
+            "description": "Recharts scaffolding for CPU/Memory/Disk/Network with responsive containers.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 30
+          },
+          {
+            "id": 5,
+            "title": "Job history table",
+            "description": "Paginated/filterable history table; status badges; a11y roles.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 30
+          }
+        ]
+      },
+      {
+        "id": 31,
+        "title": "Frontend: Analytics Dashboard Page Implementation",
+        "description": "Develop the Analytics Dashboard page, including components for header, performance overview, model comparison, prompt effectiveness, and trend analysis, ensuring responsiveness and accessibility.",
+        "details": "1. Create a new file `src/analytics/page.tsx` for the Analytics Dashboard component. 2. Implement a header that includes the title and navigation links. 3. Develop a performance overview section that summarizes key metrics. 4. Create a model comparison section that allows users to compare different models side by side. 5. Implement a prompt effectiveness section that evaluates the performance of various prompts. 6. Add a trend analysis section that visualizes trends over time using Recharts. 7. Ensure all components are responsive and adhere to accessibility standards.",
+        "testStrategy": "1. Verify that the Analytics Dashboard page renders correctly at the `/analytics` URL and matches the design specifications from the zip file. 2. Check that the header displays the title and navigation links accurately. 3. Test the functionality of the performance overview, model comparison, prompt effectiveness, and trend analysis sections to ensure they display the correct data. 4. Ensure that all components are responsive across different screen sizes. 5. Conduct accessibility checks to ensure compliance with standards.",
+        "status": "pending",
+        "dependencies": [
+          26,
+          30
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Analytics page header and layout",
+            "description": "Implement header and page shell; align with sidebar layout and zip.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 31
+          },
+          {
+            "id": 2,
+            "title": "Performance overview KPIs",
+            "description": "KPI cards for performance overview; responsive grid and a11y.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 31
+          },
+          {
+            "id": 3,
+            "title": "Model comparison charts",
+            "description": "Recharts scaffolding for model comparisons; interactive legends/tooltips.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 31
+          },
+          {
+            "id": 4,
+            "title": "Prompt effectiveness charts",
+            "description": "Area/Bar charts for prompt effectiveness; time range controls.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 31
+          },
+          {
+            "id": 5,
+            "title": "Trend analysis with forecasting",
+            "description": "Line charts for trends; placeholders for forecast overlays; responsive/a11y.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 31
+          }
+        ]
+      },
+      {
+        "id": 32,
+        "title": "Frontend: Theme Tokens and Font Setup",
+        "description": "Implement theme tokens and font setup in the frontend application, applying OKLCH theme variables and configuring CSS variables for fonts.",
+        "details": "1. Update `app/globals.css` to include OKLCH theme variables for colors and other design tokens. 2. Implement dark mode overrides for the theme variables to ensure proper styling in dark mode. 3. Set up `layout.tsx` to define CSS variables for the fonts Space Grotesk and DM Sans. 4. Ensure that the new theme tokens and fonts are applied throughout the application without causing regressions in existing styles. 5. Implement a feature flag to enable the new theme and font setup, ensuring that it does not affect the current production environment until activated.",
+        "testStrategy": "1. Verify that the application renders correctly with the new theme tokens and fonts applied. 2. Check that the dark mode styling is functioning as expected and that all elements are styled correctly. 3. Ensure that there are no regressions in the existing application styles by testing various pages and components. 4. Test the feature flag functionality to confirm that the new theme and font setup is only applied when the feature flag is enabled.",
+        "status": "pending",
+        "dependencies": [
+          26,
+          23
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Apply OKLCH tokens in globals.css (light/dark)",
+            "description": "Define color tokens and dark mode overrides per guide in app/globals.css.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 32
+          },
+          {
+            "id": 2,
+            "title": "Set up Space Grotesk + DM Sans in layout",
+            "description": "Configure next/font in app/layout.tsx with CSS variables; apply to html class.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 32
+          },
+          {
+            "id": 3,
+            "title": "ThemeProvider wiring and variables",
+            "description": "Ensure ThemeProvider (if used) and CSS variables are consumed by shadcn components.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 32
+          },
+          {
+            "id": 4,
+            "title": "Feature flag/scoping to avoid regressions",
+            "description": "Guard new theme behind flag or scope to new pages until rollout is approved.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 32
+          },
+          {
+            "id": 5,
+            "title": "Contrast/a11y verification and snapshots",
+            "description": "Verify contrast, focus rings; add minimal visual or unit snapshots.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 32
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-08-13T15:04:58.285Z",
-      "updated": "2025-08-20T12:50:26.876Z",
+      "updated": "2025-08-21T10:44:44.885Z",
       "description": "Tag created on 8/13/2025"
     }
   },
@@ -2258,11 +3052,397 @@
         ],
         "priority": "low",
         "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Enable and Support Design System Rollout Across the App",
+        "description": "Implement backend support for the design system rollout, including theme configuration, hero content delivery, asset optimization, and performance enhancements.",
+        "details": "1. Expose theme/config options through environment variables or API routes to allow frontend toggling of accent color, typography, and animation settings. 2. Ensure API routes provide necessary content and metadata for hero sections, including titles, subtitles, and CTA targets, along with SEO/open-graph metadata utilities. 3. Optimize the asset pipeline for image handling, CDN paths, icons, and static assets to align with the new design system. 4. Implement caching headers for API responses used in layout-level rendering to enhance performance. 5. Update existing tests and add basic logging for theme/config endpoints to ensure observability and reliability.",
+        "testStrategy": "1. Verify that the theme/config options are accessible and correctly toggleable from the frontend. 2. Test API routes to ensure they return the correct hero content and metadata, including SEO/open-graph data. 3. Validate that images are optimized and served correctly from the CDN. 4. Check caching headers on API responses to confirm they are set appropriately. 5. Run updated tests to ensure all theme/config endpoints function as expected and log relevant information correctly.",
+        "status": "review",
+        "dependencies": [
+          1,
+          12
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Theme/config surface for frontend",
+            "description": "Add a simple config endpoint or env-driven API to expose accent color choice, typography selection, animation enabled flag.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 14
+          },
+          {
+            "id": 2,
+            "title": "Hero content API and SEO helpers",
+            "description": "Ensure API returns hero titles, subtitles, CTA URLs; add OpenGraph/SEO helpers/utilities as needed by frontend.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 14
+          },
+          {
+            "id": 3,
+            "title": "Static assets and image optimization",
+            "description": "Organize icons/illustrations; verify Next/Image usage and CDN/base paths; ensure sizes for responsive hero and cards.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 14
+          },
+          {
+            "id": 4,
+            "title": "Performance and caching",
+            "description": "Add appropriate caching headers/strategies for theme/config and hero content APIs; ensure fast TTFB.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 14
+          },
+          {
+            "id": 5,
+            "title": "Tests and observability",
+            "description": "Add unit/integration tests for config/hero APIs; basic logging/metrics around requests and cache hits.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 14
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "title": "Implement Dashboard APIs for Key Metrics and Activity",
+        "description": "Develop backend APIs to provide key metrics and recent activity for the dashboard.",
+        "details": "1. Create a new route handler for GET /api/dashboard/stats that retrieves key metrics from the database and formats them as JSON according to the specified shape in the API guide. 2. Implement a second route handler for GET /api/dashboard/activity that fetches recent activity items, ensuring the response aligns with the expected JSON structure. 3. Implement caching headers for both endpoints to optimize performance and reduce server load. 4. Ensure that both APIs are secured and validate user permissions before returning data. 5. Write necessary middleware for error handling and logging. 6. Update API documentation to include the new endpoints and their expected request/response formats.",
+        "testStrategy": "1. Write unit tests for both route handlers to ensure they return the correct JSON shapes as specified in the API guide. 2. Validate that caching headers are correctly set in the responses. 3. Create integration tests to verify that the APIs return the expected data when called with valid and invalid parameters. 4. Test the security measures to ensure unauthorized users cannot access the endpoints. 5. Review the API documentation for accuracy and completeness.",
+        "status": "pending",
+        "dependencies": [
+          12,
+          13
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define zod schemas for stats/activity",
+            "description": "Response and error schemas for /api/dashboard/stats and /activity.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 15
+          },
+          {
+            "id": 2,
+            "title": "Implement GET /api/dashboard/stats with caching",
+            "description": "Add route with sensible cache headers and error mapping.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 15
+          },
+          {
+            "id": 3,
+            "title": "Implement GET /api/dashboard/activity with pagination",
+            "description": "Add route with limit/offset; sort by timestamp desc.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 15
+          },
+          {
+            "id": 4,
+            "title": "Tests for stats and activity routes",
+            "description": "Unit/integration tests covering happy paths and errors.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 15
+          },
+          {
+            "id": 5,
+            "title": "Observability and logging",
+            "description": "Add minimal request logging, status metrics, and structured errors.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 15
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "title": "Model Wars API Implementation",
+        "description": "Develop the backend APIs for the Model Wars feature, including endpoints for models, battles, and leaderboard.",
+        "details": "1. Implement the GET /api/model-wars/models endpoint to return a list of available models along with their provider and status. Ensure the response format adheres to the API guide. 2. Create the POST /api/model-wars/battles endpoint to initiate a battle between two models, accepting parameters for model selection and battle type or custom prompt. Validate input data and ensure proper error handling. 3. Develop the GET /api/model-wars/battles endpoint to list all active and completed battles, returning relevant details in the specified format. 4. Implement the GET /api/model-wars/leaderboard endpoint to aggregate and return statistics related to battles, ensuring data is correctly formatted. 5. Set up a placeholder for SSE/WebSocket to facilitate live updates during battles. 6. Ensure all endpoints include validation, rate limiting, and are covered by unit and integration tests.",
+        "testStrategy": "1. Write unit tests for each endpoint to verify correct response formats and status codes. 2. Validate that input data for POST requests is correctly handled and that appropriate error messages are returned for invalid data. 3. Create integration tests to ensure that the endpoints interact correctly with the database and return expected results. 4. Test the SSE/WebSocket implementation to ensure it can handle live updates as intended. 5. Verify rate limiting is functioning as expected by simulating multiple requests.",
+        "status": "pending",
+        "dependencies": [
+          2,
+          12
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define zod schemas for models/battles/leaderboard",
+            "description": "Request/response/error schemas for models list, battle start, battles list, and leaderboard.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 16
+          },
+          {
+            "id": 2,
+            "title": "GET /api/model-wars/models",
+            "description": "Return available models with provider and status; add caching headers.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 16
+          },
+          {
+            "id": 3,
+            "title": "POST /api/model-wars/battles",
+            "description": "Validate input (two models + type/custom prompt); create battle; return id.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 16
+          },
+          {
+            "id": 4,
+            "title": "GET /api/model-wars/battles (list/filter)",
+            "description": "List active/completed with filters (status/date); pagination support.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 16
+          },
+          {
+            "id": 5,
+            "title": "GET /api/model-wars/leaderboard",
+            "description": "Aggregate battle results into rankings; return provider badges and metrics.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 16
+          },
+          {
+            "id": 6,
+            "title": "Live updates channel placeholder",
+            "description": "SSE/WebSocket endpoint scaffold for battle progress; no-op backend for now with docs.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 16
+          },
+          {
+            "id": 7,
+            "title": "Tests and rate limiting",
+            "description": "Add unit/integration tests; basic rate limit on POST start; structured errors.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 16
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "title": "Backend: Conversation Simulation APIs",
+        "description": "Develop backend APIs for conversation simulation, including batch initiation, monitoring, template listing, and result retrieval.",
+        "details": "1. Implement the POST /api/conversation-sim/simulations endpoint to start a batch of conversation simulations. Ensure it accepts necessary parameters and validates input data. 2. Create the GET /api/conversation-sim/simulations endpoint to list and monitor ongoing simulations, returning their status and relevant details. 3. Develop the GET /api/conversation-sim/templates endpoint to retrieve a list of available templates for simulations. 4. Implement the GET /api/conversation-sim/results endpoint to fetch results by simulation ID, ensuring proper validation and error handling. 5. Set up a placeholder for SSE/WebSocket to provide real-time progress updates for ongoing simulations. 6. Ensure all endpoints adhere to the specified JSON shape in the API guide, implement caching where appropriate, and validate user permissions for access.",
+        "testStrategy": "1. Write unit tests for each endpoint to ensure they return the correct JSON shapes and status codes as specified in the API guide. 2. Validate that input data for POST requests is correctly handled and that appropriate error messages are returned for invalid data. 3. Create integration tests to ensure that the endpoints interact correctly with the database and return expected results. 4. Test the SSE/WebSocket implementation to verify that progress updates are sent correctly during ongoing simulations.",
+        "status": "pending",
+        "dependencies": [
+          12,
+          13
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define zod schemas for simulations/templates/results",
+            "description": "Request/response schemas and error mapping for all endpoints.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 17
+          },
+          {
+            "id": 2,
+            "title": "POST /api/conversation-sim/simulations",
+            "description": "Start batch run; validate input; return id; enqueue placeholder.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 17
+          },
+          {
+            "id": 3,
+            "title": "GET /api/conversation-sim/simulations",
+            "description": "List/poll simulations with status/progress; pagination and filters.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 17
+          },
+          {
+            "id": 4,
+            "title": "GET /api/conversation-sim/templates",
+            "description": "Return available templates; support search/filtering; caching headers.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 17
+          },
+          {
+            "id": 5,
+            "title": "GET /api/conversation-sim/results",
+            "description": "Return results for a simulation id; include metrics and summaries.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 17
+          },
+          {
+            "id": 6,
+            "title": "Progress streaming placeholder",
+            "description": "SSE/WebSocket scaffold for simulation progress; document client usage.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 17
+          },
+          {
+            "id": 7,
+            "title": "Tests for simulations/templates/results",
+            "description": "Add unit/integration tests for all endpoints, including pagination and errors.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 17
+          }
+        ]
+      },
+      {
+        "id": 18,
+        "title": "Backend: PromptBRO APIs",
+        "description": "Develop backend APIs for PromptBRO, including generation, optimization, and version retrieval.",
+        "details": "1. Implement the POST /api/prompt-bro/generate endpoint to accept input parameters for prompt generation, ensuring proper validation and error handling. 2. Create the POST /api/prompt-bro/optimize endpoint to accept parameters for optimizing prompts, with validation to ensure inputs are correct. 3. Develop the GET /api/prompt-bro/versions endpoint to retrieve available versions of the PromptBRO API, ensuring the response format adheres to the API guide. 4. Implement rate limiting for the POST endpoints to prevent abuse and ensure fair usage. 5. Ensure all endpoints return responses in the correct JSON shape as specified in the API guide, and include appropriate HTTP status codes for success and error cases.",
+        "testStrategy": "1. Write unit tests for each endpoint to ensure they return the correct JSON shapes and status codes as specified in the API guide. 2. Validate that input data for POST requests is correctly handled and that appropriate error messages are returned for invalid data. 3. Create integration tests to verify that the endpoints function correctly when called with valid data and that rate limiting is enforced. 4. Test the GET /api/prompt-bro/versions endpoint to ensure it returns the correct list of versions.",
+        "status": "pending",
+        "dependencies": [
+          13
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define zod schemas for PromptBRO",
+            "description": "Schemas for generate/optimize inputs and versions response; error mapping.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 18
+          },
+          {
+            "id": 2,
+            "title": "POST /api/prompt-bro/generate",
+            "description": "Validate parameters; return prompt text and initial score placeholder.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 18
+          },
+          {
+            "id": 3,
+            "title": "POST /api/prompt-bro/optimize",
+            "description": "Return suggestions with types/impact; ensure deterministic placeholder responses.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 18
+          },
+          {
+            "id": 4,
+            "title": "GET /api/prompt-bro/versions",
+            "description": "Return versions list with metadata and scores; pagination support.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 18
+          },
+          {
+            "id": 5,
+            "title": "Tests and rate limiting",
+            "description": "Add unit/integration tests; apply basic rate limiting to generate/optimize; structured errors.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 18
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "title": "Backend: Jobs and Analytics APIs",
+        "description": "Develop backend APIs for Jobs and Analytics, including endpoints for job management and analytics metrics.",
+        "details": "1. Implement the GET /api/jobs/queue endpoint to retrieve the current job queue, ensuring proper pagination and response formatting as per the API guide. 2. Create the POST /api/jobs/schedule endpoint to allow scheduling of new jobs, validating input parameters and returning the job ID upon successful scheduling. 3. Develop the GET /api/jobs/resources endpoint to list available resources for job execution, ensuring the response adheres to the specified JSON shape. 4. Implement the GET /api/jobs/history endpoint to retrieve the history of executed jobs, including pagination support. 5. For the Analytics section, implement the GET /api/analytics/metrics endpoint to retrieve key metrics, ensuring the response format is correct. 6. Create the GET /api/analytics/trends endpoint to provide trend data based on metrics, with appropriate filtering options. 7. Develop the POST /api/analytics/export endpoint to allow exporting of analytics data, validating input parameters and ensuring proper response formatting.",
+        "testStrategy": "1. Write unit tests for each endpoint to ensure they return the correct JSON shapes and status codes as specified in the API guide. 2. Validate that input data for POST requests is correctly handled and that appropriate error messages are returned for invalid data. 3. Create integration tests to verify that the APIs interact correctly with the database and return expected results. 4. Test pagination functionality for the GET endpoints to ensure they work as intended.",
+        "status": "pending",
+        "dependencies": [
+          15,
+          16
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Jobs endpoints: queue/schedule/resources/history",
+            "description": "Implement queue list, schedule POST with validation, resources metrics, and history list with pagination.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 19
+          },
+          {
+            "id": 2,
+            "title": "Analytics endpoints: metrics/trends/export",
+            "description": "Implement metrics and trends GET with time range params; export POST returning file/url placeholder.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 19
+          },
+          {
+            "id": 3,
+            "title": "Validation, pagination, and caching",
+            "description": "Add zod validation; pagination for list endpoints; appropriate cache headers for read endpoints.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 19
+          },
+          {
+            "id": 4,
+            "title": "Tests and observability",
+            "description": "Add unit/integration tests for jobs/analytics routes; minimal logging and metrics hooks.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 19
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-08-13T15:04:58.939Z",
-      "updated": "2025-08-20T13:19:12.092Z",
+      "updated": "2025-08-21T10:46:05.114Z",
       "description": "Tag created on 8/13/2025"
     }
   }

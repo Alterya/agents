@@ -1,0 +1,37 @@
+# Task ID: 19
+# Title: Backend: Jobs and Analytics APIs
+# Status: pending
+# Dependencies: 15, 16
+# Priority: medium
+# Description: Develop backend APIs for Jobs and Analytics, including endpoints for job management and analytics metrics.
+# Details:
+1. Implement the GET /api/jobs/queue endpoint to retrieve the current job queue, ensuring proper pagination and response formatting as per the API guide. 2. Create the POST /api/jobs/schedule endpoint to allow scheduling of new jobs, validating input parameters and returning the job ID upon successful scheduling. 3. Develop the GET /api/jobs/resources endpoint to list available resources for job execution, ensuring the response adheres to the specified JSON shape. 4. Implement the GET /api/jobs/history endpoint to retrieve the history of executed jobs, including pagination support. 5. For the Analytics section, implement the GET /api/analytics/metrics endpoint to retrieve key metrics, ensuring the response format is correct. 6. Create the GET /api/analytics/trends endpoint to provide trend data based on metrics, with appropriate filtering options. 7. Develop the POST /api/analytics/export endpoint to allow exporting of analytics data, validating input parameters and ensuring proper response formatting.
+
+# Test Strategy:
+1. Write unit tests for each endpoint to ensure they return the correct JSON shapes and status codes as specified in the API guide. 2. Validate that input data for POST requests is correctly handled and that appropriate error messages are returned for invalid data. 3. Create integration tests to verify that the APIs interact correctly with the database and return expected results. 4. Test pagination functionality for the GET endpoints to ensure they work as intended.
+
+# Subtasks:
+## 1. Jobs endpoints: queue/schedule/resources/history [pending]
+### Dependencies: None
+### Description: Implement queue list, schedule POST with validation, resources metrics, and history list with pagination.
+### Details:
+
+
+## 2. Analytics endpoints: metrics/trends/export [pending]
+### Dependencies: None
+### Description: Implement metrics and trends GET with time range params; export POST returning file/url placeholder.
+### Details:
+
+
+## 3. Validation, pagination, and caching [pending]
+### Dependencies: None
+### Description: Add zod validation; pagination for list endpoints; appropriate cache headers for read endpoints.
+### Details:
+
+
+## 4. Tests and observability [pending]
+### Dependencies: None
+### Description: Add unit/integration tests for jobs/analytics routes; minimal logging and metrics hooks.
+### Details:
+
+

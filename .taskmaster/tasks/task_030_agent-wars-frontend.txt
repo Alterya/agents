@@ -1,0 +1,43 @@
+# Task ID: 30
+# Title: Frontend: Jobs Pipeline Page Implementation
+# Status: pending
+# Dependencies: 25, 22
+# Priority: medium
+# Description: Develop the Jobs Pipeline page, including components for header, job scheduler, queue, system resources charts, and job history, ensuring functionality with Recharts for chart placeholders.
+# Details:
+1. Create a new file `src/jobs/page.tsx` for the Jobs Pipeline component. 2. Implement a header that includes the title and navigation links. 3. Develop a job scheduler section that allows users to schedule jobs. 4. Create a queue section to display queued jobs. 5. Implement system resources charts using Recharts to visualize CPU, memory, and disk usage. 6. Add a job history section to display past job executions and their statuses. 7. Ensure all components are responsive and styled according to the design specifications.
+
+# Test Strategy:
+1. Verify that the Jobs Pipeline page renders correctly at the `/jobs` URL and matches the design specifications from the zip file. 2. Check that the header displays the title and navigation links accurately. 3. Test the functionality of the job scheduler to ensure it allows users to schedule jobs. 4. Validate that the queue section displays queued jobs correctly. 5. Ensure that the system resources charts render data accurately using Recharts. 6. Confirm that the job history section displays past jobs and their statuses correctly.
+
+# Subtasks:
+## 1. Jobs page header and layout [pending]
+### Dependencies: None
+### Description: Implement header and shell; align with sidebar layout and zip styling.
+### Details:
+
+
+## 2. Job scheduler form [pending]
+### Dependencies: None
+### Description: Cron-like scheduler UI with validation and submit; disabled until valid.
+### Details:
+
+
+## 3. Queue monitor [pending]
+### Dependencies: None
+### Description: Table/list of queued/running jobs with status and progress bars; polling hook placeholder.
+### Details:
+
+
+## 4. System resources charts [pending]
+### Dependencies: None
+### Description: Recharts scaffolding for CPU/Memory/Disk/Network with responsive containers.
+### Details:
+
+
+## 5. Job history table [pending]
+### Dependencies: None
+### Description: Paginated/filterable history table; status badges; a11y roles.
+### Details:
+
+

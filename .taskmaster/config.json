@@ -9,7 +9,7 @@
     "research": {
       "provider": "openai",
       "modelId": "gpt-5",
-      "maxTokens": 8700,
+      "maxTokens": 100000,
       "temperature": 0.1
     },
     "fallback": {

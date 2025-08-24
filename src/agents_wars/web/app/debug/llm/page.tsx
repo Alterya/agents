@@ -48,10 +48,14 @@ export default function LlmDebugPage() {
   };
 
   return (
-    <main className="space-y-4 p-6">
-      <h1 className="text-xl font-semibold">LLM Debug</h1>
+    <main className="space-y-4 p-6" style={{ backgroundColor: "#ECEADF" }}>
+      <h1 className="text-xl font-semibold" style={{ color: "#3F404C" }}>LLM Debug</h1>
       <KeyStatusBanner />
-      <form onSubmit={onSubmit} className="space-y-2">
+      <form
+        onSubmit={onSubmit}
+        className="space-y-2 rounded-[12px]"
+        style={{ background: "#fff", border: "1px solid #DFD4CA", padding: "24px", boxShadow: "0 1px 3px rgba(63,64,76,0.1), 0 1px 2px rgba(63,64,76,0.06)" }}
+      >
         <ProviderModelSelector
           provider={provider}
           model={model}

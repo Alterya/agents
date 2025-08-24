@@ -1,0 +1,43 @@
+# Task ID: 26
+# Title: Implement Dashboard Layout and Components
+# Status: pending
+# Dependencies: 22, 25, 21
+# Priority: high
+# Description: Develop the main dashboard layout and components according to the specified zip design, including a header, stats grid, activity feed, and quick action buttons.
+# Details:
+1. Create a new file `src/dashboard/index.tsx` for the dashboard component. 2. Implement a header that welcomes the user and displays relevant stats. 3. Design a 4-card grid layout for displaying statistics using the Card component from the design system. 4. Integrate a recent activity feed that lists user activities, ensuring it is scrollable and responsive. 5. Add quick action buttons that allow users to perform common tasks directly from the dashboard. 6. Ensure all components are responsive and utilize the design tokens defined in the brand-wide design system. 7. Implement accessibility features to ensure compliance with a11y standards, including proper ARIA roles and keyboard navigation support.
+
+# Test Strategy:
+1. Verify that the dashboard renders correctly at the root URL `/` and matches the design specifications from the zip file. 2. Check that the header displays the welcome message and stats accurately. 3. Test the responsiveness of the 4-card grid and ensure it adapts to different screen sizes. 4. Validate that the recent activity feed updates correctly and is scrollable. 5. Ensure that all quick action buttons are functional and accessible. 6. Conduct accessibility testing to confirm compliance with a11y standards, including screen reader compatibility and keyboard navigation.
+
+# Subtasks:
+## 1. Dashboard header and welcome block [pending]
+### Dependencies: None
+### Description: Implement top header with title, subtitle, and actions per zip.
+### Details:
+
+
+## 2. Stats 4-card grid [pending]
+### Dependencies: None
+### Description: Build KPI cards with labels, values, trend indicators, and icons; responsive grid.
+### Details:
+
+
+## 3. Recent activity list [pending]
+### Dependencies: None
+### Description: Scrollable activity feed with status badges and timestamps; a11y roles.
+### Details:
+
+
+## 4. Quick actions and developer tools [pending]
+### Dependencies: None
+### Description: Buttons linking to Model Wars, Conversation Sim, PromptBRO; outline Dev Tools button.
+### Details:
+
+
+## 5. Responsive and accessibility polish [pending]
+### Dependencies: None
+### Description: Ensure grids collapse correctly; add aria labels; keyboard focus order.
+### Details:
+
+

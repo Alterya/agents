@@ -199,8 +199,8 @@ export default function PromptBroPage() {
   };
 
   return (
-    <main className="space-y-4 p-6">
-      <h1 className="text-xl font-semibold">PromptBro</h1>
+    <main className="space-y-4 p-6" style={{ backgroundColor: "#ECEADF" }}>
+      <h1 className="text-xl font-semibold" style={{ color: "#3F404C" }}>PromptBro</h1>
       <KeyStatusBanner />
       <div className="space-y-2">
         <ProviderModelSelector
@@ -212,7 +212,10 @@ export default function PromptBroPage() {
           }}
         />
       </div>
-      <section className="space-y-2">
+      <section
+        className="space-y-2 rounded-[12px]"
+        style={{ background: "#fff", border: "1px solid #DFD4CA", padding: "24px", boxShadow: "0 1px 3px rgba(63,64,76,0.1), 0 1px 2px rgba(63,64,76,0.06)" }}
+      >
         <h2 className="text-lg font-medium">Describe your task</h2>
         {errorMsg && (
           <div
@@ -242,7 +245,10 @@ export default function PromptBroPage() {
         </Button>
         <pre className="min-h-24 whitespace-pre-wrap break-words border p-2">{assistant}</pre>
       </section>
-      <section className="space-y-2">
+      <section
+        className="space-y-2 rounded-[12px]"
+        style={{ background: "#fff", border: "1px solid #DFD4CA", padding: "24px", boxShadow: "0 1px 3px rgba(63,64,76,0.1), 0 1px 2px rgba(63,64,76,0.06)" }}
+      >
         <h2 className="text-lg font-medium">Draft Template</h2>
         <div className="space-x-2">
           <label>
@@ -268,7 +274,7 @@ export default function PromptBroPage() {
             {Object.keys(varValues).length === 0 && (
               <span className="text-sm text-gray-500">No variables detected</span>
             )}
-            {Object.entries(varValues).map(([k, v]) => (
+            {Object.entries(varValues).map(([k, v]: [string, string]) => (
               <label key={k} className="text-sm">
                 <span className="mr-1 font-medium">{`{{${k}}}`}:</span>
                 <Input
@@ -330,7 +336,10 @@ export default function PromptBroPage() {
           <pre className="min-h-24 whitespace-pre-wrap break-words border p-2">{assembled}</pre>
         </div>
       </section>
-      <section className="space-y-2">
+      <section
+        className="space-y-2 rounded-[12px]"
+        style={{ background: "#fff", border: "1px solid #DFD4CA", padding: "24px", boxShadow: "0 1px 3px rgba(63,64,76,0.1), 0 1px 2px rgba(63,64,76,0.06)" }}
+      >
         <h2 className="text-lg font-medium">Versions</h2>
         <ul className="list-disc pl-6">
           {versions.length === 0 && <li className="text-sm text-gray-500">No versions saved</li>}
@@ -350,7 +359,10 @@ export default function PromptBroPage() {
           ))}
         </ul>
       </section>
-      <section className="space-y-2">
+      <section
+        className="space-y-2 rounded-[12px]"
+        style={{ background: "#fff", border: "1px solid #DFD4CA", padding: "24px", boxShadow: "0 1px 3px rgba(63,64,76,0.1), 0 1px 2px rgba(63,64,76,0.06)" }}
+      >
         <h2 className="text-lg font-medium">Quick Checks</h2>
         <Button
           className="border"

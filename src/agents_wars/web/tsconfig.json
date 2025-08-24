@@ -11,8 +11,8 @@
     "downlevelIteration": true,
     "skipLibCheck": true,
     "paths": {
-      "@/*": ["src/*"],
-      "app/*": ["app/*"]
+      "@/*": ["./src/*"],
+      "app/*": ["./app/*"]
     },
     "types": ["node", "vitest/globals", "react", "react-dom"],
     "allowJs": true,

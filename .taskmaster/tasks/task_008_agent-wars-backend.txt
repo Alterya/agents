@@ -27,7 +27,19 @@
 ### Dependencies: None
 ### Description: Ensure CI runs make -C src/agents_wars check. Connected to: agent-wars merge ticket. Type: ci
 ### Details:
+<info added on 2025-08-20T13:24:44.575Z>
+Verified frontend integration and CI check path for agent-wars web:
 
+- Ensured pre-commit hook runs only once and points to repo root make targets: quality + test
+- Added missing src/agents_wars/web/.env.example with sensible defaults for DATABASE_URL, DIRECT_URL, provider keys, REDIS_URL placeholder
+- Ran install, prisma format/validate, typecheck, lint, and Prettier write
+- Fixed provider-status test to match current flat JSON response shape (openaiConfigured/openrouterConfigured at root)
+- Enabled full logic for runners in test mode (removed early short-circuits) so mocks drive behavior; this aligns with frontend expectations and integration tests
+- Re-ran unit tests: all 86 passed locally; warnings from React act() remain but non-blocking
+- check target now green: lint, typecheck, tests pass
+
+Next: run e2e locally if needed; otherwise CI should pick up make -C src/agents_wars check.
+</info added on 2025-08-20T13:24:44.575Z>
 
 ## 4. Integration test: cascade delete on Message->Conversation (test) [done]
 ### Dependencies: None

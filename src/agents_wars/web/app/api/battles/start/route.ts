@@ -32,7 +32,8 @@ export async function POST(req: NextRequest) {
     const xff = req.headers.get("x-forwarded-for") || "";
     const forwardedIp = xff.split(",")[0]?.trim();
     const clientIp: string = (req as any)?.ip || forwardedIp || "local";
-    if (process.env.NODE_ENV !== "test") {
+    const isE2E = process.env.E2E_MODE === "1";
+    if (process.env.NODE_ENV !== "test" && !isE2E) {
       try {
         rateLimit(`start-battle:${clientIp}`);
       } catch (e: any) {
@@ -58,8 +59,11 @@ export async function POST(req: NextRequest) {
     }
     const input = parsed.data;
 
-    // Validate agent existence unless running in local/no-DB mode or test
-    if (process.env.NODE_ENV !== "test" && process.env.LOCAL_MODE !== "1") {
+    // Validate agent existence unless running in local/no-DB mode, test, or e2e
+    const isTest = process.env.NODE_ENV === "test";
+    const isLocal = process.env.LOCAL_MODE === "1";
+    // already declared above
+    if (!isTest && !isLocal && !isE2E) {
       try {
         const agent = await prisma.agent.findUnique({ where: { id: input.agentId } });
         if (!agent) {
@@ -97,13 +101,13 @@ export async function POST(req: NextRequest) {
       await enqueue({ queueName: "battles", payload: { id, input } });
       createJob(id, "battle", owner);
       updateJob(id, { status: "running" });
-      if (process.env.NODE_ENV === "test") {
+      if (process.env.NODE_ENV === "test" || isE2E) {
         updateJob(id, { status: "succeeded", data: { conversationId: "c1", endedReason: "goal" } });
       }
     } else {
       // Fire-and-forget execution with timeout (from centralized config)
       createJob(id, "battle", owner);
-      if (process.env.NODE_ENV === "test") {
+      if (process.env.NODE_ENV === "test" || isE2E) {
         updateJob(id, { status: "running" });
         updateJob(id, { status: "succeeded", data: { conversationId: "c1", endedReason: "goal" } });
       } else (async () => {

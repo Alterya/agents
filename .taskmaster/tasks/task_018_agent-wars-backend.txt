@@ -1,0 +1,43 @@
+# Task ID: 18
+# Title: Backend: PromptBRO APIs
+# Status: pending
+# Dependencies: 13
+# Priority: medium
+# Description: Develop backend APIs for PromptBRO, including generation, optimization, and version retrieval.
+# Details:
+1. Implement the POST /api/prompt-bro/generate endpoint to accept input parameters for prompt generation, ensuring proper validation and error handling. 2. Create the POST /api/prompt-bro/optimize endpoint to accept parameters for optimizing prompts, with validation to ensure inputs are correct. 3. Develop the GET /api/prompt-bro/versions endpoint to retrieve available versions of the PromptBRO API, ensuring the response format adheres to the API guide. 4. Implement rate limiting for the POST endpoints to prevent abuse and ensure fair usage. 5. Ensure all endpoints return responses in the correct JSON shape as specified in the API guide, and include appropriate HTTP status codes for success and error cases.
+
+# Test Strategy:
+1. Write unit tests for each endpoint to ensure they return the correct JSON shapes and status codes as specified in the API guide. 2. Validate that input data for POST requests is correctly handled and that appropriate error messages are returned for invalid data. 3. Create integration tests to verify that the endpoints function correctly when called with valid data and that rate limiting is enforced. 4. Test the GET /api/prompt-bro/versions endpoint to ensure it returns the correct list of versions.
+
+# Subtasks:
+## 1. Define zod schemas for PromptBRO [pending]
+### Dependencies: None
+### Description: Schemas for generate/optimize inputs and versions response; error mapping.
+### Details:
+
+
+## 2. POST /api/prompt-bro/generate [pending]
+### Dependencies: None
+### Description: Validate parameters; return prompt text and initial score placeholder.
+### Details:
+
+
+## 3. POST /api/prompt-bro/optimize [pending]
+### Dependencies: None
+### Description: Return suggestions with types/impact; ensure deterministic placeholder responses.
+### Details:
+
+
+## 4. GET /api/prompt-bro/versions [pending]
+### Dependencies: None
+### Description: Return versions list with metadata and scores; pagination support.
+### Details:
+
+
+## 5. Tests and rate limiting [pending]
+### Dependencies: None
+### Description: Add unit/integration tests; apply basic rate limiting to generate/optimize; structured errors.
+### Details:
+
+

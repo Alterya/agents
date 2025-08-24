@@ -3,6 +3,8 @@
 @tailwind utilities;
 
 :root {
+  --color-primary-500: 0.55 0.15 35;
+  --color-secondary-500: 0.65 0.18 25;
   color-scheme: dark;
 }
 

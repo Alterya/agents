@@ -1,0 +1,73 @@
+# Task ID: 24
+# Title: Implement Prompt Wars Page Design Spec
+# Status: pending
+# Dependencies: 22, 21
+# Priority: high
+# Description: Develop the Prompt Wars page according to the provided design specifications, ensuring all elements are styled and functional as per the requirements.
+# Details:
+1. Create an outer container with a white background, 12px border radius, 1px #DFD4CA border, and subtle shadow. Implement a 12-column grid layout with a 24px gap for desktop and a single column for mobile. 2. Add a header with a title styled at 20px/600 weight in #3F404C and a subtitle at 14px with 70% opacity. 3. Implement a comparison mode toggle with specified colors and dimensions, ensuring smooth transitions. 4. Design prompt/model pairs as white cards with specific styling, including a header bar and action buttons. 5. Create form elements with defined styles for labels, selects, and textareas, ensuring focus states are implemented. 6. Set up a model selection grid with hover effects and selected states. 7. Add action buttons with specified styles and interactions. 8. Implement the opposing side configuration with radio buttons and labels. 9. Create a default scammer section with specified styles. 10. Ensure proper spacing between sections and interactive states for all elements. 11. Implement animations for transitions and interactive elements as specified.
+
+# Test Strategy:
+1. Verify that the page matches the design specifications exactly, including all styles, layouts, and responsive behaviors. 2. Conduct user testing to ensure all interactive elements function as expected, including the toggle and buttons. 3. Perform accessibility checks to ensure compliance with standards. 4. Use Playwright to run end-to-end tests to confirm that all elements are rendered correctly and that interactions work as intended.
+
+# Subtasks:
+## 1. Outer container card and 12-col grid [pending]
+### Dependencies: None
+### Description: White bg, radius 12px, 1px #DFD4CA border, subtle shadow; grid-cols-12 with 24px gap; mobile single column; lg:grid-cols-12.
+### Details:
+
+
+## 2. Header: title/subtitle and spacing [pending]
+### Dependencies: None
+### Description: Title 20/600 #3F404C; subtitle 14 #3F404C at 70% opacity; 16px gap; place toggle to the right.
+### Details:
+
+
+## 3. Comparison mode toggle switch [pending]
+### Dependencies: None
+### Description: Track: 44x24 radius 12; off #DFD4CA, on #FE6726; knob 20px white; smooth 0.2s; label 14/500; align top-right.
+### Details:
+
+
+## 4. Prompt/Model pairs wrapper (lg:col-span-8) [pending]
+### Dependencies: None
+### Description: Each pair is a white card with 8px radius, 1px #DFD4CA; header bar #ECEADF, 12x16 padding, flex-between; 32x32 icon buttons radius 6.
+### Details:
+
+
+## 5. Form elements: labels/selects/textarea styles [pending]
+### Dependencies: None
+### Description: Labels 14/500 #3F404C; selects border 1px #DFD4CA, radius 6, pad 8x12; textarea border 1px #DFD4CA, radius 6, pad 12, min-h 120, placeholder 50% opacity; focus border/orange outline.
+### Details:
+
+
+## 6. Model selection grid and cards [pending]
+### Dependencies: None
+### Description: grid-cols-2 with 12px gap; model cards white, 1px #DFD4CA, radius 6, pad 12; hover border orange + scale(1.02); selected border orange + 5% orange bg.
+### Details:
+
+
+## 7. Action buttons and icon buttons [pending]
+### Dependencies: None
+### Description: Add Comparison button: #FE6726, white text, 8x16 pad, radius 6, weight 500, 16px plus icon. Remove/Duplicate: transparent bg, 1px #DFD4CA, #3F404C text; hover bg #DFD4CA.
+### Details:
+
+
+## 8. Opposing side config (lg:col-span-4) [pending]
+### Dependencies: None
+### Description: Custom 16px radio group; selected = orange fill #FE6726 with white dot; labels 14/500; 12px spacing.
+### Details:
+
+
+## 9. Default scammer section block [pending]
+### Dependencies: None
+### Description: Light cream #ECEADF bg, radius 6, pad 16; preview text 12 #3F404C at 60% opacity.
+### Details:
+
+
+## 10. Spacing, interactive states, and animations [pending]
+### Dependencies: None
+### Description: 24px section gaps; form groups 16px; label-input 8px; card pad 20px, nested 16px; button gap 8px. Hover/active/focus per spec; transitions 0.2s ease-in-out; toggle transform 0.2s.
+### Details:
+
+

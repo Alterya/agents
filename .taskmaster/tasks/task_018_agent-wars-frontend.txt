@@ -1,6 +1,6 @@
 # Task ID: 18
 # Title: Support maxBudgetUsd preflight for /api/scale/start
-# Status: review
+# Status: done
 # Dependencies: 6, 15
 # Priority: medium
 # Description: Implement support for an optional maxBudgetUsd parameter in the /api/scale/start endpoint to manage budget constraints during batch runs.

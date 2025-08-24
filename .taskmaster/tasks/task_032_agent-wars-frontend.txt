@@ -1,0 +1,43 @@
+# Task ID: 32
+# Title: Frontend: Theme Tokens and Font Setup
+# Status: pending
+# Dependencies: 26, 23
+# Priority: high
+# Description: Implement theme tokens and font setup in the frontend application, applying OKLCH theme variables and configuring CSS variables for fonts.
+# Details:
+1. Update `app/globals.css` to include OKLCH theme variables for colors and other design tokens. 2. Implement dark mode overrides for the theme variables to ensure proper styling in dark mode. 3. Set up `layout.tsx` to define CSS variables for the fonts Space Grotesk and DM Sans. 4. Ensure that the new theme tokens and fonts are applied throughout the application without causing regressions in existing styles. 5. Implement a feature flag to enable the new theme and font setup, ensuring that it does not affect the current production environment until activated.
+
+# Test Strategy:
+1. Verify that the application renders correctly with the new theme tokens and fonts applied. 2. Check that the dark mode styling is functioning as expected and that all elements are styled correctly. 3. Ensure that there are no regressions in the existing application styles by testing various pages and components. 4. Test the feature flag functionality to confirm that the new theme and font setup is only applied when the feature flag is enabled.
+
+# Subtasks:
+## 1. Apply OKLCH tokens in globals.css (light/dark) [pending]
+### Dependencies: None
+### Description: Define color tokens and dark mode overrides per guide in app/globals.css.
+### Details:
+
+
+## 2. Set up Space Grotesk + DM Sans in layout [pending]
+### Dependencies: None
+### Description: Configure next/font in app/layout.tsx with CSS variables; apply to html class.
+### Details:
+
+
+## 3. ThemeProvider wiring and variables [pending]
+### Dependencies: None
+### Description: Ensure ThemeProvider (if used) and CSS variables are consumed by shadcn components.
+### Details:
+
+
+## 4. Feature flag/scoping to avoid regressions [pending]
+### Dependencies: None
+### Description: Guard new theme behind flag or scope to new pages until rollout is approved.
+### Details:
+
+
+## 5. Contrast/a11y verification and snapshots [pending]
+### Dependencies: None
+### Description: Verify contrast, focus rings; add minimal visual or unit snapshots.
+### Details:
+
+

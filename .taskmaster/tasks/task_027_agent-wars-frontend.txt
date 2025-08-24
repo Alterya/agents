@@ -1,0 +1,43 @@
+# Task ID: 27
+# Title: Model Wars Page Implementation
+# Status: pending
+# Dependencies: 24, 25, 22
+# Priority: high
+# Description: Develop the Model Wars page excluding the Conversation Setup, implementing all specified sections and layout as per the design.
+# Details:
+1. Create a new file `src/model-wars/page.tsx` for the Model Wars component. 2. Implement the header section that includes the title and any relevant navigation. 3. Develop the active conversations section to display ongoing discussions. 4. Create the conversation analysis section to provide insights on the conversations. 5. Implement the agent hive reports section to show performance metrics of agents. 6. Add the prompt scoring section to evaluate the effectiveness of prompts used. 7. Ensure the layout includes a sidebar for navigation and a main content area, structured with two grid rows of paired cards for displaying information. 8. Style all components to match the design specifications provided in the zip file, ensuring responsiveness and accessibility.
+
+# Test Strategy:
+1. Verify that the Model Wars page renders correctly at the `/model-wars` URL and matches the design specifications from the zip file. 2. Check that all sections (header, active conversations, conversation analysis, agent hive reports, prompt scoring) are present and styled appropriately. 3. Test the responsiveness of the layout on different screen sizes to ensure usability. 4. Conduct accessibility checks to ensure compliance with standards.
+
+# Subtasks:
+## 1. Model Wars header [pending]
+### Dependencies: None
+### Description: Implement page header with title, subtitle, and actions matching zip.
+### Details:
+
+
+## 2. Active conversations card [pending]
+### Dependencies: None
+### Description: List active conversations with status, progress bars, and timestamps.
+### Details:
+
+
+## 3. Conversation analysis card [pending]
+### Dependencies: None
+### Description: Charts/table placeholders for analysis; sortable headers.
+### Details:
+
+
+## 4. Agent Hive reports [pending]
+### Dependencies: None
+### Description: Section to display aggregated agent reports; card layout per zip.
+### Details:
+
+
+## 5. Prompt scoring [pending]
+### Dependencies: None
+### Description: Scoring panel UI with badges and metrics; responsive grid.
+### Details:
+
+

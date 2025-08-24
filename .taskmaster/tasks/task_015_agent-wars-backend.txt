@@ -1,0 +1,43 @@
+# Task ID: 15
+# Title: Implement Dashboard APIs for Key Metrics and Activity
+# Status: pending
+# Dependencies: 12, 13
+# Priority: high
+# Description: Develop backend APIs to provide key metrics and recent activity for the dashboard.
+# Details:
+1. Create a new route handler for GET /api/dashboard/stats that retrieves key metrics from the database and formats them as JSON according to the specified shape in the API guide. 2. Implement a second route handler for GET /api/dashboard/activity that fetches recent activity items, ensuring the response aligns with the expected JSON structure. 3. Implement caching headers for both endpoints to optimize performance and reduce server load. 4. Ensure that both APIs are secured and validate user permissions before returning data. 5. Write necessary middleware for error handling and logging. 6. Update API documentation to include the new endpoints and their expected request/response formats.
+
+# Test Strategy:
+1. Write unit tests for both route handlers to ensure they return the correct JSON shapes as specified in the API guide. 2. Validate that caching headers are correctly set in the responses. 3. Create integration tests to verify that the APIs return the expected data when called with valid and invalid parameters. 4. Test the security measures to ensure unauthorized users cannot access the endpoints. 5. Review the API documentation for accuracy and completeness.
+
+# Subtasks:
+## 1. Define zod schemas for stats/activity [pending]
+### Dependencies: None
+### Description: Response and error schemas for /api/dashboard/stats and /activity.
+### Details:
+
+
+## 2. Implement GET /api/dashboard/stats with caching [pending]
+### Dependencies: None
+### Description: Add route with sensible cache headers and error mapping.
+### Details:
+
+
+## 3. Implement GET /api/dashboard/activity with pagination [pending]
+### Dependencies: None
+### Description: Add route with limit/offset; sort by timestamp desc.
+### Details:
+
+
+## 4. Tests for stats and activity routes [pending]
+### Dependencies: None
+### Description: Unit/integration tests covering happy paths and errors.
+### Details:
+
+
+## 5. Observability and logging [pending]
+### Dependencies: None
+### Description: Add minimal request logging, status metrics, and structured errors.
+### Details:
+
+

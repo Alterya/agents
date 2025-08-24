@@ -1,4 +1,4 @@
-import { ensureWorkers } from "@/lib/queue/workers";
+import { ensureWorkers } from "./src/lib/queue/workers";
 
 // Simple worker entry: require REDIS_URL and spin up handlers
 if (!process.env.REDIS_URL) {

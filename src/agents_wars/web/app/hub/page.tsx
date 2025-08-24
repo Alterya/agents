@@ -570,8 +570,8 @@ export default function HubPage() {
   }, [arenaSummary]);
 
   return (
-    <main className="mx-auto grid max-w-5xl gap-4 p-6">
-      <h1 className="text-2xl text-blue-300">Agent Wars Hub</h1>
+    <main className="mx-auto grid max-w-5xl gap-4 p-6" style={{ backgroundColor: "#ECEADF" }}>
+      <h1 className="text-2xl font-semibold" style={{ color: "#3F404C" }}>Agent Wars Hub</h1>
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "hub" | "arena")}>
         <TabsList>
           <TabsTrigger value="hub">Hub</TabsTrigger>
@@ -581,16 +581,21 @@ export default function HubPage() {
 
       {activeTab === "hub" ? (
         <>
-          <section className="grid gap-3 rounded-xl bg-slate-900/70 p-4">
+          <section
+            className="grid gap-3 rounded-[12px]"
+            style={{ background: "#fff", border: "1px solid #DFD4CA", padding: "24px", boxShadow: "0 1px 3px rgba(63,64,76,0.1), 0 1px 2px rgba(63,64,76,0.06)" }}
+          >
             {agentsError ? (
               <div className="text-sm text-yellow-300">Failed to load agents</div>
             ) : null}
             <div className="grid gap-1">
-              <Label className="text-sm text-slate-300">Agent</Label>
+              <Label className="text-sm" style={{ color: "#3F404C" }}>Agent</Label>
               <Select
                 value={agentId}
                 onChange={(e) => setAgentId(e.target.value)}
                 data-testid="agent-id"
+                className="border"
+                style={{ borderColor: "#DFD4CA" }}
               >
                 <option value="">Select an agent…</option>
                 {agentsLoading ? (
@@ -624,28 +629,34 @@ export default function HubPage() {
               {errors.model && <div className="text-xs text-red-400">{errors.model}</div>}
             </div>
             <div className="grid gap-1">
-              <Label className="text-sm text-slate-300">System prompt (optional)</Label>
+              <Label className="text-sm" style={{ color: "#3F404C" }}>System prompt (optional)</Label>
               <Textarea
                 rows={3}
                 value={systemPrompt}
                 onChange={(e) => setSystemPrompt(e.target.value)}
                 data-testid="system-prompt"
+                className="border"
+                style={{ borderColor: "#DFD4CA" }}
               />
             </div>
             <div className="grid gap-1">
-              <Label className="text-sm text-slate-300">Goal (optional)</Label>
+              <Label className="text-sm" style={{ color: "#3F404C" }}>Goal (optional)</Label>
               <Input
                 value={goal}
                 onChange={(e) => setGoal(e.target.value)}
                 data-testid="goal"
+                className="border"
+                style={{ borderColor: "#DFD4CA" }}
               />
             </div>
             <div className="grid gap-1">
-              <Label className="text-sm text-slate-300">User message (optional)</Label>
+              <Label className="text-sm" style={{ color: "#3F404C" }}>User message (optional)</Label>
               <Input
                 value={userMessage}
                 onChange={(e) => setUserMessage(e.target.value)}
                 data-testid="user-message"
+                className="border"
+                style={{ borderColor: "#DFD4CA" }}
               />
             </div>
             <div className="flex items-center gap-2">
@@ -685,9 +696,13 @@ export default function HubPage() {
               sessions
                 .filter((v, i, arr) => arr.findIndex((x) => x.id === v.id) === i)
                 .map((s) => (
-                  <div key={s.id} className="grid gap-2 rounded-xl bg-slate-900/70 p-4">
+                  <div
+                    key={s.id}
+                    className="grid gap-2 rounded-[12px]"
+                    style={{ background: "#fff", border: "1px solid #DFD4CA", padding: "24px", boxShadow: "0 1px 3px rgba(63,64,76,0.1), 0 1px 2px rgba(63,64,76,0.06)" }}
+                  >
                     <div className="flex items-center justify-between">
-                      <h2 className="text-blue-400">Session {s.id}</h2>
+                      <h2 className="font-semibold" style={{ color: "#3F404C" }}>Session {s.id}</h2>
                       <div className="text-xs text-slate-400">
                         {s.agent
                           ? `${s.agent.name} · ${s.provider}/${s.model}`

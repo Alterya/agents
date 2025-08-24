@@ -94,7 +94,7 @@ describe("HubPage Arena Tab", () => {
   it("disables Start Arena until valid and enables after inputs", async () => {
     render(<HubPage />);
     // Switch to Arena tab
-    const arenaTab = screen.getByRole("button", { name: /arena/i });
+    const arenaTab = screen.getByRole("tab", { name: /arena \(a\/b\)/i });
     fireEvent.click(arenaTab);
 
     // Agent select

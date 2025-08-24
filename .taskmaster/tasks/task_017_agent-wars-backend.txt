@@ -1,0 +1,55 @@
+# Task ID: 17
+# Title: Backend: Conversation Simulation APIs
+# Status: pending
+# Dependencies: 12, 13
+# Priority: high
+# Description: Develop backend APIs for conversation simulation, including batch initiation, monitoring, template listing, and result retrieval.
+# Details:
+1. Implement the POST /api/conversation-sim/simulations endpoint to start a batch of conversation simulations. Ensure it accepts necessary parameters and validates input data. 2. Create the GET /api/conversation-sim/simulations endpoint to list and monitor ongoing simulations, returning their status and relevant details. 3. Develop the GET /api/conversation-sim/templates endpoint to retrieve a list of available templates for simulations. 4. Implement the GET /api/conversation-sim/results endpoint to fetch results by simulation ID, ensuring proper validation and error handling. 5. Set up a placeholder for SSE/WebSocket to provide real-time progress updates for ongoing simulations. 6. Ensure all endpoints adhere to the specified JSON shape in the API guide, implement caching where appropriate, and validate user permissions for access.
+
+# Test Strategy:
+1. Write unit tests for each endpoint to ensure they return the correct JSON shapes and status codes as specified in the API guide. 2. Validate that input data for POST requests is correctly handled and that appropriate error messages are returned for invalid data. 3. Create integration tests to ensure that the endpoints interact correctly with the database and return expected results. 4. Test the SSE/WebSocket implementation to verify that progress updates are sent correctly during ongoing simulations.
+
+# Subtasks:
+## 1. Define zod schemas for simulations/templates/results [pending]
+### Dependencies: None
+### Description: Request/response schemas and error mapping for all endpoints.
+### Details:
+
+
+## 2. POST /api/conversation-sim/simulations [pending]
+### Dependencies: None
+### Description: Start batch run; validate input; return id; enqueue placeholder.
+### Details:
+
+
+## 3. GET /api/conversation-sim/simulations [pending]
+### Dependencies: None
+### Description: List/poll simulations with status/progress; pagination and filters.
+### Details:
+
+
+## 4. GET /api/conversation-sim/templates [pending]
+### Dependencies: None
+### Description: Return available templates; support search/filtering; caching headers.
+### Details:
+
+
+## 5. GET /api/conversation-sim/results [pending]
+### Dependencies: None
+### Description: Return results for a simulation id; include metrics and summaries.
+### Details:
+
+
+## 6. Progress streaming placeholder [pending]
+### Dependencies: None
+### Description: SSE/WebSocket scaffold for simulation progress; document client usage.
+### Details:
+
+
+## 7. Tests for simulations/templates/results [pending]
+### Dependencies: None
+### Description: Add unit/integration tests for all endpoints, including pagination and errors.
+### Details:
+
+

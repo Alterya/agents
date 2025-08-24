@@ -1,0 +1,67 @@
+# Task ID: 23
+# Title: Apply 4-Color Design and Layout Spec to Main Landing Page
+# Status: pending
+# Dependencies: 21, 4
+# Priority: high
+# Description: Implement the exact 4-color design and layout specifications for the main landing page of the application.
+# Details:
+1. Apply the specified color palette using hex values: Dark Slate #3F404C for text and borders, Warm Beige #DFD4CA for secondary backgrounds and accents, Light Cream #ECEADF for the main page background and cards, and Bright Orange #FE6726 for primary links and accents. 2. Set the layout to have a full-viewport Light Cream background with a centered container that has a maximum width of 1280px and 24px horizontal padding. Use a CSS grid with 'repeat(auto-fit, minmax(300px, 1fr))' and a 24px gap. 3. Implement the typography system using the specified system stack and hierarchy. 4. Design cards with a white background, rounded corners, shadows, padding, and borders as specified. 5. Create buttons with the defined styles for primary and secondary actions. 6. Implement responsive design for mobile and tablet views as specified. 7. Ensure interactive states are applied correctly for hover, focus, and active states. 8. Conduct accessibility checks for contrast and focus visibility.
+
+# Test Strategy:
+1. Verify that the landing page matches the design specifications exactly, including colors, sizes, spacing, and interactive states. 2. Conduct accessibility tests to ensure compliance with contrast and focus visibility standards. 3. Perform end-to-end testing to confirm that all elements function as expected and that no other pages are affected by these changes. 4. Use visual regression testing to ensure that the layout remains consistent across different devices and screen sizes.
+
+# Subtasks:
+## 1. Page container and grid layout [pending]
+### Dependencies: None
+### Description: Set Light Cream #ECEADF page bg, 100vh container, centered max-w-1280 with px-24, grid repeat(auto-fit, minmax(300px, 1fr)) gap-24.
+### Details:
+
+
+## 2. Typography system (system stack + hierarchy) [pending]
+### Dependencies: None
+### Description: Apply system fonts and size/weight/colors: title 32/700, section 20/600, card title 18/600, body 14/400 with 70% opacity of #3F404C.
+### Details:
+
+
+## 3. Card component styles (page-local) [pending]
+### Dependencies: None
+### Description: White bg, radius 12px, border 1px #DFD4CA, shadow (0 1px 3px rgba(63,64,76,0.1), 0 1px 2px rgba(63,64,76,0.06)), padding 24px.
+### Details:
+
+
+## 4. Primary and secondary button variants (page-local) [pending]
+### Dependencies: None
+### Description: Primary: bg #FE6726, text white, px 24 py 12, radius 8, weight 500, hover #E55A1F. Secondary: bg #DFD4CA, text #3F404C, hover #D4C7BC.
+### Details:
+
+
+## 5. Stats cards grid and content [pending]
+### Dependencies: None
+### Description: Responsive grid 4/2/1. Each card: 48x48 orange circle (#FE6726), number 28/700 #3F404C, label 14 at 60% opacity, trend 12.
+### Details:
+
+
+## 6. Navigation header and links [pending]
+### Dependencies: None
+### Description: Header: white bg, bottom border 1px #DFD4CA, height 64px, flex space-between; logo 24/700 #3F404C; links 14/500 #3F404C, hover #FE6726.
+### Details:
+
+
+## 7. Activity feed list styles [pending]
+### Dependencies: None
+### Description: Items: white bg, radius 8, border 1px #DFD4CA, 12px gap. Layout: flex with 32px avatar circle, text content, timestamp 12px at 50% opacity.
+### Details:
+
+
+## 8. Responsive breakpoints and spacing system [pending]
+### Dependencies: None
+### Description: Mobile <=640 single column and px=16; Tablet 641–1024 two-column stats; Desktop 1025+ four columns; spacing scale 8/16/24/32; margins 24 mobile, 32 desktop.
+### Details:
+
+
+## 9. Interactive states and focus rings [pending]
+### Dependencies: None
+### Description: Hover: scale(1.02) + shadow increase; Focus: 2px #FE6726 outline with 4px offset; Active: scale(0.98). Page-scoped only.
+### Details:
+
+

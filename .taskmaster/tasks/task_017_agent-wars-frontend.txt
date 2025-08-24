@@ -1,6 +1,6 @@
 # Task ID: 17
 # Title: Wire BullMQ queues for battles/scale when REDIS_URL is set
-# Status: review
+# Status: done
 # Dependencies: 6
 # Priority: low
 # Description: Implement BullMQ queues for managing battle and scale runs, utilizing Redis for job processing when available.
@@ -9,3 +9,35 @@
 
 # Test Strategy:
 1. Verify that jobs are correctly enqueued in BullMQ when REDIS_URL is set and that they are processed by the worker. 2. Test the fallback mechanism to ensure that jobs can run in-memory when Redis is not available. 3. Check that SSE correctly streams job status updates to the client. 4. Run unit tests to confirm that the feature flag and mocked BullMQ tests function as expected. 5. Conduct manual testing to ensure that the worker startup command operates correctly and that job processing behaves as intended.
+
+# Subtasks:
+## 1. Integrate BullMQ for Enqueuing Scale Runs [done]
+### Dependencies: None
+### Description: Modify the existing lib/queue/bull.ts file to integrate BullMQ for enqueuing scale runs when REDIS_URL is set.
+### Details:
+1. Install BullMQ package if not already installed. 2. Update lib/queue/bull.ts to create a BullMQ queue for scale runs. 3. Implement the enqueue logic to add jobs to the queue. 4. Ensure that job data includes necessary parameters for processing.
+
+## 2. Implement In-Memory Fallback [done]
+### Dependencies: 17.1
+### Description: Ensure that the system can fallback to in-memory execution when REDIS_URL is not set.
+### Details:
+1. Modify the job processing logic to check for REDIS_URL. 2. If REDIS_URL is not set, implement in-memory job execution logic. 3. Ensure that the in-memory execution mimics the behavior of BullMQ as closely as possible.
+
+## 3. Implement SSE for Job Status Updates [done]
+### Dependencies: 17.1
+### Description: Implement Server-Sent Events (SSE) to stream job status updates based on the progress of the BullMQ jobs.
+### Details:
+1. Set up an SSE endpoint in the backend. 2. Listen for job events from BullMQ (e.g., completed, failed). 3. Stream these events to the client using SSE. 4. Ensure that the client can handle and display these updates appropriately.
+
+## 4. Document Worker Start Command [done]
+### Dependencies: 17.1
+### Description: Document a simple command for starting the worker that processes the queued jobs.
+### Details:
+1. Create a documentation file or update existing documentation. 2. Include the command to start the BullMQ worker. 3. Provide examples and any necessary configuration options.
+
+## 5. Add Minimal Tests for New Functionality [done]
+### Dependencies: 17.1, 17.2, 17.3
+### Description: Add minimal tests for the new functionality, ensuring they are behind a feature flag or use mocked BullMQ to avoid dependencies on Redis during testing.
+### Details:
+1. Create unit tests for the BullMQ integration and in-memory fallback. 2. Use a feature flag to toggle the tests or mock BullMQ in the tests. 3. Ensure that tests cover job enqueuing, processing, and SSE updates.
+
