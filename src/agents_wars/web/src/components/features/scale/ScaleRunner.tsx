@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getPricing, estimateCostUsdFromUsage } from "../../lib/pricing";
+import { getPricing, estimateCostUsdFromUsage } from "@/lib/pricing";
 import { ProviderModelSelector } from "@/components/ProviderModelSelector";
 
 type Provider = "openai" | "openrouter";

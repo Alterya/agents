@@ -14,8 +14,8 @@ import {
   removeVersion,
   exportTemplateJson,
   analyzeDraft,
-} from "../src/lib/prompt";
-import type { TemplateSnapshot } from "../src/lib/prompt";
+} from "@/lib/prompt";
+import type { TemplateSnapshot } from "@/lib/prompt";
 
 const DRAFT_KEY = "promptbro:lastDraft";
 
@@ -274,7 +274,7 @@ export default function PromptBroPage() {
             {Object.keys(varValues).length === 0 && (
               <span className="text-sm text-gray-500">No variables detected</span>
             )}
-            {Object.entries(varValues).map(([k, v]) => (
+            {Object.entries(varValues).map(([k, v]: [string, string]) => (
               <label key={k} className="text-sm">
                 <span className="mr-1 font-medium">{`{{${k}}}`}:</span>
                 <Input
