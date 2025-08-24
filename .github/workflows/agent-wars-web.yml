@@ -81,6 +81,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Build (generates types)
+        run: npm run build
+
       - name: Typecheck
         run: npm run typecheck
 
