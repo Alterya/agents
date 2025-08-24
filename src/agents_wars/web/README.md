@@ -115,3 +115,4 @@ REDIS_URL=redis://localhost:6379 tsx worker.ts
 ```
 
 Without `REDIS_URL`, the app falls back to in‑memory execution automatically.
+# CI Test
