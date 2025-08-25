@@ -20,7 +20,8 @@ dependencies = [
     "asyncpg (>=0.29.0,<1.0.0)",
     "psycopg2 (>=2.9.10,<3.0.0)",
     "slack-bolt (>=1.23.0,<2.0.0)",
-    "aiohttp (>=3.12.15,<4.0.0)"
+    "aiohttp (>=3.12.15,<4.0.0)",
+    "kubernetes-asyncio (>=33.3.0,<34.0.0)"
 ]
 
 
@@ -33,3 +34,9 @@ packages = [
     { include = "app_agents", from = "src" },
     { include = "resources", from = "src" }
 ]
+
+[tool.mypy]
+
+[[tool.mypy.overrides]]
+module = ["kubernetes_asyncio", "kubernetes_asyncio.*"]
+ignore_missing_imports = true

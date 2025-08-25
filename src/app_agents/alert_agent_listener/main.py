@@ -37,7 +37,7 @@ async def on_im(body, client, say, logger):
         client=client,
         channel=message["channel"],
         latest_ts=message["ts"],  # include the triggering message as the anchor
-        limit=4,
+        limit=10,
     )
     
     await bright_data_mcp.connect()

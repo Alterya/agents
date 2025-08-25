@@ -163,9 +163,6 @@ GRAFANA_LOGS_AND_ALERTS_AGENT = Agent(
         instructions=PROFESSIONAL_GRAFANA_LOGS_AND_ALERTS_PROMPT,
         mcp_servers=[grafana_mcp],
         handoff_description="""
-        knows how to:
-        - Access to logs of services and analyze it, for error debug, status analysis, and just answering questions
-        - Grafana alerts, why they were triggered, what they are, and how to get the data from the logs and alerts.
-        If the user questions is related to one of the services, grafana alerts, or any type of logs, you should and you must use this handoff.
-        """,
+        Use for service/application logs and Grafana alerts: explain why an alert fired, retrieve/analyze logs over a time window, count errors, or answer log-based questions.
+        Requires target service/alert and a time range. Not for Kubernetes actions or SQL queries.""",
     )

@@ -1,6 +1,6 @@
 from agents import Agent
 from pydantic import BaseModel, Field
-from resources.tools.postgres_simple_select import DatabaseName, postgres_simple_select, postgres_simple_select_example_run
+from resources.tools.postgres_simple_select import DatabaseName, postgres_simple_select, postgres_simple_select_example_run, get_all_schemas_in_db, get_all_tables_in_schema
 
 class PostgresQueryParams(BaseModel):
     database_name: DatabaseName = Field(description="the name of the database to select from - like telegram_management", default=DatabaseName.ALTERYA_MAIN)
@@ -24,6 +24,7 @@ Given a user_question and optional query constraints, determine the minimal data
 - Prefer aggregation/filters to compute the answer instead of returning bulk rows. Retrieve only what is necessary to answer user_question.
 - Keep ORDER BY simple: <column> <ASC|DESC>. Use Postgres syntax unless a different sql_dialect is explicitly provided.
 - If results are paginated by the tool, iterate until you have enough to answer; otherwise clearly indicate how to fetch the remaining pages.
+- If the technical requirements are not clear, in most cases you have enough tools to get the information you need, infer the requirements from the data you have, use tools to validate it, and then before running validate all your conclusions with the user.
 - If the request is ambiguous, ask exactly one concise clarification question. If you cannot proceed or data is unavailable, respond exactly with: information unavailable
 
 ### CONTEXT
@@ -121,12 +122,10 @@ DB_SIMPLE_QUERY_AGENT = Agent(
         name="DB Simple Query Agent",
         model="gpt-5",
         instructions=PROFESSIONAL_DB_QUERY_PROMPT,
-        tools=[postgres_simple_select, postgres_simple_select_example_run],
+        tools=[postgres_simple_select, postgres_simple_select_example_run, get_all_schemas_in_db, get_all_tables_in_schema],
         handoff_description="""
-        knows how do do simple queues on alterya main postgres database (all the sql queries you will be asked for are from here), 
-        minimum knowledge he needs is schema_and_table_name, maximum is also columns, where clause, order_by, limit. 
-        If the message mentions SQL, table names, schema names, or 'select', prefer the postgres_simple_select_expert handoff..
-        The more specific the query, the better the results.
-        (all the sql queries you will be asked for are from here - default use this for queries)
+        Use for SQL against the alterya main Postgres database: SELECT queries, list schemas/tables, counts/filters/order/limit. 
+        Requires schema.table (ask if missing); optional columns/where/order/limit. 
+        Not for Elastic avatars, logs, or Kubernetes.
         """,
     )
