@@ -139,5 +139,7 @@ ELASTIC_QUERY_AGENT = Agent(
         model="gpt-5",
         instructions=PROFESSIONAL_DB_QUERY_PROMPT,
         tools=[elastic_query_search],
-        handoff_description="""You are an elastic agent that can answer questions about avatars and avatars related knowledge. if its an elastic object or avatar related questions, then you should and you must use this handoff""",
+        handoff_description="""
+        Use when the request concerns avatars data in Elasticsearch: find avatar(s) by ID or attributes, inspect avatar fields, search/list avatar documents, or run avatar-related aggregations.
+        Not for SQL/Postgres, Kubernetes operations, or Grafana logs/alerts.""",
     )
